@@ -28,7 +28,9 @@
   body.light-ui #drawingModeHelp{display:block;background:#eaf4ff;color:#164a7a;border-color:#1976d2}
   body.light-ui #drawingModeHelp .helpTitle{color:#0d47a1}
   kbd{padding:1px 5px;border:1px solid #666;border-radius:4px;background:#3a3a3a;color:#eee;font-size:12px} body.light-ui kbd{background:#eee;color:#222;border-color:#aaa}
-  input{color-scheme:dark} body.light-ui input{color-scheme:light}
+  input,textarea{color-scheme:dark} body.light-ui input,body.light-ui textarea{color-scheme:light}
+  body.light-ui #griPasteText,body.light-ui #griPasteNameInput{background:#fff;color:#222;border-color:#aaa}
+  body.light-ui #loadPastedGriButton{background:#f5f5f5;color:#222;border-color:#aaa}
   #confirmOverlay{display:none;position:absolute;inset:0;z-index:50;background:transparent}
   #confirmOverlay.center{background:rgba(0,0,0,.35);align-items:center;justify-content:center}
   #confirmOverlay.near{background:transparent}
@@ -99,6 +101,14 @@
       <div><kbd>N</kbd>：すべての立体データを消去</div>
     </div>
     <div class="small" style="margin-top:6px"><label>読み込む立体を選択：<input id="griFileInput" type="file" /></label></div>
+    <details id="ipadGriHelp" class="small" style="margin-top:6px;padding:7px 8px;border:1px solid #777;border-radius:8px">
+      <summary style="cursor:pointer;font-weight:700">iPadで .gri が半透明になる時</summary>
+      <div style="margin-top:6px">iPadOSのファイル選択で .gri が選べない場合は、ファイル名の拡張子を .txt に変更して読み込んでください。中身は同じなので、そのまま立体データとして読み込めます。</div>
+      <div style="margin-top:6px">または、.gri の中身をコピーして下に貼り付けても読み込めます。</div>
+      <textarea id="griPasteText" placeholder="ここに .gri の中身を貼り付け" style="box-sizing:border-box;width:100%;height:86px;margin-top:6px;padding:6px 8px;border-radius:6px;border:1px solid #666;background:#1f1f1f;color:#eee;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px"></textarea>
+      <input id="griPasteNameInput" type="text" value="pasted_model.gri" style="box-sizing:border-box;width:100%;margin-top:6px;padding:5px 7px;border-radius:6px;border:1px solid #666;background:#1f1f1f;color:#eee" />
+      <button id="loadPastedGriButton" type="button" style="margin-top:6px;padding:5px 9px;border-radius:8px;border:1px solid #666;background:#383838;color:#eee;cursor:pointer">貼り付けたGRIを読み込む</button>
+    </details>
     <div class="small" style="margin-top:8px">保存ファイル名：入力してください</div>
     <input id="saveFileNameInput" type="text" value="" placeholder="例：my_model（.griは自動で付きます）" style="box-sizing:border-box;width:100%;padding:6px 8px;border-radius:6px;border:1px solid #666;background:#1f1f1f;color:#eee" />
     <button id="saveGriButton" type="button" style="margin-top:6px;padding:6px 10px;border-radius:8px;border:1px solid #666;background:#383838;color:#eee;cursor:pointer">名前を指定して保存</button>
@@ -110,13 +120,13 @@
     <div id="padStatus" class="small">ゲームパッド：未接続 または 未操作</div>
     <div id="testStatus" class="small">自己テスト：未実行</div>
   </div>
-  <div id="viewer"><canvas id="canvas"></canvas><button id="viewModeButton" type="button">４面モードにする</button><div id="drawingModeLabel">描画モード</div><div id="appTitle">立体グリグリ Vide-Coded Edition V0.2</div><button id="modeToggleBottom" type="button">描画モードにする</button><div id="stepControl"><span id="stepLabel">ステップ：20mm</span><select id="stepSelect"><option value="20" selected>20mm</option><option value="10">10mm</option><option value="5">5mm</option><option value="1">1mm</option></select></div><div id="confirmOverlay"><div id="confirmBox"><div id="confirmMessage">本当に消しますか？</div><div class="buttons"><button id="confirmYes" type="button">はい</button><button id="confirmNo" type="button">いいえ</button></div></div></div><div id="aboutOverlay"><div id="aboutBox"><div id="aboutText"><p>この立体グリグリは1996年に原作であるMS-DOS版を作成した川俣純が、ChatGPTを用いたバイブコーディングにて30年後の2026年5月にChatGPT5.5と共に制作したものです。CC BYとしますので、ユーザーの判断にて自由に改変してご活用いただいて問題ありません。</p><p>ブラウザがあれば、HTMLファイル１つで動作するようにしてあります。動作検証はWindows11とmacOS Tahoeで行っています。iPadでHTMLファイルから起動することはできません。iPadの場合は、Webサーバー上にHTMLファイルを置きブラウザから開くことで動作します。</p></div><button id="aboutClose" type="button">閉じる</button></div></div></div>
+  <div id="viewer"><canvas id="canvas"></canvas><button id="viewModeButton" type="button">４面モードにする</button><div id="drawingModeLabel">描画モード</div><div id="appTitle">立体グリグリ Vide-Coded Edition V0.2</div><button id="modeToggleBottom" type="button">描画モードにする</button><div id="stepControl"><span id="stepLabel">ステップ：20mm</span><select id="stepSelect"><option value="20" selected>20mm</option><option value="10">10mm</option><option value="5">5mm</option><option value="1">1mm</option></select></div><div id="confirmOverlay"><div id="confirmBox"><div id="confirmMessage">本当に消しますか？</div><div class="buttons"><button id="confirmYes" type="button">はい</button><button id="confirmNo" type="button">いいえ</button></div></div></div><div id="aboutOverlay"><div id="aboutBox"><div id="aboutText"><p>この立体グリグリは1996年に原作であるMS-DOS版を作成した川俣純が、バイブコーディングにて30年後の2026年5月にChatGPT5.5と共に制作したものです。CC BYとしますので、ユーザーの判断にて自由に改変してご活用いただいて問題ありません。</p><p>ブラウザがあれば、HTMLファイル１つで動作するようにしてあります。動作検証はWindows11とmacOS Tahoeで行っています。iPadでHTMLファイルから起動することはできません。iPadの場合は、Webサーバー上にHTMLファイルを置きブラウザから開くことで動作します。</p></div><button id="aboutClose" type="button">閉じる</button></div></div></div>
 </div>
 <script>
 'use strict';
 const $=id=>document.getElementById(id);
 const canvas=$('canvas'),ctx=canvas.getContext('2d'),viewer=$('viewer');
-const viewModeButton=$('viewModeButton'),griFileInput=$('griFileInput'),saveGriButton=$('saveGriButton'),saveFileNameInput=$('saveFileNameInput'),confirmOverlay=$('confirmOverlay'),confirmBox=$('confirmBox'),confirmYes=$('confirmYes'),confirmNo=$('confirmNo'),confirmMessage=$('confirmMessage'),aboutOverlay=$('aboutOverlay'),aboutClose=$('aboutClose'),stepControl=$('stepControl'),stepLabel=$('stepLabel'),stepSelect=$('stepSelect'),modeToggleBottom=$('modeToggleBottom'),appTitle=$('appTitle');
+const viewModeButton=$('viewModeButton'),griFileInput=$('griFileInput'),griPasteText=$('griPasteText'),griPasteNameInput=$('griPasteNameInput'),loadPastedGriButton=$('loadPastedGriButton'),saveGriButton=$('saveGriButton'),saveFileNameInput=$('saveFileNameInput'),confirmOverlay=$('confirmOverlay'),confirmBox=$('confirmBox'),confirmYes=$('confirmYes'),confirmNo=$('confirmNo'),confirmMessage=$('confirmMessage'),aboutOverlay=$('aboutOverlay'),aboutClose=$('aboutClose'),stepControl=$('stepControl'),stepLabel=$('stepLabel'),stepSelect=$('stepSelect'),modeToggleBottom=$('modeToggleBottom'),appTitle=$('appTitle');
 const viewName=$('viewName'),fileStatus=$('fileStatus'),zoomStatus=$('zoomStatus'),lineWidthStatus=$('lineWidthStatus'),colorModeStatus=$('colorModeStatus'),beepStatus=$('beepStatus'),padStatus=$('padStatus'),testStatus=$('testStatus');
 const dualshockConnectedHelp=$('dualshockConnectedHelp'),dualshockDisconnectedHelp=$('dualshockDisconnectedHelp');
 let lon=Math.PI/4,lat=Math.atan(1/Math.sqrt(2));
@@ -346,8 +356,9 @@ function clearAllEdges(){
 function draw(){ctx.fillStyle=inverted?'#000':'#f4f4f4';ctx.fillRect(0,0,canvas.width,canvas.height);four?drawFour():drawView(lon,lat,{x:0,y:0,w:canvas.width,h:canvas.height},null,true,inverted)}
 function drawFour(){layout.forEach(([label,view,x,y,w,h])=>{const viewInverted=inverted||!!view;drawView(view?view[1]:lon,view?view[2]:lat,{x:x*canvas.width,y:y*canvas.height,w:w*canvas.width,h:h*canvas.height},label,!view,viewInverted)});ctx.strokeStyle=inverted?'#555':'#bbb';ctx.lineWidth=dpr();ctx.beginPath();ctx.moveTo(canvas.width/2,0);ctx.lineTo(canvas.width/2,canvas.height);ctx.moveTo(0,canvas.height/2);ctx.lineTo(canvas.width,canvas.height/2);ctx.stroke()}
 function drawView(lo,la,r,label,axis,viewInverted=inverted){const basis=viewBasis(lo,la),scale=(r.h/5.2)*zoom,cx=r.x+r.w/2,cy=r.y+r.h/2;ctx.save();ctx.fillStyle=viewInverted?'#000':'#f4f4f4';ctx.fillRect(r.x,r.y,r.w,r.h);ctx.beginPath();ctx.rect(r.x,r.y,r.w,r.h);ctx.clip();if(!viewInverted)originAxes(basis,scale,cx,cy);ctx.strokeStyle=viewInverted?'#fff':'#111';ctx.lineWidth=lineWidth*dpr();ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();for(const e of model.edges){const a=proj(e.a,basis,scale,cx,cy),b=proj(e.b,basis,scale,cx,cy);ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y)}ctx.stroke();if(!viewInverted&&axis)drawHoveredEdge(basis,scale,cx,cy);if(!viewInverted)drawPreviewEdge(basis,scale,cx,cy);if(!viewInverted)drawPointer(basis,scale,cx,cy,r);if(label)labelBox(label,r,viewInverted);if(axis)axes(basis,r,viewInverted);ctx.restore()}
-function labelBox(t,r,viewInverted=inverted){const s=dpr();ctx.fillStyle=viewInverted?'rgba(0,0,0,.7)':'rgba(255,255,255,.85)';ctx.strokeStyle=viewInverted?'#555':'#bbb';ctx.font=`${14*s}px sans-serif`;const w=ctx.measureText(t).width+20*s,h=28*s,x=r.x+10*s,y=r.y+(four&&t==='自由視点'?86:10)*s;ctx.beginPath();ctx.roundRect(x,y,w,h,8*s);ctx.fill();ctx.stroke();ctx.fillStyle=viewInverted?'#ccc':'#555';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(t,x+w/2,y+h/2)}
-function fourLabelRect(t,r){const s=dpr();ctx.save();ctx.font=`${14*s}px sans-serif`;const w=ctx.measureText(t).width+20*s,h=28*s,x=r.x+10*s,y=r.y+(four&&t==='自由視点'?86:10)*s;ctx.restore();return{x,y,w,h,label:t}}
+function labelBox(t,r,viewInverted=inverted){const rect=getLabelRect(t,r);const s=dpr();ctx.fillStyle=viewInverted?'rgba(0,0,0,.7)':'rgba(255,255,255,.85)';ctx.strokeStyle=viewInverted?'#555':'#bbb';ctx.font=`${14*s}px sans-serif`;ctx.beginPath();ctx.roundRect(rect.x,rect.y,rect.w,rect.h,8*s);ctx.fill();ctx.stroke();ctx.fillStyle=viewInverted?'#ccc':'#555';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(t,rect.x+rect.w/2,rect.y+rect.h/2)}
+function getLabelRect(t,r){const s=dpr();ctx.save();ctx.font=`${14*s}px sans-serif`;const w=ctx.measureText(t).width+20*s,h=28*s,x=r.x+10*s,y=(four&&t==='自由視点')?r.y+r.h-h-10*s:r.y+10*s;ctx.restore();return{x,y,w,h,label:t}}
+function fourLabelRect(t,r){return getLabelRect(t,r)}
 function getFourLabelHit(clientX,clientY){if(!four)return null;const p=clientToCanvasPoint(clientX,clientY);for(const [label,view,x,y,w,h] of layout){const rect=fourLabelRect(label,{x:x*canvas.width,y:y*canvas.height,w:w*canvas.width,h:h*canvas.height});if(pointInRect(p,rect))return{label,view};}return null;}
 function activateFourLabelView(hit){
   if(!hit)return false;
@@ -831,6 +842,18 @@ griFileInput.addEventListener('change',async e=>{
   }catch(err){
     console.error(err);
     fileStatus.textContent=`読み込みエラー：${err.message||err}`;
+  }
+});
+loadPastedGriButton.addEventListener('click',()=>{
+  try{
+    const text=String(griPasteText.value||'');
+    if(!text.trim())throw Error('貼り付け欄が空です。');
+    const name=(griPasteNameInput.value||'pasted_model.gri').trim()||'pasted_model.gri';
+    loadGri(text,name);
+    fileStatus.textContent=`貼り付けから読み込み：${name} / ${model.actualEdgeCount}辺`;
+  }catch(err){
+    console.error(err);
+    fileStatus.textContent=`貼り付け読み込みエラー：${err.message||err}`;
   }
 });
 function readSelectedTextFile(file){
