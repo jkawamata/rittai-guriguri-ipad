@@ -1,48 +1,50 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>立体グリグリ Vide-Coded Edition for iPad V0.3</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>立体グリグリ Web 試作版</title>
 <style>
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif}
-#app{display:flex;width:100vw;height:100vh;background:#000}
-#info{box-sizing:border-box;width:320px;height:100vh;overflow-y:auto;flex:0 0 320px;padding:16px 14px;background:#2a2a2a;color:#d8d8d8;border-right:1px solid #444;font-size:14px;line-height:1.6;-webkit-user-select:none;user-select:none}
-#viewer{position:relative;flex:1;height:100vh;background:#000;min-width:0;overflow:hidden;padding-bottom:env(safe-area-inset-bottom,0px)}
-canvas{display:block;width:100%;height:100%;background:#000;touch-action:none}
-body.light-ui,body.light-ui #app,body.light-ui #viewer,body.light-ui canvas{background:#f4f4f4}
-body.light-ui #info{background:#fff;color:#222;border-right-color:#ccc}
-#viewModeButton{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:20;padding:8px 16px;border:1px solid #666;border-radius:999px;background:#2a2a2a;color:#eee;cursor:pointer;font-size:14px}
-body.light-ui #viewModeButton{background:#fff;color:#222;border-color:#aaa}
-#appTitle{position:absolute;right:14px;top:14px;z-index:80;padding:6px 10px;border:1px solid #555;border-radius:8px;background:rgba(0,0,0,.55);color:#66d9ff;font-size:13px;letter-spacing:.02em;cursor:pointer}
-body.light-ui #appTitle{background:rgba(255,255,255,.78);color:#0099cc;border-color:#bbb}
-#drawingModeLabel{display:none;position:absolute;left:18px;top:18px;z-index:21;color:#d00000;font-size:28px;font-weight:800;letter-spacing:.04em;pointer-events:none;text-shadow:0 1px 0 rgba(255,255,255,.85)}
-body.light-ui #drawingModeLabel{display:block}
-.small{color:#c4c4c4;font-size:12px} body.light-ui .small{color:#555}
-#dualshockHelp{margin-top:8px;padding:8px 10px;border:2px solid #fbc02d;border-radius:8px;background:rgba(251,192,45,.10);color:#ffe082;font-size:12px}
-#dualshockHelp .helpTitle{font-weight:800;color:#ffd54f;margin-bottom:4px}
-body.light-ui #dualshockHelp{background:#fff8df;color:#5d4300;border-color:#fbc02d}
-body.light-ui #dualshockHelp .helpTitle{color:#7a5600}
-#drawingModeHelp{display:none;margin-top:10px;padding:8px 10px;border:2px solid #1e88e5;border-radius:8px;background:rgba(30,136,229,.10);color:#90caf9;font-size:12px}
-#drawingModeHelp .helpTitle{font-weight:800;color:#64b5f6;margin-bottom:4px}
-body.light-ui #drawingModeHelp{display:block;background:#eaf4ff;color:#164a7a;border-color:#1976d2}
-body.light-ui #drawingModeHelp .helpTitle{color:#0d47a1}
-kbd{padding:1px 5px;border:1px solid #666;border-radius:4px;background:#3a3a3a;color:#eee;font-size:12px} body.light-ui kbd{background:#eee;color:#222;border-color:#aaa}
-input,select,button{font-family:inherit;font-size:14px}
-#modeToggleBottom{position:absolute;left:14px;bottom:calc(104px + env(safe-area-inset-bottom,0px));z-index:22;padding:8px 12px;border:1px solid #777;border-radius:10px;background:#222;color:#eee;font-size:15px;font-weight:700;box-shadow:none;cursor:pointer}
-body.light-ui #modeToggleBottom{background:#fff;color:#222;border-color:#777}
-#stepControl{display:none;position:absolute;left:14px;bottom:calc(54px + env(safe-area-inset-bottom,0px));z-index:22;padding:8px 10px;border:2px solid #1976d2;border-radius:10px;background:#eaf4ff;color:#0d47a1;font-size:15px;font-weight:800;box-shadow:0 2px 10px rgba(0,0,0,.18)}
-body.light-ui #stepControl{display:block}
-#stepLabel{cursor:pointer;-webkit-user-select:none;user-select:none}
-#stepSelect{display:none;margin-left:8px;font-size:15px;padding:3px 6px}
-#stepControl.open #stepSelect{display:inline-block}
-#confirmOverlay,#aboutOverlay{display:none;position:absolute;left:0;right:0;top:0;bottom:0;z-index:90;background:rgba(0,0,0,.35);align-items:center;justify-content:center}
-#confirmBox,#aboutBox{background:#fff;color:#222;border:2px solid #555;border-radius:12px;padding:18px 22px;max-width:560px;line-height:1.8;box-shadow:0 8px 30px rgba(0,0,0,.35);font-size:16px;text-align:center}
-#confirmBox .buttons{display:flex;gap:12px;justify-content:center;margin-top:16px}
-#confirmBox button,#aboutClose{padding:8px 18px;border-radius:8px;border:1px solid #888;background:#f5f5f5;color:#222;cursor:pointer;font-size:15px}
-#confirmYes{background:#d32f2f!important;color:#fff!important;border-color:#b71c1c!important}
-.fileButton{margin-top:6px;padding:6px 10px;border-radius:8px;border:1px solid #666;background:#383838;color:#eee;cursor:pointer}
-body.light-ui .fileButton{background:#eee;color:#222;border-color:#aaa}
+  html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;font-family:system-ui,"Hiragino Sans","Yu Gothic",sans-serif}
+  #app{display:flex;width:100vw;height:100vh;background:#000}
+  #info{box-sizing:border-box;width:320px;height:100vh;overflow-y:auto;flex:0 0 320px;padding:16px 14px;background:#2a2a2a;color:#d8d8d8;border-right:1px solid #444;font-size:14px;line-height:1.6;user-select:none}
+  #viewer{position:relative;flex:1;height:100vh;background:#000;min-width:0}
+  canvas{display:block;width:100%;height:100%;background:#000}
+  body.light-ui,body.light-ui #app,body.light-ui #viewer,body.light-ui canvas{background:#f4f4f4}
+  body.light-ui #info{background:#fff;color:#222;border-right-color:#ccc}
+  #viewModeButton{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:20;padding:8px 16px;border:1px solid #666;border-radius:999px;background:#2a2a2a;color:#eee;cursor:pointer}
+  #appTitle{position:absolute;right:14px;top:14px;z-index:80;padding:6px 10px;border:1px solid #555;border-radius:8px;background:rgba(0,0,0,.55);color:#ddd;font-size:13px;letter-spacing:.02em;pointer-events:auto;cursor:pointer}
+  #drawingModeLabel{display:none;position:absolute;left:18px;top:18px;z-index:21;color:#d00000;font-size:28px;font-weight:800;letter-spacing:.04em;pointer-events:none;text-shadow:0 1px 0 rgba(255,255,255,.85)}
+  body.light-ui #viewModeButton{background:#fff;color:#222;border-color:#aaa}
+  body.light-ui #appTitle{background:rgba(255,255,255,.78);color:#333;border-color:#bbb}
+  body.light-ui #drawingModeLabel{display:block}
+  .small{color:#c4c4c4;font-size:12px} body.light-ui .small{color:#555}
+  #dualshockHelp{margin-top:8px;padding:8px 10px;border:2px solid #fbc02d;border-radius:8px;background:rgba(251,192,45,.10);color:#ffe082;font-size:12px}
+  #dualshockHelp .helpTitle{font-weight:800;color:#ffd54f;margin-bottom:4px}
+  body.light-ui #dualshockHelp{background:#fff8df;color:#5d4300;border-color:#fbc02d}
+  body.light-ui #dualshockHelp .helpTitle{color:#7a5600}
+  #drawingModeHelp{display:none;margin-top:10px;padding:8px 10px;border:2px solid #1e88e5;border-radius:8px;background:rgba(30,136,229,.10);color:#90caf9;font-size:12px}
+  #drawingModeHelp .helpTitle{font-weight:800;color:#64b5f6;margin-bottom:4px}
+  body.light-ui #drawingModeHelp{display:block;background:#eaf4ff;color:#164a7a;border-color:#1976d2}
+  body.light-ui #drawingModeHelp .helpTitle{color:#0d47a1}
+  kbd{padding:1px 5px;border:1px solid #666;border-radius:4px;background:#3a3a3a;color:#eee;font-size:12px} body.light-ui kbd{background:#eee;color:#222;border-color:#aaa}
+  input{color-scheme:dark} body.light-ui input{color-scheme:light}
+  #confirmOverlay{display:none;position:absolute;inset:0;z-index:50;background:rgba(0,0,0,.35);align-items:center;justify-content:center}
+  #confirmBox{background:#fff;color:#222;border:2px solid #1976d2;border-radius:12px;padding:18px 22px;min-width:280px;box-shadow:0 8px 30px rgba(0,0,0,.35);text-align:center;font-size:16px}
+  #confirmBox .buttons{display:flex;gap:12px;justify-content:center;margin-top:16px}
+  #confirmBox button{padding:8px 18px;border-radius:8px;border:1px solid #888;cursor:pointer;font-size:15px}
+  #confirmYes{background:#d32f2f;color:#fff;border-color:#b71c1c!important}
+  #confirmNo{background:#f5f5f5;color:#222}
+  #aboutOverlay{display:none;position:absolute;inset:0;z-index:90;background:rgba(0,0,0,.35);align-items:center;justify-content:center}
+  #aboutBox{background:#fff;color:#222;border:2px solid #555;border-radius:12px;padding:18px 22px;max-width:560px;line-height:1.8;box-shadow:0 8px 30px rgba(0,0,0,.35);font-size:16px}
+  #aboutClose{display:block;margin:16px auto 0;padding:8px 22px;border-radius:8px;border:1px solid #888;background:#f5f5f5;color:#222;cursor:pointer;font-size:15px}
+  #modeToggleBottom{position:absolute;left:14px;bottom:62px;z-index:22;padding:8px 12px;border:1px solid #777;border-radius:10px;background:#222;color:#eee;font-size:15px;font-weight:700;box-shadow:none;cursor:pointer}
+  body.light-ui #modeToggleBottom{background:#fff;color:#222;border-color:#777}
+  #stepControl{display:none;position:absolute;left:14px;bottom:14px;z-index:22;padding:8px 10px;border:2px solid #1976d2;border-radius:10px;background:#eaf4ff;color:#0d47a1;font-size:15px;font-weight:800;box-shadow:0 2px 10px rgba(0,0,0,.18)}
+  body.light-ui #stepControl{display:block}
+  #stepLabel{cursor:pointer;user-select:none}
+  #stepSelect{display:none;margin-left:8px;font-size:15px;padding:3px 6px}
+  #stepControl.open #stepSelect{display:inline-block}
 </style>
 </head>
 <body>
@@ -51,82 +53,439 @@ body.light-ui .fileButton{background:#eee;color:#222;border-color:#aaa}
     <div id="viewName" style="font-weight:700;font-size:16px;margin-bottom:6px">等角図</div>
     <div id="dualshockHelp">
       <div class="helpTitle">DUALSHOCK 4 操作</div>
-      <div>左スティック：視点移動</div><div>右スティック上下：拡大縮小</div>
+      <div>左スティック：視点移動</div>
+      <div>右スティック上下：拡大縮小</div>
       <div>□：正面図　○：右側面図　△：平面図　×：等角図</div>
-      <div>方向キー上下：緯度方向に回転</div><div>方向キー左右：経度方向に回転</div>
-      <div>OPTIONS：通常モード/描画モード</div><div>SHARE：４面/１面モード切替</div>
+      <div>方向キー上下：緯度方向に回転</div>
+      <div>方向キー左右：経度方向に回転</div>
+      <div>OPTIONS：通常モード/描画モード</div>
+      <div>SHARE：４面/１面モード切替</div>
     </div>
     <div class="small" style="margin-top:8px">
-      <div><kbd>←</kbd>/<kbd>→</kbd>：経度方向</div><div><kbd>↑</kbd>/<kbd>↓</kbd>：緯度方向</div>
-      <div><kbd>Shift</kbd>+<kbd>↑</kbd>/<kbd>↓</kbd>：拡大縮小</div><div><kbd>+</kbd>/<kbd>-</kbd>：線の太さ</div>
-      <div><kbd>A</kbd>：自動調整</div><div><kbd>1</kbd>正面　<kbd>2</kbd>右側面　<kbd>3</kbd>平面　<kbd>4</kbd>等角</div>
-      <div><kbd>D</kbd>：通常モード/描画モード</div>
+      <div><kbd>←</kbd>/<kbd>→</kbd>：経度方向</div>
+      <div><kbd>↑</kbd>/<kbd>↓</kbd>：緯度方向</div>
+      <div><kbd>Shift</kbd>+<kbd>↑</kbd>/<kbd>↓</kbd>：拡大縮小</div>
+      <div><kbd>+</kbd>/<kbd>-</kbd>：線の太さ</div>
+      <div><kbd>A</kbd>：自動調整</div>
+      <div><kbd>1</kbd>正面　<kbd>2</kbd>右側面　<kbd>3</kbd>平面　<kbd>4</kbd>等角</div>
+      <div><kbd>B</kbd>：クリック音　<kbd>D</kbd>：通常モード/描画モード</div>
     </div>
     <div id="drawingModeHelp">
       <div class="helpTitle">描画モード専用操作</div>
-      <div><kbd>BS</kbd>：最後に書かれた辺を削除</div><div><kbd>Shift</kbd>+<kbd>BS</kbd>：直前に消した辺を戻す</div>
+      <div><kbd>BS</kbd>：最後に書かれた辺を削除</div>
+      <div><kbd>Shift</kbd>+<kbd>BS</kbd>：直前に消した辺を戻す</div>
       <div><kbd>X</kbd>/<kbd>Y</kbd>/<kbd>Z</kbd>：ポインタを各軸の正方向へ移動</div>
       <div><kbd>Shift</kbd>+<kbd>X</kbd>/<kbd>Y</kbd>/<kbd>Z</kbd>：ポインタを各軸の負方向へ移動</div>
-      <div><kbd>Enter</kbd>：始点を記録／終点として辺を追加</div><div><kbd>Esc</kbd>：始点・終点の記録をキャンセル</div>
+      <div><kbd>Enter</kbd>：始点を記録／終点として辺を追加</div>
+      <div><kbd>Esc</kbd>：始点・終点の記録をキャンセル</div>
       <div><kbd>N</kbd>：すべての立体データを消去</div>
     </div>
-    <div id="zoomStatus" class="small">表示倍率：100%</div><div id="lineWidthStatus" class="small">線の太さ：1.0</div>
-    <div id="colorModeStatus" class="small">表示モード：通常モード（黒背景・白線）</div>
-    <div class="small" style="margin-top:6px"><label>読み込む立体を選択：<input id="griFileInput" type="file" accept=".gri,.txt"></label></div>
+    <div id="zoomStatus" class="small">表示倍率：100%</div>
+    <div id="lineWidthStatus" class="small">線の太さ：1.0</div>
+    <div id="colorModeStatus" class="small">表示モード：反転（黒背景・白線）</div>
+    <div class="small" style="margin-top:6px"><label>読み込む立体を選択：<input id="griFileInput" type="file" accept=".gri,.txt" /></label></div>
     <div class="small" style="margin-top:8px">保存ファイル名：入力してください</div>
-    <input id="saveFileNameInput" type="text" value="" placeholder="例：my_model（.griは自動で付きます）" style="box-sizing:border-box;width:100%;padding:6px 8px;border-radius:6px;border:1px solid #666;background:#1f1f1f;color:#eee">
-    <button id="saveGriButton" type="button" class="fileButton">名前を指定して保存</button>
-    <div id="fileStatus" class="small">読み込み：内蔵 demo01.gri</div><div id="padStatus" class="small">ゲームパッド：未接続 または 未操作</div>
-    <div id="testStatus" class="small">iPad互換版：自己テストなし</div>
+    <input id="saveFileNameInput" type="text" value="" placeholder="例：my_model（.griは自動で付きます）" style="box-sizing:border-box;width:100%;padding:6px 8px;border-radius:6px;border:1px solid #666;background:#1f1f1f;color:#eee" />
+    <button id="saveGriButton" type="button" style="margin-top:6px;padding:6px 10px;border-radius:8px;border:1px solid #666;background:#383838;color:#eee;cursor:pointer">名前を指定して保存</button>
+    <div id="fileStatus" class="small">読み込み：内蔵サンプル</div>
+    <div id="beepStatus" class="small">クリック音：ON</div>
+    <div id="padStatus" class="small">ゲームパッド：未接続 または 未操作</div>
+    <div id="testStatus" class="small">自己テスト：未実行</div>
   </div>
-  <div id="viewer">
-    <canvas id="canvas"></canvas><button id="viewModeButton" type="button">４面モードにする</button>
-    <div id="drawingModeLabel">描画モード</div><div id="appTitle">立体グリグリ Vide-Coded Edition for iPad V0.3</div>
-    <button id="modeToggleBottom" type="button">描画モードにする</button>
-    <div id="stepControl"><span id="stepLabel">ステップ：20mm</span><select id="stepSelect"><option value="20" selected>20mm</option><option value="10">10mm</option><option value="5">5mm</option><option value="1">1mm</option></select></div>
-    <div id="confirmOverlay"><div id="confirmBox"><div>本当に消しますか？</div><div class="buttons"><button id="confirmYes" type="button">はい</button><button id="confirmNo" type="button">いいえ</button></div></div></div>
-    <div id="aboutOverlay"><div id="aboutBox"><div>この立体グリグリは1996年にMS-DOS版を作成した川俣純が、ChatGPTを用いたバイブコーディングにて30年後の2026年5月2日に５時間をかけて作成したものです</div><button id="aboutClose" type="button">閉じる</button></div></div>
-  </div>
+  <div id="viewer"><canvas id="canvas"></canvas><button id="viewModeButton" type="button">４面モードにする</button><div id="drawingModeLabel">描画モード</div><div id="appTitle">立体グリグリ Vide-Coded Edition V0.3</div><button id="modeToggleBottom" type="button">描画モードにする</button><div id="stepControl"><span id="stepLabel">ステップ：20mm</span><select id="stepSelect"><option value="20" selected>20mm</option><option value="10">10mm</option><option value="5">5mm</option><option value="1">1mm</option></select></div><div id="confirmOverlay"><div id="confirmBox"><div>本当に消しますか？</div><div class="buttons"><button id="confirmYes" type="button">はい</button><button id="confirmNo" type="button">いいえ</button></div></div></div><div id="aboutOverlay"><div id="aboutBox"><div>この立体グリグリは1996年にMS-DOS版を作成した川俣純が、ChatGPTを用いたバイブコーディングにて30年後の2026年5月2日に５時間をかけて作成したものです</div><button id="aboutClose" type="button">閉じる</button></div></div></div>
 </div>
 <script>
-(function(){'use strict';
-function el(id){return document.getElementById(id);}function vec(x,y,z){return{x:x,y:y,z:z};}
-function sub(a,b){return vec(a.x-b.x,a.y-b.y,a.z-b.z);}function mul(a,k){return vec(a.x*k,a.y*k,a.z*k);}function dot(a,b){return a.x*b.x+a.y*b.y+a.z*b.z;}
-function cross(a,b){return vec(a.y*b.z-a.z*b.y,a.z*b.x-a.x*b.z,a.x*b.y-a.y*b.x);}function len(a){return Math.sqrt(dot(a,a));}
-function norm(a){var l=len(a);if(!l){l=1;}return vec(a.x/l,a.y/l,a.z/l);}function clamp(x,a,b){return Math.max(a,Math.min(b,x));}
-function lerp(a,b,t){return a+(b-a)*t;}function dpr(){return window.devicePixelRatio||1;}function shortLon(c,t){var p=Math.PI*2;var d=((t-c+p*1.5)%p)-p/2;return c+d;}function copyVec(p){return vec(p.x,p.y,p.z);}
-function nums(s){var p=String(s).split(/\s+/),a=[],i;for(i=0;i<p.length;i++){if(p[i]!== ''){a.push(Number(p[i]));}}return a;}
-var canvas=el('canvas'),ctx=canvas.getContext('2d'),viewer=el('viewer'),viewModeButton=el('viewModeButton'),modeToggleBottom=el('modeToggleBottom'),appTitle=el('appTitle'),aboutOverlay=el('aboutOverlay'),aboutClose=el('aboutClose'),confirmOverlay=el('confirmOverlay'),confirmYes=el('confirmYes'),confirmNo=el('confirmNo'),griFileInput=el('griFileInput'),saveGriButton=el('saveGriButton'),saveFileNameInput=el('saveFileNameInput'),stepControl=el('stepControl'),stepLabel=el('stepLabel'),stepSelect=el('stepSelect'),viewName=el('viewName'),fileStatus=el('fileStatus'),zoomStatus=el('zoomStatus'),lineWidthStatus=el('lineWidthStatus'),colorModeStatus=el('colorModeStatus'),padStatus=el('padStatus');
-var LAT_LIMIT=Math.PI/2-0.02,TOP_LAT=Math.PI/2,lon=Math.PI/4,lat=Math.atan(1/Math.sqrt(2)),zoom=1,lineWidth=1,inverted=true,four=false,drawingPointer=vec(0,0,0),drawingStartPoint=null,drawingStep=20,moving=false,t0=0,duration=700,sLon=lon,sLat=lat,eLon=lon,eLat=lat,keys={},shift=false,prevButtons=[],undoStack=[];
-var views={front:['正面図',0,0],right:['右側面図',Math.PI/2,0],top:['平面図',0,TOP_LAT],iso:['等角図',Math.PI/4,Math.atan(1/Math.sqrt(2))]};
-var layout=[['平面図',views.top,0,0,0.5,0.5],['自由視点',null,0.5,0,0.5,0.5],['正面図',views.front,0,0.5,0.5,0.5],['右側面図',views.right,0.5,0.5,0.5,0.5]];
-var currentGriText=createSampleGri(),currentGriFileName='demo01.gri',model=parseGri(currentGriText,currentGriFileName);
-function createSampleGri(){return '15 40 40 20\n'+'0 0 0 80 0 0\n'+'80 0 0 80 40 0\n'+'80 40 0 40 80 0\n'+'40 80 0 0 80 0\n'+'0 80 0 0 0 0\n'+'0 0 0 0 0 40\n'+'0 0 40 80 0 40\n'+'80 0 40 80 40 40\n'+'80 40 40 40 80 40\n'+'40 80 40 0 80 40\n'+'0 80 40 0 0 40\n'+'0 80 40 0 80 0\n'+'40 80 0 40 80 40\n'+'80 40 40 80 40 0\n'+'80 0 0 80 0 40\n';}
-function parseGri(text,name){var lines=String(text||'').replace(/\r/g,'\n').split('\n'),clean=[],i,st;for(i=0;i<lines.length;i++){st=lines[i].replace(/^\s+|\s+$/g,'');if(st){clean.push(st);}}if(clean.length<1){throw new Error('GRIデータが空です。');}var h=nums(clean[0]),raw=[];if(h.length<4){throw new Error('1行目は「辺数 中心X 中心Y 中心Z」です。');}for(i=1;i<clean.length;i++){var a=nums(clean[i]);if(a.length>=6&&isFinite(a[0])&&isFinite(a[1])&&isFinite(a[2])&&isFinite(a[3])&&isFinite(a[4])&&isFinite(a[5])){raw.push({a:vec(a[0],a[1],a[2]),b:vec(a[3],a[4],a[5])});}}if(raw.length===0){var c0=vec(h[1],h[2],h[3]);return{edges:[],min:c0,max:c0,center:c0,scale:1,edgeCount:Math.round(h[0]),actualEdgeCount:0,fileName:name,source:clean[0]+'\n'};}var min=vec(Infinity,Infinity,Infinity),max=vec(-Infinity,-Infinity,-Infinity);for(i=0;i<raw.length;i++){expand(min,max,raw[i].a);expand(min,max,raw[i].b);}var c=vec((min.x+max.x)/2,(min.y+max.y)/2,(min.z+max.z)/2),size=Math.max(max.x-min.x,max.y-min.y,max.z-min.z,1),scale=4.2/size,edges=[];for(i=0;i<raw.length;i++){edges.push({a:mul(sub(raw[i].a,c),scale),b:mul(sub(raw[i].b,c),scale)});}return{edges:edges,min:min,max:max,center:c,scale:scale,edgeCount:Math.round(h[0]),actualEdgeCount:raw.length,fileName:name,source:text};}
-function expand(min,max,p){min.x=Math.min(min.x,p.x);min.y=Math.min(min.y,p.y);min.z=Math.min(min.z,p.z);max.x=Math.max(max.x,p.x);max.y=Math.max(max.y,p.y);max.z=Math.max(max.z,p.z);}function updateFileStatus(m){fileStatus.innerHTML='読み込み：'+m.fileName+' / '+m.actualEdgeCount+'辺';}
-function resize(){var r=viewer.getBoundingClientRect(),s=dpr();canvas.width=Math.max(1,Math.floor(r.width*s));canvas.height=Math.max(1,Math.floor(r.height*s));canvas.style.width=Math.floor(r.width)+'px';canvas.style.height=Math.floor(r.height)+'px';}
-function updateColor(keepZoom){if(inverted){document.body.className='';colorModeStatus.innerHTML='表示モード：通常モード（黒背景・白線）';modeToggleBottom.innerHTML='描画モードにする';}else{document.body.className='light-ui';colorModeStatus.innerHTML='表示モード：描画モード（白背景・黒線）';modeToggleBottom.innerHTML='通常モードにする';drawingPointer=vec(0,0,0);drawingStartPoint=null;}if(!keepZoom){fit();}}
-function toggleViewMode(){four=!four;viewModeButton.innerHTML=four?'１面モードにする':'４面モードにする';viewName.innerHTML=four?'４面モード':'自由視点';fit();}function toggleMode(){inverted=!inverted;updateColor(true);}
-function viewBasis(lo,la){if(Math.abs(Math.abs(la)-Math.PI/2)<0.000001){var sign=la>0?1:-1;return{right:vec(1,0,0),up:vec(0,0,-sign),forward:vec(0,sign,0)};}la=clamp(la,-LAT_LIMIT,LAT_LIMIT);var f=norm(vec(Math.cos(la)*Math.sin(lo),Math.sin(la),Math.cos(la)*Math.cos(lo))),right=cross(vec(0,1,0),f);right=len(right)<0.00001?vec(1,0,0):norm(right);return{right:right,up:norm(cross(f,right)),forward:f};}function proj(p,b,s,cx,cy){return{x:cx+dot(p,b.right)*s,y:cy-dot(p,b.up)*s};}function modelPoint(p){return mul(sub(p,model.center),model.scale||1);}
-function draw(){ctx.fillStyle=inverted?'#000':'#f4f4f4';ctx.fillRect(0,0,canvas.width,canvas.height);if(four){drawFour();}else{drawView(lon,lat,{x:0,y:0,w:canvas.width,h:canvas.height},null,true);}}function drawFour(){for(var i=0;i<layout.length;i++){var it=layout[i],view=it[1];drawView(view?view[1]:lon,view?view[2]:lat,{x:it[2]*canvas.width,y:it[3]*canvas.height,w:it[4]*canvas.width,h:it[5]*canvas.height},it[0],!view);}ctx.strokeStyle=inverted?'#555':'#bbb';ctx.lineWidth=dpr();ctx.beginPath();ctx.moveTo(canvas.width/2,0);ctx.lineTo(canvas.width/2,canvas.height);ctx.moveTo(0,canvas.height/2);ctx.lineTo(canvas.width,canvas.height/2);ctx.stroke();}
-function drawView(lo,la,r,label,axis){var basis=viewBasis(lo,la),scale=(r.h/5.2)*zoom,cx=r.x+r.w/2,cy=r.y+r.h/2;ctx.save();ctx.beginPath();ctx.rect(r.x,r.y,r.w,r.h);ctx.clip();if(!inverted){originAxes(basis,scale,cx,cy);}ctx.strokeStyle=inverted?'#fff':'#111';ctx.lineWidth=lineWidth*dpr();ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();for(var i=0;i<model.edges.length;i++){var e=model.edges[i],a=proj(e.a,basis,scale,cx,cy),b=proj(e.b,basis,scale,cx,cy);ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);}ctx.stroke();if(!inverted){drawPreviewEdge(basis,scale,cx,cy);drawPointer(basis,scale,cx,cy,r);}if(label){labelBox(label,r);}if(axis){axes(basis,r);}ctx.restore();}
-function labelBox(t,r){var s=dpr(),w,h,x,y;ctx.fillStyle=inverted?'rgba(0,0,0,.7)':'rgba(255,255,255,.85)';ctx.strokeStyle=inverted?'#555':'#bbb';ctx.font=(14*s)+'px sans-serif';w=ctx.measureText(t).width+20*s;h=28*s;x=r.x+10*s;y=r.y+(four&&t==='自由視点'?86:10)*s;roundRectPath(ctx,x,y,w,h,8*s);ctx.fill();ctx.stroke();ctx.fillStyle=inverted?'#ccc':'#555';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(t,x+w/2,y+h/2);}function roundRectPath(c,x,y,w,h,r){r=Math.min(r,w/2,h/2);c.beginPath();c.moveTo(x+r,y);c.lineTo(x+w-r,y);c.quadraticCurveTo(x+w,y,x+w,y+r);c.lineTo(x+w,y+h-r);c.quadraticCurveTo(x+w,y+h,x+w-r,y+h);c.lineTo(x+r,y+h);c.quadraticCurveTo(x,y+h,x,y+h-r);c.lineTo(x,y+r);c.quadraticCurveTo(x,y,x+r,y);}
-function axes(b,r){var s=dpr(),base={x:r.x+r.w-92*s,y:r.y+r.h-72*s},alen=38*s,items=[['X',vec(1,0,0),'#00bcd4'],['Y',vec(0,1,0),'#fbc02d'],['Z',vec(0,0,1),'#8bc34a']];ctx.font=(12*s)+'px sans-serif';for(var i=0;i<items.length;i++){var p=items[i][1],ax=dot(p,b.right)*alen,ay=-dot(p,b.up)*alen;ctx.strokeStyle=inverted?'#aaa':items[i][2];ctx.fillStyle=inverted?'#ccc':items[i][2];ctx.beginPath();ctx.moveTo(base.x,base.y);ctx.lineTo(base.x+ax,base.y+ay);ctx.stroke();ctx.fillText(items[i][0],base.x+ax*1.18,base.y+ay*1.18);}}
-function getAxisRawLength(){if(!model||!model.max){return 100;}var mx=Math.max(model.max.x,model.max.y,model.max.z);return mx>0?mx*1.2:100;}function originAxes(b,viewScale,cx,cy){var s=dpr(),axisLen=getAxisRawLength(),origin=modelPoint(vec(0,0,0)),items=[['X',modelPoint(vec(axisLen,0,0)),'#00bcd4'],['Y',modelPoint(vec(0,axisLen,0)),'#fbc02d'],['Z',modelPoint(vec(0,0,axisLen)),'#8bc34a']],o=proj(origin,b,viewScale,cx,cy);ctx.save();ctx.lineWidth=Math.max(2,2*s);ctx.font=(16*s)+'px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';for(var i=0;i<items.length;i++){var q=proj(items[i][1],b,viewScale,cx,cy);ctx.strokeStyle=items[i][2];ctx.fillStyle=items[i][2];ctx.beginPath();ctx.moveTo(o.x,o.y);ctx.lineTo(q.x,q.y);ctx.stroke();ctx.fillText(items[i][0],q.x+10*s,q.y-10*s);}ctx.restore();}
-function drawPointer(b,viewScale,cx,cy,r){var p=proj(modelPoint(drawingPointer),b,viewScale,cx,cy),dia=Math.max(2,Math.min(r.w,r.h)/100)*(four?2:1);ctx.save();ctx.fillStyle=drawingStartPoint?'#000':'#d00000';ctx.beginPath();ctx.arc(p.x,p.y,dia/2,0,Math.PI*2);ctx.fill();ctx.restore();}function drawPreviewEdge(b,viewScale,cx,cy){if(!drawingStartPoint){return;}var a=proj(modelPoint(drawingStartPoint),b,viewScale,cx,cy),p=proj(modelPoint(drawingPointer),b,viewScale,cx,cy);ctx.save();ctx.strokeStyle='#000';ctx.lineWidth=Math.max(1.5,lineWidth*dpr());if(ctx.setLineDash){ctx.setLineDash([6*dpr(),4*dpr()]);}ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(p.x,p.y);ctx.stroke();if(ctx.setLineDash){ctx.setLineDash([]);}ctx.restore();}
-function fit(lo,la){if(typeof lo==='undefined'){lo=lon;}if(typeof la==='undefined'){la=lat;}var b=viewBasis(lo,la),r=four?{w:canvas.width/2,h:canvas.height/2}:{w:canvas.width,h:canvas.height},minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;function addPoint(p){var x=dot(p,b.right),y=dot(p,b.up);minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y);}for(var i=0;i<model.edges.length;i++){addPoint(model.edges[i].a);addPoint(model.edges[i].b);}if(!inverted){var axisLen=getAxisRawLength();addPoint(modelPoint(vec(0,0,0)));addPoint(modelPoint(vec(axisLen,0,0)));addPoint(modelPoint(vec(0,axisLen,0)));addPoint(modelPoint(vec(0,0,axisLen)));if(model.max){var x=model.max.x,y=model.max.y,z=model.max.z;addPoint(modelPoint(vec(x,y,z)));addPoint(modelPoint(vec(x,0,0)));addPoint(modelPoint(vec(0,y,0)));addPoint(modelPoint(vec(0,0,z)));}}if(!isFinite(minX)){zoom=1;zoomStatus.innerHTML='表示倍率：100%（空）';return;}var base=r.h/5.2,spanX=Math.max(Math.abs(minX),Math.abs(maxX))*2||1,spanY=Math.max(Math.abs(minY),Math.abs(maxY))*2||1;zoom=clamp(Math.min(r.w*.82/(spanX*base),r.h*.82/(spanY*base)),.05,12);zoomStatus.innerHTML='表示倍率：'+Math.round(zoom*100)+'%（自動調整）';}
-function moveTo(view){moving=true;t0=nowTime();sLon=lon;sLat=lat;eLon=shortLon(lon,view[1]);eLat=view[2];viewName.innerHTML=view[0];}function updateMove(now){if(!moving){return;}var t=clamp((now-t0)/duration,0,1),u=t*t*(3-2*t);lon=lerp(sLon,eLon,u);lat=lerp(sLat,eLat,u);if(Math.abs(Math.abs(eLat)-TOP_LAT)>0.000001){lat=clamp(lat,-LAT_LIMIT,LAT_LIMIT);}if(t>=1){moving=false;lon=eLon;lat=eLat;}}function nowTime(){return(window.performance&&performance.now)?performance.now():(new Date()).getTime();}
-function moveDrawingPointer(axis,reverse){if(inverted){return;}var d=(reverse?-1:1)*drawingStep;if(axis==='x'){drawingPointer.x=Math.max(0,drawingPointer.x+d);}if(axis==='y'){drawingPointer.y=Math.max(0,drawingPointer.y+d);}if(axis==='z'){drawingPointer.z=Math.max(0,drawingPointer.z+d);}}function handleEnter(){if(inverted){return;}if(!drawingStartPoint){drawingStartPoint=copyVec(drawingPointer);return;}addEdgeFromStartToPointer();drawingStartPoint=null;}function cancelDrawingEdge(){if(drawingStartPoint){drawingPointer=copyVec(drawingStartPoint);}drawingStartPoint=null;}function addEdgeFromStartToPointer(){if(!drawingStartPoint){return;}undoStack.push(currentGriText);var edge=[drawingStartPoint.x,drawingStartPoint.y,drawingStartPoint.z,drawingPointer.x,drawingPointer.y,drawingPointer.z];currentGriText=appendEdgeToGriText(currentGriText,edge);model=parseGri(currentGriText,currentGriFileName);updateFileStatus(model);fit();}
-function appendEdgeToGriText(text,edge){var lines=String(text||'0 0 0 0').replace(/\r/g,'\n').split('\n'),clean=[],i,st;for(i=0;i<lines.length;i++){st=lines[i].replace(/^\s+|\s+$/g,'');if(st){clean.push(st);}}clean.push(Math.round(edge[0])+' '+Math.round(edge[1])+' '+Math.round(edge[2])+' '+Math.round(edge[3])+' '+Math.round(edge[4])+' '+Math.round(edge[5]));return rebuildGriHeader(clean);}function rebuildGriHeader(lines){var edgeLines=[],xs=[],ys=[],zs=[],i,a;for(i=1;i<lines.length;i++){a=nums(lines[i]);if(a.length>=6){edgeLines.push(Math.round(a[0])+' '+Math.round(a[1])+' '+Math.round(a[2])+' '+Math.round(a[3])+' '+Math.round(a[4])+' '+Math.round(a[5]));xs.push(a[0],a[3]);ys.push(a[1],a[4]);zs.push(a[2],a[5]);}}var cx=0,cy=0,cz=0;if(xs.length){cx=Math.round((Math.min.apply(null,xs)+Math.max.apply(null,xs))/2);cy=Math.round((Math.min.apply(null,ys)+Math.max.apply(null,ys))/2);cz=Math.round((Math.min.apply(null,zs)+Math.max.apply(null,zs))/2);}return edgeLines.length+' '+cx+' '+cy+' '+cz+'\n'+edgeLines.join('\n')+(edgeLines.length?'\n':'');}
-function removeLastEdge(){if(inverted){return;}var lines=String(currentGriText||'').replace(/\r/g,'\n').split('\n'),clean=[],i,st;for(i=0;i<lines.length;i++){st=lines[i].replace(/^\s+|\s+$/g,'');if(st){clean.push(st);}}if(clean.length<=1){return;}undoStack.push(currentGriText);clean.pop();currentGriText=rebuildGriHeader(clean);model=parseGri(currentGriText,currentGriFileName);if(model.actualEdgeCount===0){drawingPointer=vec(0,0,0);}updateFileStatus(model);fit();}function restoreLastEdge(){if(undoStack.length<1){return;}currentGriText=undoStack.pop();model=parseGri(currentGriText,currentGriFileName);updateFileStatus(model);fit();}function clearAllEdges(){undoStack.push(currentGriText);currentGriText='0 0 0 0\n';currentGriFileName=currentGriFileName||'drawing.gri';model=parseGri(currentGriText,currentGriFileName);drawingPointer=vec(0,0,0);drawingStartPoint=null;updateFileStatus(model);fit();}
-function readFileInput(e){var files=e.target&&e.target.files?e.target.files:null,f=files&&files.length?files[0]:null;if(!f){return;}var reader=new FileReader();reader.onload=function(){try{var text=String(reader.result||'');if(!text.replace(/\s/g,'')){throw new Error('選択したGRIファイルが空です。');}model=parseGri(text,f.name);currentGriText=text;currentGriFileName=f.name;saveFileNameInput.value=f.name.replace(/\.[^.]*$/,'');undoStack=[];updateFileStatus(model);fit();moveTo(views.iso);releaseFocus();}catch(err){fileStatus.innerHTML='読み込みエラー：'+err.message;}};reader.onerror=function(){fileStatus.innerHTML='読み込みエラー：ファイルを読めませんでした。';};reader.readAsText(f,'UTF-8');}
-function saveCurrentGri(){var name=saveFileNameInput.value.replace(/^\s+|\s+$/g,'');if(!name){fileStatus.innerHTML='保存エラー：ファイル名を入力してください。';return;}name=name.replace(/\.[^.]*$/,'').replace(/[\\\/:*?"<>|]/g,'_')+'.gri';var text=currentGriText;if(text.charAt(text.length-1)!='\n'){text+='\n';}try{var blob=new Blob([text],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.style.display='none';document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},0);fileStatus.innerHTML='保存を開始しました：'+name;}catch(e){fileStatus.innerHTML='保存エラー：このブラウザでは保存できません。';}}function releaseFocus(){try{if(document.activeElement&&document.activeElement.blur){document.activeElement.blur();}}catch(e){}}
-function updateGamepad(){if(!navigator.getGamepads){padStatus.innerHTML='ゲームパッド：未対応';return;}var pads=navigator.getGamepads(),pad=pads&&pads.length?pads[0]:null;if(!pad){padStatus.innerHTML='ゲームパッド：未接続 または 未操作';return;}padStatus.innerHTML='ゲームパッド：'+pad.id;var axes=pad.axes||[],buttons=pad.buttons||[],x=dead(axes[0]||0),y=dead(axes[1]||0),zy=dead(axes[3]||0),dpadLeft=!!(buttons[14]&&buttons[14].pressed),dpadRight=!!(buttons[15]&&buttons[15].pressed),dpadUp=!!(buttons[12]&&buttons[12].pressed),dpadDown=!!(buttons[13]&&buttons[13].pressed),dpadX=(dpadRight?1:0)-(dpadLeft?1:0),dpadY=(dpadDown?1:0)-(dpadUp?1:0);if(!moving&&(x||y||dpadX||dpadY)){lon+=(x+dpadX)*.035;lat=clamp(lat-(y+dpadY)*.035,-LAT_LIMIT,LAT_LIMIT);viewName.innerHTML='自由視点';}if(zy){zoom=clamp(zoom*(1-zy*.035),.05,12);zoomStatus.innerHTML='表示倍率：'+Math.round(zoom*100)+'%';}if(press(pad,2)){moveTo(views.front);}if(press(pad,1)){moveTo(views.right);}if(press(pad,3)){moveTo(views.top);}if(press(pad,0)){moveTo(views.iso);}if(press(pad,9)){toggleMode();}if(press(pad,8)){toggleViewMode();}for(var i=0;i<buttons.length;i++){prevButtons[i]=!!buttons[i].pressed;}}function press(pad,i){var buttons=pad.buttons||[];return !!(buttons[i]&&buttons[i].pressed)&&!prevButtons[i];}function dead(n){return Math.abs(n)<.12?0:n;}
-function onKeyDown(e){var k=(e.key||'').toLowerCase();shift=!!e.shiftKey;if(isUiTarget(e.target)){return;}if(k==='n'){if(!inverted){showConfirm();}prevent(e);return;}if(k==='enter'){handleEnter();prevent(e);return;}if(k==='escape'){cancelDrawingEdge();prevent(e);return;}if(k==='backspace'){if(!inverted){if(shift){restoreLastEdge();}else{removeLastEdge();}}prevent(e);return;}if(!inverted&&(k==='x'||k==='y'||k==='z')){moveDrawingPointer(k,shift);prevent(e);return;}keys[k]=true;if(k==='1'){moveTo(views.front);}if(k==='2'){moveTo(views.right);}if(k==='3'){moveTo(views.top);}if(k==='4'){moveTo(views.iso);}if(k==='a'){fit();}if(k==='d'){toggleMode();}if(k==='arrowup'||k==='arrowdown'||k==='arrowleft'||k==='arrowright'||k==='+'||k==='-'||k==='='||k==='_'){prevent(e);}}function onKeyUp(e){var k=(e.key||'').toLowerCase();keys[k]=false;shift=!!e.shiftKey;}function updateKeys(){if(moving){return;}var moved=false;if(keys.arrowleft){lon-=.035;moved=true;}if(keys.arrowright){lon+=.035;moved=true;}if(!shift&&keys.arrowup){lat+=.035;moved=true;}if(!shift&&keys.arrowdown){lat-=.035;moved=true;}if(shift&&keys.arrowup){zoom=clamp(zoom*1.035,.05,12);zoomStatus.innerHTML='表示倍率：'+Math.round(zoom*100)+'%';}if(shift&&keys.arrowdown){zoom=clamp(zoom*.965,.05,12);zoomStatus.innerHTML='表示倍率：'+Math.round(zoom*100)+'%';}if(keys['+']||keys['=']){lineWidth=clamp(lineWidth+.25,1,8);lineWidthStatus.innerHTML='線の太さ：'+lineWidth.toFixed(1);keys['+']=false;keys['=']=false;}if(keys['-']||keys['_']){lineWidth=clamp(lineWidth-.25,1,8);lineWidthStatus.innerHTML='線の太さ：'+lineWidth.toFixed(1);keys['-']=false;keys['_']=false;}if(moved){lat=clamp(lat,-LAT_LIMIT,LAT_LIMIT);viewName.innerHTML='自由視点';}}
-function isUiTarget(target){if(!target){return false;}var tag=(target.tagName||'').toLowerCase();if(tag==='input'||tag==='textarea'||tag==='select'){return true;}if(target.isContentEditable){return true;}return false;}function prevent(e){if(e&&e.preventDefault){e.preventDefault();}}
-function addTap(target,fn){if(!target){return;}target.addEventListener('click',function(e){fn(e);});target.addEventListener('touchend',function(e){prevent(e);fn(e);},false);}function showConfirm(){confirmOverlay.style.display='flex';}function closeConfirm(){confirmOverlay.style.display='none';}function showAbout(){aboutOverlay.style.display='flex';}function closeAbout(){aboutOverlay.style.display='none';}
-function loop(){var t=nowTime();updateGamepad();updateKeys();updateMove(t);draw();requestAnimationFrame(loop);}function init(){resize();updateColor(false);updateFileStatus(model);fit();addEvents();requestAnimationFrame(loop);}function addEvents(){window.addEventListener('resize',function(){resize();fit();});window.addEventListener('keydown',onKeyDown);window.addEventListener('keyup',onKeyUp);griFileInput.addEventListener('change',readFileInput);stepSelect.addEventListener('change',function(){drawingStep=Number(stepSelect.value);stepLabel.innerHTML='ステップ：'+drawingStep+'mm';stepControl.className='';});addTap(viewModeButton,toggleViewMode);addTap(modeToggleBottom,toggleMode);addTap(appTitle,showAbout);addTap(aboutClose,closeAbout);addTap(confirmNo,closeConfirm);addTap(confirmYes,function(){clearAllEdges();closeConfirm();});addTap(stepLabel,function(){stepControl.className=stepControl.className==='open'?'':'open';});addTap(saveGriButton,saveCurrentGri);aboutOverlay.addEventListener('click',function(e){if(e.target===aboutOverlay){closeAbout();}});}init();
-}());
+'use strict';
+const $=id=>document.getElementById(id);
+const canvas=$('canvas'),ctx=canvas.getContext('2d'),viewer=$('viewer');
+const viewModeButton=$('viewModeButton'),griFileInput=$('griFileInput'),saveGriButton=$('saveGriButton'),saveFileNameInput=$('saveFileNameInput'),confirmOverlay=$('confirmOverlay'),confirmYes=$('confirmYes'),confirmNo=$('confirmNo'),aboutOverlay=$('aboutOverlay'),aboutClose=$('aboutClose'),stepControl=$('stepControl'),stepLabel=$('stepLabel'),stepSelect=$('stepSelect'),modeToggleBottom=$('modeToggleBottom'),appTitle=$('appTitle');
+const viewName=$('viewName'),fileStatus=$('fileStatus'),zoomStatus=$('zoomStatus'),lineWidthStatus=$('lineWidthStatus'),colorModeStatus=$('colorModeStatus'),beepStatus=$('beepStatus'),padStatus=$('padStatus'),testStatus=$('testStatus');
+let lon=Math.PI/4,lat=Math.atan(1/Math.sqrt(2));
+const LAT_LIMIT=Math.PI/2-.02;
+const TOP_LAT=Math.PI/2;
+let zoom=1,lineWidth=1,inverted=true,four=false;
+let drawingPointer=v(0,0,0);
+let drawingStartPoint=null;
+let drawingStep=20;
+let moving=false,t0=0,duration=700,sLon=lon,sLat=lat,eLon=lon,eLat=lat;
+let audio=null,beep=true,lastBeep=0;
+let selfTesting=false;
+const keys=new Set(),prevButtons=[];let shift=false;
+const views={front:['正面図',0,0],right:['右側面図',Math.PI/2,0],top:['平面図',0,TOP_LAT],iso:['等角図',Math.PI/4,Math.atan(1/Math.sqrt(2))]};
+const layout=[['平面図',views.top,0,0,.5,.5],['自由視点',null,.5,0,.5,.5],['正面図',views.front,0,.5,.5,.5],['右側面図',views.right,.5,.5,.5,.5]];
+let initialGri=loadStartupGri();
+let currentGriText=initialGri.text,currentGriFileName=initialGri.name,model=parseGri(currentGriText,currentGriFileName);
+const undoStack=[];
+init();
+
+function init(){updateColor();resize();fit();updateFileStatus(model);runSelfTests();requestAnimationFrame(loop)}
+function loadStartupGri(){
+  return {text:createSampleGri(),name:'demo01.gri'};
+}
+function rememberStartupGri(text,name){
+}
+function createSampleGri(){return `15 40 40 20
+0 0 0 80 0 0
+80 0 0 80 40 0
+80 40 0 40 80 0
+40 80 0 0 80 0
+0 80 0 0 0 0
+0 0 0 0 0 40
+0 0 40 80 0 40
+80 0 40 80 40 40
+80 40 40 40 80 40
+40 80 40 0 80 40
+0 80 40 0 0 40
+0 80 40 0 80 0
+40 80 0 40 80 40
+80 40 40 80 40 0
+80 0 0 80 0 40
+`}
+function parseGri(text,name='GRIファイル'){
+  const lines=String(text||'').replace(/\r/g,'\n').split('\n').map(s=>s.trim()).filter(Boolean);
+  if(lines.length<1)throw Error('GRIデータが空です。');
+  const h=nums(lines[0]);
+  if(h.length<4||h.some(Number.isNaN))throw Error('1行目は「辺数 中心X 中心Y 中心Z」です。');
+  const raw=[];
+  for(let i=1;i<lines.length;i++){
+    const a=nums(lines[i]);
+    if(a.length>=6&&!a.some(Number.isNaN))raw.push({a:v(a[0],a[1],a[2]),b:v(a[3],a[4],a[5])});
+  }
+  if(!raw.length){
+    const c=v(h[1],h[2],h[3]);
+    return{edges:[],min:c,max:c,center:c,edgeCount:Math.round(h[0]),actualEdgeCount:0,fileName:name,source:lines[0]+'\n'};
+  }
+  const min=v(Infinity,Infinity,Infinity),max=v(-Infinity,-Infinity,-Infinity);
+  raw.forEach(e=>{expand(min,max,e.a);expand(min,max,e.b)});
+  const c=v((min.x+max.x)/2,(min.y+max.y)/2,(min.z+max.z)/2),size=Math.max(max.x-min.x,max.y-min.y,max.z-min.z,1),scale=4.2/size;
+  const edges=raw.map(e=>({a:mul(sub(e.a,c),scale),b:mul(sub(e.b,c),scale)}));
+  return{edges,min,max,center:c,scale,edgeCount:Math.round(h[0]),actualEdgeCount:raw.length,fileName:name,source:text};
+}
+function nums(s){return String(s).split(/\s+/).filter(Boolean).map(Number)}
+function v(x,y,z){return{x,y,z}} function sub(a,b){return v(a.x-b.x,a.y-b.y,a.z-b.z)} function mul(a,k){return v(a.x*k,a.y*k,a.z*k)}
+function expand(min,max,p){min.x=Math.min(min.x,p.x);min.y=Math.min(min.y,p.y);min.z=Math.min(min.z,p.z);max.x=Math.max(max.x,p.x);max.y=Math.max(max.y,p.y);max.z=Math.max(max.z,p.z)}
+function updateFileStatus(m){fileStatus.textContent=`読み込み：${m.fileName} / ${m.actualEdgeCount}辺`+(m.actualEdgeCount!==m.edgeCount?`（1行目の指定は${m.edgeCount}辺）`:'')}
+function loadGri(text,name){
+  model=parseGri(text,name);
+  currentGriText=text;
+  currentGriFileName=name;
+  saveFileNameInput.value=(name||'drawing.gri').replace(/\.[^.]*$/,'');
+  undoStack.length=0;
+  fit(...views.iso.slice(1));
+  updateFileStatus(model);
+  moveTo(views.iso);
+  releaseUiFocusToViewer();
+}
+async function saveCurrentGri(){
+  const nl=String.fromCharCode(10);
+  const text=currentGriText&&currentGriText.trim()?currentGriText:rebuildGriHeader(['0 0 0 0']);
+  const safeText=text.endsWith(nl)?text:text+nl;
+
+  const inputBase=(saveFileNameInput.value||'').trim();
+  if(!inputBase){
+    fileStatus.textContent='保存エラー：ファイル名を入力してください。';
+    return;
+  }
+
+  const safeBase=inputBase.replace(/\.[^.]*$/,'').replace(/[\\/:*?"<>|]/g,'_').trim() || 'rittai_guriguri_drawing';
+  const name=safeBase+'.gri';
+
+  if(window.showSaveFilePicker){
+    try{
+      const handle=await window.showSaveFilePicker({
+        suggestedName:name,
+        types:[{description:'GRI file',accept:{'text/plain':['.gri']}}]
+      });
+      const writable=await handle.createWritable();
+      await writable.write(safeText);
+      await writable.close();
+      currentGriFileName=name;
+      saveFileNameInput.value=safeBase;
+      rememberStartupGri(safeText,name);
+      fileStatus.textContent=`保存しました：${name}`;
+      return;
+    }catch(error){
+      if(error&&error.name==='AbortError')return;
+      console.warn('保存ダイアログで保存できなかったため、ダウンロード方式に切り替えます。',error);
+    }
+  }
+
+  const blob=new Blob([safeText],{type:'text/plain;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=name;
+  a.style.display='none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>{a.remove();URL.revokeObjectURL(url);},0);
+  currentGriFileName=name;
+  saveFileNameInput.value=safeBase;
+  rememberStartupGri(safeText,name);
+  fileStatus.textContent=`保存を開始しました：${name}`;
+}
+function removeLastEdge(){
+  const nl=String.fromCharCode(10),cr=String.fromCharCode(13);
+  const lines=String(currentGriText||'').split(cr).join(nl).split(nl).map(s=>s.trim()).filter(Boolean);
+  if(lines.length<1)return;
+  const h=nums(lines[0]);
+  if(h.length<4||h.some(Number.isNaN))return;
+  for(let i=lines.length-1;i>=1;i--){
+    const a=nums(lines[i]);
+    if(a.length>=6&&!a.some(Number.isNaN)){
+      undoStack.push(currentGriText);
+      lines.splice(i,1);
+      h[0]=Math.max(0,Math.round(h[0])-1);
+      if(h[0]===0){h[1]=0;h[2]=0;h[3]=0;drawingPointer=v(0,0,0);}
+      lines[0]=`${h[0]} ${h[1]} ${h[2]} ${h[3]}`;
+      currentGriText=lines.join(nl)+nl;
+      model=parseGri(currentGriText,currentGriFileName);
+      updateFileStatus(model);
+      fit();
+      click(performance.now());
+      return;
+    }
+  }
+  if(Math.round(h[0])!==0){
+    undoStack.push(currentGriText);
+    drawingPointer=v(0,0,0);
+    currentGriText=`0 0 0 0${nl}`;
+    model=parseGri(currentGriText,currentGriFileName);
+    updateFileStatus(model);
+    fit();
+  }
+}
+function restoreLastEdge(){
+  if(undoStack.length===0)return;
+  const previousText=undoStack.pop();
+  if(typeof previousText!=='string'||previousText.trim().length===0)return;
+  try{
+    const restoredModel=parseGri(previousText,currentGriFileName);
+    currentGriText=previousText;
+    model=restoredModel;
+    updateFileStatus(model);
+    fit();
+    click(performance.now());
+  }catch(error){console.error('復元できない履歴を無視しました。',error);}
+}
+function isDrawingMode(){return !inverted}
+function openClearConfirm(){if(!isDrawingMode())return;confirmOverlay.style.display='flex';}
+function closeClearConfirm(){confirmOverlay.style.display='none';}
+function clearAllEdges(){
+  undoStack.push(currentGriText);
+  const nl=String.fromCharCode(10),c=v(0,0,0);
+  drawingPointer=v(0,0,0);drawingStartPoint=null;
+  currentGriText=`0 0 0 0${nl}`;
+  currentGriFileName=currentGriFileName||'drawing.gri';
+  model={edges:[],min:c,max:c,center:c,scale:1,edgeCount:0,actualEdgeCount:0,fileName:currentGriFileName,source:currentGriText};
+  moving=false;updateFileStatus(model);fit();draw();
+}
+
+function draw(){ctx.fillStyle=inverted?'#000':'#f4f4f4';ctx.fillRect(0,0,canvas.width,canvas.height);four?drawFour():drawView(lon,lat,{x:0,y:0,w:canvas.width,h:canvas.height},null,true)}
+function drawFour(){layout.forEach(([label,view,x,y,w,h])=>drawView(view?view[1]:lon,view?view[2]:lat,{x:x*canvas.width,y:y*canvas.height,w:w*canvas.width,h:h*canvas.height},label,!view));ctx.strokeStyle=inverted?'#555':'#bbb';ctx.lineWidth=dpr();ctx.beginPath();ctx.moveTo(canvas.width/2,0);ctx.lineTo(canvas.width/2,canvas.height);ctx.moveTo(0,canvas.height/2);ctx.lineTo(canvas.width,canvas.height/2);ctx.stroke()}
+function drawView(lo,la,r,label,axis){const basis=viewBasis(lo,la),scale=(r.h/5.2)*zoom,cx=r.x+r.w/2,cy=r.y+r.h/2;ctx.save();ctx.beginPath();ctx.rect(r.x,r.y,r.w,r.h);ctx.clip();if(!inverted)originAxes(basis,scale,cx,cy);ctx.strokeStyle=inverted?'#fff':'#111';ctx.lineWidth=lineWidth*dpr();ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();for(const e of model.edges){const a=proj(e.a,basis,scale,cx,cy),b=proj(e.b,basis,scale,cx,cy);ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y)}ctx.stroke();if(!inverted)drawPreviewEdge(basis,scale,cx,cy);if(!inverted)drawPointer(basis,scale,cx,cy,r);if(label)labelBox(label,r);if(axis)axes(basis,r);ctx.restore()}
+function labelBox(t,r){const s=dpr();ctx.fillStyle=inverted?'rgba(0,0,0,.7)':'rgba(255,255,255,.85)';ctx.strokeStyle=inverted?'#555':'#bbb';ctx.font=`${14*s}px sans-serif`;const w=ctx.measureText(t).width+20*s,h=28*s,x=r.x+10*s,y=r.y+(four&&t==='自由視点'?86:10)*s;roundRectPath(ctx,x,y,w,h,8*s);ctx.fill();ctx.stroke();ctx.fillStyle=inverted?'#ccc':'#555';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(t,x+w/2,y+h/2)}
+function roundRectPath(c,x,y,w,h,r){r=Math.min(r,w/2,h/2);c.beginPath();c.moveTo(x+r,y);c.lineTo(x+w-r,y);c.quadraticCurveTo(x+w,y,x+w,y+r);c.lineTo(x+w,y+h-r);c.quadraticCurveTo(x+w,y+h,x+w-r,y+h);c.lineTo(x+r,y+h);c.quadraticCurveTo(x,y+h,x,y+h-r);c.lineTo(x,y+r);c.quadraticCurveTo(x,y,x+r,y);}
+function axes(b,r){const s=dpr(),base={x:r.x+r.w-92*s,y:r.y+r.h-72*s},len=38*s;ctx.font=`${12*s}px sans-serif`;[['X',v(1,0,0),'#00bcd4'],['Y',v(0,1,0),'#fbc02d'],['Z',v(0,0,1),'#8bc34a']].forEach(([n,p,color])=>{const axisColor=inverted?'#aaa':color,textColor=inverted?'#ccc':color;const x=dot(p,b.right)*len,y=-dot(p,b.up)*len;ctx.strokeStyle=axisColor;ctx.fillStyle=textColor;ctx.beginPath();ctx.moveTo(base.x,base.y);ctx.lineTo(base.x+x,base.y+y);ctx.stroke();ctx.fillText(n,base.x+x*1.18,base.y+y*1.18)})}
+function originAxes(b,viewScale,cx,cy){const s=dpr(),axisLen=getAxisRawLength(),origin=modelPoint(v(0,0,0));const items=[['X',modelPoint(v(axisLen,0,0)),'#00bcd4'],['Y',modelPoint(v(0,axisLen,0)),'#fbc02d'],['Z',modelPoint(v(0,0,axisLen)),'#8bc34a']];const o=proj(origin,b,viewScale,cx,cy);ctx.save();ctx.lineWidth=Math.max(2,2*s);ctx.font=`${16*s}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';for(const [name,p,color] of items){const q=proj(p,b,viewScale,cx,cy);ctx.strokeStyle=color;ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(o.x,o.y);ctx.lineTo(q.x,q.y);ctx.stroke();ctx.fillText(name,q.x+10*s,q.y-10*s)}ctx.restore();}
+function getAxisRawLength(){if(!model||!model.min||!model.max)return 100;const maxValue=Math.max(model.max.x,model.max.y,model.max.z);return maxValue>0?maxValue*1.2:100;}
+function getAxisModelPoints(){const axisLen=getAxisRawLength();return [modelPoint(v(0,0,0)),modelPoint(v(axisLen,0,0)),modelPoint(v(0,axisLen,0)),modelPoint(v(0,0,axisLen))];}
+function getModelMaxCornerPoints(){if(!model||!model.max)return [];const x=model.max.x,y=model.max.y,z=model.max.z;return [modelPoint(v(0,0,0)),modelPoint(v(x,0,0)),modelPoint(v(0,y,0)),modelPoint(v(0,0,z)),modelPoint(v(x,y,0)),modelPoint(v(x,0,z)),modelPoint(v(0,y,z)),modelPoint(v(x,y,z))];}
+function modelPoint(p){return mul(sub(p,model.center),model.scale||1)}
+function drawPointer(b,viewScale,cx,cy,r){const p=proj(modelPoint(drawingPointer),b,viewScale,cx,cy);const diameter=Math.max(2,Math.min(r.w,r.h)/100)*(four?2:1);ctx.save();const pointerColor=drawingStartPoint?'#000000':'#d00000';ctx.fillStyle=pointerColor;ctx.strokeStyle=pointerColor;ctx.beginPath();ctx.arc(p.x,p.y,diameter/2,0,Math.PI*2);ctx.fill();ctx.restore();}
+function drawPreviewEdge(b,viewScale,cx,cy){if(!drawingStartPoint)return;const a=proj(modelPoint(drawingStartPoint),b,viewScale,cx,cy);const p=proj(modelPoint(drawingPointer),b,viewScale,cx,cy);ctx.save();ctx.strokeStyle='#000000';ctx.lineWidth=Math.max(1.5,lineWidth*dpr());ctx.setLineDash([6*dpr(),4*dpr()]);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(p.x,p.y);ctx.stroke();ctx.setLineDash([]);ctx.restore();}
+function moveDrawingPointer(axis,reverse=false){if(inverted)return;const delta=(reverse?-1:1)*drawingStep;if(axis==='x')drawingPointer.x=Math.max(0,drawingPointer.x+delta);if(axis==='y')drawingPointer.y=Math.max(0,drawingPointer.y+delta);if(axis==='z')drawingPointer.z=Math.max(0,drawingPointer.z+delta);click(performance.now());}
+function handleEnterInDrawingMode(){if(inverted)return;if(!drawingStartPoint){drawingStartPoint={...drawingPointer};click(performance.now());return;}addEdgeFromStartToPointer();drawingStartPoint=null;click(performance.now());}
+function cancelDrawingEdge(){drawingStartPoint=null;click(performance.now());}
+function addEdgeFromStartToPointer(){if(!drawingStartPoint)return;const edge=[drawingStartPoint.x,drawingStartPoint.y,drawingStartPoint.z,drawingPointer.x,drawingPointer.y,drawingPointer.z];undoStack.push(currentGriText);currentGriText=appendEdgeToGriText(currentGriText,edge);model=parseGri(currentGriText,currentGriFileName);updateFileStatus(model);fit();}
+function appendEdgeToGriText(text,edge){const nl=String.fromCharCode(10),cr=String.fromCharCode(13);const lines=String(text||'0 0 0 0').split(cr).join(nl).split(nl).map(s=>s.trim()).filter(Boolean);if(lines.length<1)lines.push('0 0 0 0');lines.push(edge.map(n=>Math.round(n)).join(' '));return rebuildGriHeader(lines);}
+function rebuildGriHeader(lines){const nl=String.fromCharCode(10),edgeLines=[],values=[];for(let i=1;i<lines.length;i++){const a=nums(lines[i]);if(a.length>=6&&!a.some(Number.isNaN)){edgeLines.push(a.slice(0,6).map(n=>Math.round(n)).join(' '));values.push(a[0],a[1],a[2],a[3],a[4],a[5]);}}let cx=0,cy=0,cz=0;if(values.length){const xs=[],ys=[],zs=[];for(let i=0;i<values.length;i+=3){xs.push(values[i]);ys.push(values[i+1]);zs.push(values[i+2]);}cx=Math.round((Math.min(...xs)+Math.max(...xs))/2);cy=Math.round((Math.min(...ys)+Math.max(...ys))/2);cz=Math.round((Math.min(...zs)+Math.max(...zs))/2);}return [`${edgeLines.length} ${cx} ${cy} ${cz}`,...edgeLines].join(nl)+nl;}
+function viewBasis(lo,la){if(Math.abs(Math.abs(la)-Math.PI/2)<1e-6){const sign=la>0?1:-1;return {right:v(1,0,0),up:v(0,0,-sign),forward:v(0,sign,0)};}la=clamp(la,-LAT_LIMIT,LAT_LIMIT);const f=norm(v(Math.cos(la)*Math.sin(lo),Math.sin(la),Math.cos(la)*Math.cos(lo)));let right=cross(v(0,1,0),f);right=len(right)<1e-5?v(1,0,0):norm(right);return{right,up:norm(cross(f,right)),forward:f}}
+function proj(p,b,s,cx,cy){return{x:cx+dot(p,b.right)*s,y:cy-dot(p,b.up)*s}}
+
+function moveTo(view){soundReady();moving=true;t0=performance.now();sLon=lon;sLat=lat;eLon=shortLon(lon,view[1]);eLat=view[2];viewName.textContent=view[0]}
+function updateMove(now){if(!moving)return;const t=clamp((now-t0)/duration,0,1),u=t*t*(3-2*t);lon=lerp(sLon,eLon,u);lat=lerp(sLat,eLat,u);if(Math.abs(Math.abs(eLat)-TOP_LAT)>1e-6)lat=clamp(lat,-LAT_LIMIT,LAT_LIMIT);if(t<1)click(now);else{moving=false;lon=eLon;lat=eLat;}}
+function fit(lo=lon,la=lat){const b=viewBasis(lo,la),r=four?{w:canvas.width/2,h:canvas.height/2}:{w:canvas.width,h:canvas.height};let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;const addPoint=p=>{const x=dot(p,b.right),y=dot(p,b.up);minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y)};for(const e of model.edges){addPoint(e.a);addPoint(e.b)}if(!inverted){getAxisModelPoints().forEach(addPoint);getModelMaxCornerPoints().forEach(addPoint);}if(!Number.isFinite(minX)){zoom=1;zoomStatus.textContent='表示倍率：100%（空）';return;}const base=r.h/5.2;const spanX=Math.max(Math.abs(minX),Math.abs(maxX))*2||1;const spanY=Math.max(Math.abs(minY),Math.abs(maxY))*2||1;zoom=clamp(Math.min(r.w*.82/(spanX*base),r.h*.82/(spanY*base)),.05,12);zoomStatus.textContent=`表示倍率：${Math.round(zoom*100)}%（自動調整）`;}
+
+function updateGamepad(){
+  if(!navigator.getGamepads){padStatus.textContent='ゲームパッド：未対応';return}
+  const pads=navigator.getGamepads();
+  const pad=pads&&pads.length?pads[0]:null;
+  if(!pad){padStatus.textContent='ゲームパッド：未接続 または 未操作';return}
+  padStatus.textContent=`ゲームパッド：${pad.id}`;
+  const axes=pad.axes||[],buttons=pad.buttons||[];
+  const x=dead(axes[0]||0),y=dead(axes[1]||0),zy=dead(axes[3]||0);
+  const dpadLeft=!!(buttons[14]&&buttons[14].pressed),dpadRight=!!(buttons[15]&&buttons[15].pressed),dpadUp=!!(buttons[12]&&buttons[12].pressed),dpadDown=!!(buttons[13]&&buttons[13].pressed);
+  const dpadX=(dpadRight?1:0)-(dpadLeft?1:0),dpadY=(dpadDown?1:0)-(dpadUp?1:0);
+  if(!moving&&(x||y||dpadX||dpadY)){lon+=(x+dpadX)*.035;lat=clamp(lat-(y+dpadY)*.035,-LAT_LIMIT,LAT_LIMIT);viewName.textContent='自由視点';click(performance.now())}
+  if(zy){changeZoom(-zy*.035);click(performance.now())}
+  if(press(pad,2))moveTo(views.front);
+  if(press(pad,1))moveTo(views.right);
+  if(press(pad,3))moveTo(views.top);
+  if(press(pad,0))moveTo(views.iso);
+  if(press(pad,9)){inverted=!inverted;updateColor(true);click(performance.now())}
+  if(press(pad,8)){toggleViewMode();click(performance.now())}
+  for(let i=0;i<buttons.length;i++)prevButtons[i]=!!buttons[i].pressed;
+}
+function press(pad,i){const buttons=pad.buttons||[];return !!(buttons[i]&&buttons[i].pressed)&&!prevButtons[i]} function dead(n){return Math.abs(n)<.12?0:n}
+function updateKeys(){if(moving)return;let vmove=false,other=false;if(keys.has('arrowleft')){lon-=.035;vmove=true}if(keys.has('arrowright')){lon+=.035;vmove=true}if(!shift&&keys.has('arrowup')){lat+=.035;vmove=true}if(!shift&&keys.has('arrowdown')){lat-=.035;vmove=true}if(shift&&keys.has('arrowup')){changeZoom(.035);other=true}if(shift&&keys.has('arrowdown')){changeZoom(-.035);other=true}if(keys.has('+')||keys.has('=')){changeLine(.25);other=true}if(keys.has('-')||keys.has('_')){changeLine(-.25);other=true}if(vmove){lat=clamp(lat,-LAT_LIMIT,LAT_LIMIT);viewName.textContent='自由視点';click(performance.now())}else if(other)click(performance.now())}
+
+function changeZoom(d){zoom=clamp(zoom*(1+d),.05,12);zoomStatus.textContent=`表示倍率：${Math.round(zoom*100)}%`}
+function changeLine(d){lineWidth=clamp(lineWidth+d,1,8);lineWidthStatus.textContent=`線の太さ：${lineWidth.toFixed(1)}`}
+function updateColor(keepZoom=false){document.body.classList.toggle('light-ui',!inverted);colorModeStatus.textContent=inverted?'表示モード：通常モード（黒背景・白線）':'表示モード：描画モード（白背景・黒線）';modeToggleBottom.textContent=inverted?'描画モードにする':'通常モードにする';if(!inverted){drawingPointer=v(0,0,0);drawingStartPoint=null;}if(!keepZoom)fit()}
+function toggleBeep(){beep=!beep;beepStatus.textContent=beep?'クリック音：ON':'クリック音：OFF'}
+function soundReady(){
+  try{
+    const AudioClass=window.AudioContext||window.webkitAudioContext;
+    if(!AudioClass)return;
+    if(!audio)audio=new AudioClass();
+    if(audio.state==='suspended'){
+      const p=audio.resume();
+      if(p&&p.catch)p.catch(function(){});
+    }
+  }catch(error){
+    console.warn('AudioContextを初期化できませんでした。',error);
+  }
+}
+function click(now){
+  if(selfTesting)return;
+  if(!beep||now-lastBeep<65)return;
+  try{
+    soundReady();
+    if(!audio)return;
+    const o=audio.createOscillator(),g=audio.createGain();
+    o.type='triangle';
+    o.frequency.value=1320;
+    g.gain.setValueAtTime(.0001,audio.currentTime);
+    g.gain.exponentialRampToValueAtTime(.055,audio.currentTime+.004);
+    g.gain.exponentialRampToValueAtTime(.0001,audio.currentTime+.022);
+    o.connect(g);
+    g.connect(audio.destination);
+    o.start();
+    o.stop(audio.currentTime+.028);
+    lastBeep=now;
+  }catch(error){
+    console.warn('クリック音を再生できませんでした。',error);
+  }
+}
+
+window.addEventListener('keydown',e=>{
+  const k=e.key.toLowerCase();
+  shift=e.shiftKey;
+  if(isUiInteractionTarget(e.target)){return;}
+  if(k==='n'){e.preventDefault();if(!inverted)openClearConfirm();return;}
+  if(k==='enter'){e.preventDefault();if(!inverted)handleEnterInDrawingMode();return;}
+  if(k==='escape'){e.preventDefault();if(!inverted)cancelDrawingEdge();return;}
+  if(['x','y','z'].includes(k)){if(!inverted){e.preventDefault();moveDrawingPointer(k,shift);return;}}
+  if(k==='backspace'){e.preventDefault();if(!inverted){shift?restoreLastEdge():removeLastEdge();}return;}
+  soundReady();
+  keys.add(k);
+  if(['arrowup','arrowdown','arrowleft','arrowright','+','=','-','_'].includes(k))e.preventDefault();
+  if(k==='1')moveTo(views.front);
+  if(k==='2')moveTo(views.right);
+  if(k==='3')moveTo(views.top);
+  if(k==='4')moveTo(views.iso);
+  if(k==='a')fit();
+  if(k==='b')toggleBeep();
+  if(k==='d'){inverted=!inverted;updateColor(true);}
+});
+window.addEventListener('keyup',e=>{keys.delete(e.key.toLowerCase());shift=e.shiftKey});
+griFileInput.addEventListener('change',function(e){
+  const files=e.target&&e.target.files?e.target.files:null;
+  const f=files&&files.length?files[0]:null;
+  if(!f)return;
+  const reader=new FileReader();
+  reader.onload=function(){
+    try{
+      const text=String(reader.result||'');
+      if(!text.trim())throw Error('選択したGRIファイルが空です。');
+      loadGri(text,f.name);
+    }catch(err){
+      console.error(err);
+      fileStatus.textContent=`読み込みエラー：${err.message}`;
+    }
+  };
+  reader.onerror=function(){fileStatus.textContent='読み込みエラー：ファイルを読めませんでした。'};
+  reader.readAsText(f,'UTF-8');
+});
+saveGriButton.addEventListener('click',()=>{saveCurrentGri();});
+viewModeButton.addEventListener('click',toggleViewMode);
+function showAppAbout(){aboutOverlay.style.display='flex';}
+function closeAppAbout(){aboutOverlay.style.display='none';}
+appTitle.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();showAppAbout();});
+appTitle.addEventListener('touchstart',e=>{e.preventDefault();e.stopPropagation();showAppAbout();},{passive:false});
+aboutClose.addEventListener('click',closeAppAbout);
+aboutOverlay.addEventListener('click',e=>{if(e.target===aboutOverlay)closeAppAbout();});
+modeToggleBottom.addEventListener('click',()=>{inverted=!inverted;updateColor(true);});
+confirmYes.addEventListener('click',()=>{clearAllEdges();closeClearConfirm();});
+confirmNo.addEventListener('click',closeClearConfirm);
+stepLabel.addEventListener('click',()=>{stepControl.classList.toggle('open')});
+stepSelect.addEventListener('change',()=>{drawingStep=Number(stepSelect.value);stepLabel.textContent=`ステップ：${drawingStep}mm`;stepControl.classList.remove('open')});
+function toggleViewMode(){four=!four;viewModeButton.textContent=four?'１面モードにする':'４面モードにする';viewName.textContent=four?'４面モード':'自由視点';fit()}
+function isUiInteractionTarget(target){
+  if(!target)return false;
+  const tag=(target.tagName||'').toLowerCase();
+  if(['input','textarea','select'].includes(tag))return true;
+  if(target.isContentEditable)return true;
+  return !!target.closest('#info');
+}
+function releaseUiFocusToViewer(){
+  try{
+    if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
+    if(canvas&&canvas.focus)canvas.focus({preventScroll:true});
+  }catch(error){
+    try{if(canvas&&canvas.focus)canvas.focus();}catch(e){}
+  }
+}
+window.addEventListener('resize',()=>{resize();fit()});
+
+function loop(now){requestAnimationFrame(loop);updateGamepad();updateKeys();updateMove(now);draw()}
+function resize(){const r=viewer.getBoundingClientRect(),s=dpr();canvas.width=Math.max(1,Math.floor(r.width*s));canvas.height=Math.max(1,Math.floor(r.height*s));canvas.style.width=`${Math.floor(r.width)}px`;canvas.style.height=`${Math.floor(r.height)}px`}
+function runSelfTests(){
+  const savedState={
+    currentGriText,
+    currentGriFileName,
+    model,
+    drawingPointer:{...drawingPointer},
+    drawingStartPoint,
+    drawingStep,
+    inverted,
+    undoStack:[...undoStack]
+  };
+  selfTesting=true;
+  const tests=[];
+  const test=(name,fn)=>{try{fn();tests.push(true)}catch(e){console.error('TEST FAILED:',name,e);tests.push(false)}};
+  test('通常GRIを読める',()=>{const m=parseGri(`1 0 0 0
+0 0 0 1 0 0
+`,'test.gri');if(m.actualEdgeCount!==1)throw Error('edge count');});
+  test('ヘッダのみの空GRIを空モデルとして読める',()=>{const m=parseGri(`0 10 20 30
+`,'empty.gri');if(m.actualEdgeCount!==0||m.edges.length!==0)throw Error('empty model');});
+  test('最後の1本を削除して空モデルにできる',()=>{const oldText=currentGriText,oldFile=currentGriFileName,oldModel=model,oldUndo=[...undoStack];currentGriText=`1 0 0 0
+0 0 0 1 0 0
+`;currentGriFileName='tmp.gri';model=parseGri(currentGriText,currentGriFileName);undoStack.length=0;removeLastEdge();if(model.actualEdgeCount!==0)throw Error('not empty');currentGriText=oldText;currentGriFileName=oldFile;model=oldModel;undoStack.length=0;undoStack.push(...oldUndo);updateFileStatus(model);fit();});
+  test('Shift+BS用に削除履歴から復元できる',()=>{const oldText=currentGriText,oldFile=currentGriFileName,oldModel=model,oldUndo=[...undoStack];currentGriText=`1 0 0 0
+0 0 0 1 0 0
+`;currentGriFileName='tmp.gri';model=parseGri(currentGriText,currentGriFileName);undoStack.length=0;removeLastEdge();restoreLastEdge();if(model.actualEdgeCount!==1)throw Error('restore failed');currentGriText=oldText;currentGriFileName=oldFile;model=oldModel;undoStack.length=0;undoStack.push(...oldUndo);updateFileStatus(model);fit();});
+  test('復元履歴が空でもShift+BS相当の復元処理でエラーにならない',()=>{const oldUndo=[...undoStack];undoStack.length=0;restoreLastEdge();undoStack.push(...oldUndo);});
+  test('描画ポインタをステップ分だけ移動でき、0未満にはならない',()=>{const oldInverted=inverted,oldPointer={...drawingPointer},oldStep=drawingStep;inverted=false;drawingPointer=v(0,0,0);drawingStep=20;moveDrawingPointer('x',false);moveDrawingPointer('y',false);moveDrawingPointer('z',true);if(drawingPointer.x!==20||drawingPointer.y!==20||drawingPointer.z!==0)throw Error('pointer move failed');moveDrawingPointer('x',true);moveDrawingPointer('x',true);if(drawingPointer.x!==0)throw Error('pointer below zero');drawingPointer=oldPointer;drawingStep=oldStep;inverted=oldInverted;});
+  test('Enterで始点から終点までの辺を追加できる',()=>{const oldText=currentGriText,oldFile=currentGriFileName,oldModel=model,oldPointer={...drawingPointer},oldStart=drawingStartPoint,oldInverted=inverted;currentGriText=`0 0 0 0
+`;currentGriFileName='tmp.gri';model=parseGri(currentGriText,currentGriFileName);inverted=false;drawingPointer=v(0,0,0);drawingStartPoint=null;handleEnterInDrawingMode();drawingPointer=v(20,0,0);handleEnterInDrawingMode();if(model.actualEdgeCount!==1)throw Error('edge not added');if(drawingStartPoint!==null)throw Error('start not cleared');currentGriText=oldText;currentGriFileName=oldFile;model=oldModel;drawingPointer=oldPointer;drawingStartPoint=oldStart;inverted=oldInverted;updateFileStatus(model);fit();});
+  test('Escで始点記録をキャンセルできる',()=>{const oldStart=drawingStartPoint;drawingStartPoint=v(1,2,3);cancelDrawingEdge();if(drawingStartPoint!==null)throw Error('cancel failed');drawingStartPoint=oldStart;});
+  currentGriText=savedState.currentGriText;
+  currentGriFileName=savedState.currentGriFileName;
+  model=savedState.model;
+  drawingPointer=savedState.drawingPointer;
+  drawingStartPoint=savedState.drawingStartPoint;
+  drawingStep=savedState.drawingStep;
+  inverted=savedState.inverted;
+  undoStack.length=0;
+  undoStack.push(...savedState.undoStack);
+  selfTesting=false;
+  updateFileStatus(model);
+  fit();
+  testStatus.textContent=`自己テスト：${tests.filter(Boolean).length}/${tests.length}件成功`;
+}
+function dpr(){return window.devicePixelRatio||1} function clamp(x,a,b){return Math.max(a,Math.min(b,x))} function lerp(a,b,t){return a+(b-a)*t} function dot(a,b){return a.x*b.x+a.y*b.y+a.z*b.z} function cross(a,b){return v(a.y*b.z-a.z*b.y,a.z*b.x-a.x*b.z,a.x*b.y-a.y*b.x)} function len(a){return Math.sqrt(dot(a,a))} function norm(a){const l=len(a)||1;return v(a.x/l,a.y/l,a.z/l)} function shortLon(c,t){const p=Math.PI*2;let d=((t-c+p*1.5)%p)-p/2;return c+d}
 </script>
 </body>
 </html>
