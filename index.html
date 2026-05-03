@@ -19,6 +19,9 @@
   body.light-ui #appTitle{background:rgba(255,255,255,.78);color:#333;border-color:#bbb}
   body.light-ui #drawingModeLabel{display:none}
   .small{color:#c4c4c4;font-size:12px} body.light-ui .small{color:#555}
+
+  #iosGriHint{display:none;margin-top:4px;padding:6px 8px;border-left:3px solid #fbc02d;background:rgba(251,192,45,.08);font-size:12px;line-height:1.55}
+  body.light-ui #iosGriHint{background:#fff8df;color:#5d4300}
   #dualshockHelp{margin-top:8px;padding:8px 10px;border:2px solid #fbc02d;border-radius:8px;background:rgba(251,192,45,.10);color:#ffe082;font-size:12px}
   #dualshockHelp .helpTitle{font-weight:800;color:#ffd54f;margin-bottom:4px}
   body.light-ui #dualshockHelp{background:#fff8df;color:#5d4300;border-color:#fbc02d}
@@ -29,8 +32,6 @@
   body.light-ui #drawingModeHelp .helpTitle{color:#0d47a1}
   kbd{padding:1px 5px;border:1px solid #666;border-radius:4px;background:#3a3a3a;color:#eee;font-size:12px} body.light-ui kbd{background:#eee;color:#222;border-color:#aaa}
   input,textarea{color-scheme:dark} body.light-ui input,body.light-ui textarea{color-scheme:light}
-  body.light-ui #griPasteText,body.light-ui #griPasteNameInput{background:#fff;color:#222;border-color:#aaa}
-  body.light-ui #loadPastedGriButton{background:#f5f5f5;color:#222;border-color:#aaa}
   #confirmOverlay{display:none;position:absolute;inset:0;z-index:50;background:transparent}
   #confirmOverlay.center{background:rgba(0,0,0,.35);align-items:center;justify-content:center}
   #confirmOverlay.near{background:transparent}
@@ -101,14 +102,7 @@
       <div><kbd>N</kbd>：すべての立体データを消去</div>
     </div>
     <div class="small" style="margin-top:6px"><label>読み込む立体を選択：<input id="griFileInput" type="file" /></label></div>
-    <details id="ipadGriHelp" class="small" style="margin-top:6px;padding:7px 8px;border:1px solid #777;border-radius:8px">
-      <summary style="cursor:pointer;font-weight:700">iPadで .gri が半透明になる時</summary>
-      <div style="margin-top:6px">iPadOSのファイル選択で .gri が選べない場合は、ファイル名の拡張子を .txt に変更して読み込んでください。中身は同じなので、そのまま立体データとして読み込めます。</div>
-      <div style="margin-top:6px">または、.gri の中身をコピーして下に貼り付けても読み込めます。</div>
-      <textarea id="griPasteText" placeholder="ここに .gri の中身を貼り付け" style="box-sizing:border-box;width:100%;height:86px;margin-top:6px;padding:6px 8px;border-radius:6px;border:1px solid #666;background:#1f1f1f;color:#eee;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px"></textarea>
-      <input id="griPasteNameInput" type="text" value="pasted_model.gri" style="box-sizing:border-box;width:100%;margin-top:6px;padding:5px 7px;border-radius:6px;border:1px solid #666;background:#1f1f1f;color:#eee" />
-      <button id="loadPastedGriButton" type="button" style="margin-top:6px;padding:5px 9px;border-radius:8px;border:1px solid #666;background:#383838;color:#eee;cursor:pointer">貼り付けたGRIを読み込む</button>
-    </details>
+    <div id="iosGriHint" class="small">iPadで.griが半透明になった時は、なにか立体を保存して、一度立体グリグリを終了させて、再度起動してみてください。</div>
     <div class="small" style="margin-top:8px">保存ファイル名：入力してください</div>
     <input id="saveFileNameInput" type="text" value="" placeholder="例：my_model（.griは自動で付きます）" style="box-sizing:border-box;width:100%;padding:6px 8px;border-radius:6px;border:1px solid #666;background:#1f1f1f;color:#eee" />
     <button id="saveGriButton" type="button" style="margin-top:6px;padding:6px 10px;border-radius:8px;border:1px solid #666;background:#383838;color:#eee;cursor:pointer">名前を指定して保存</button>
@@ -126,9 +120,9 @@
 'use strict';
 const $=id=>document.getElementById(id);
 const canvas=$('canvas'),ctx=canvas.getContext('2d'),viewer=$('viewer');
-const viewModeButton=$('viewModeButton'),griFileInput=$('griFileInput'),griPasteText=$('griPasteText'),griPasteNameInput=$('griPasteNameInput'),loadPastedGriButton=$('loadPastedGriButton'),saveGriButton=$('saveGriButton'),saveFileNameInput=$('saveFileNameInput'),confirmOverlay=$('confirmOverlay'),confirmBox=$('confirmBox'),confirmYes=$('confirmYes'),confirmNo=$('confirmNo'),confirmMessage=$('confirmMessage'),aboutOverlay=$('aboutOverlay'),aboutClose=$('aboutClose'),stepControl=$('stepControl'),stepLabel=$('stepLabel'),stepSelect=$('stepSelect'),modeToggleBottom=$('modeToggleBottom'),appTitle=$('appTitle');
+const viewModeButton=$('viewModeButton'),griFileInput=$('griFileInput'),saveGriButton=$('saveGriButton'),saveFileNameInput=$('saveFileNameInput'),confirmOverlay=$('confirmOverlay'),confirmBox=$('confirmBox'),confirmYes=$('confirmYes'),confirmNo=$('confirmNo'),confirmMessage=$('confirmMessage'),aboutOverlay=$('aboutOverlay'),aboutClose=$('aboutClose'),stepControl=$('stepControl'),stepLabel=$('stepLabel'),stepSelect=$('stepSelect'),modeToggleBottom=$('modeToggleBottom'),appTitle=$('appTitle');
 const viewName=$('viewName'),fileStatus=$('fileStatus'),zoomStatus=$('zoomStatus'),lineWidthStatus=$('lineWidthStatus'),colorModeStatus=$('colorModeStatus'),beepStatus=$('beepStatus'),padStatus=$('padStatus'),testStatus=$('testStatus');
-const dualshockConnectedHelp=$('dualshockConnectedHelp'),dualshockDisconnectedHelp=$('dualshockDisconnectedHelp');
+const dualshockConnectedHelp=$('dualshockConnectedHelp'),dualshockDisconnectedHelp=$('dualshockDisconnectedHelp'),iosGriHint=$('iosGriHint');
 let lon=Math.PI/4,lat=Math.atan(1/Math.sqrt(2));
 const LAT_LIMIT=Math.PI/2-.02;
 const TOP_LAT=Math.PI/2;
@@ -153,7 +147,17 @@ let currentGriText=initialGri.text,currentGriFileName=initialGri.name,model=pars
 const undoStack=[];
 init();
 
-function init(){updateColor();resize();fit();updateFileStatus(model);runSelfTests();requestAnimationFrame(loop)}
+function init(){updateColor();updateIosGriHint();resize();fit();updateFileStatus(model);runSelfTests();requestAnimationFrame(loop)}
+function updateIosGriHint(){
+  if(!iosGriHint)return;
+  iosGriHint.style.display=isAppleMobileLike()?'block':'none';
+}
+function isAppleMobileLike(){
+  const ua=navigator.userAgent||'';
+  const platform=navigator.platform||'';
+  const touchPoints=navigator.maxTouchPoints||0;
+  return /iPad|iPhone|iPod/i.test(ua)||((platform==='MacIntel'||platform==='MacPPC')&&touchPoints>1);
+}
 function loadStartupGri(){
   // 起動時の初期立体は、外部ファイルを読まずHTML内部に保持した demo01.gri を使う。
   return {text:createSampleGri(),name:'demo01.gri'};
@@ -842,18 +846,6 @@ griFileInput.addEventListener('change',async e=>{
   }catch(err){
     console.error(err);
     fileStatus.textContent=`読み込みエラー：${err.message||err}`;
-  }
-});
-loadPastedGriButton.addEventListener('click',()=>{
-  try{
-    const text=String(griPasteText.value||'');
-    if(!text.trim())throw Error('貼り付け欄が空です。');
-    const name=(griPasteNameInput.value||'pasted_model.gri').trim()||'pasted_model.gri';
-    loadGri(text,name);
-    fileStatus.textContent=`貼り付けから読み込み：${name} / ${model.actualEdgeCount}辺`;
-  }catch(err){
-    console.error(err);
-    fileStatus.textContent=`貼り付け読み込みエラー：${err.message||err}`;
   }
 });
 function readSelectedTextFile(file){
