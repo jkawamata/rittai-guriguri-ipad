@@ -146,7 +146,23 @@ let currentGriText=initialGri.text,currentGriFileName=initialGri.name,model=pars
 const undoStack=[];
 init();
 
-function init(){updateColor();resize();fit();updateFileStatus(model);runSelfTests();requestAnimationFrame(loop)}
+function init(){configureFileInputForDevice();updateColor();resize();fit();updateFileStatus(model);runSelfTests();requestAnimationFrame(loop)}
+function isIPadOrIPhone(){
+  const ua=navigator.userAgent||'';
+  const platform=navigator.platform||'';
+  const touchPoints=navigator.maxTouchPoints||0;
+  return /iPad|iPhone|iPod/.test(ua)||(/Macintosh/.test(ua)&&touchPoints>1)||/iPad|iPhone|iPod/.test(platform);
+}
+function configureFileInputForDevice(){
+  // iPadOSでは accept=".gri,.txt" に絞ると、独自拡張子 .gri が半透明で選べない場合がある。
+  // そのためiPad/iPhone系だけ accept を外し、写真/カメラ/ファイル選択メニュー経由で .gri を選べるようにする。
+  if(isIPadOrIPhone()){
+    griFileInput.removeAttribute('accept');
+  }else{
+    griFileInput.setAttribute('accept','.gri,.txt');
+  }
+}
+
 function loadStartupGri(){
   // 起動時の初期立体は、外部ファイルを読まずHTML内部に保持した demo01.gri を使う。
   return {text:createSampleGri(),name:'demo01.gri'};
