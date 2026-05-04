@@ -114,7 +114,7 @@
     <div id="padStatus" class="small">ゲームパッド：未接続 または 未操作</div>
     <div id="testStatus" class="small">自己テスト：未実行</div>
   </div>
-  <div id="viewer"><canvas id="canvas"></canvas><button id="viewModeButton" type="button">４面モードにする</button><div id="drawingModeLabel">描画モード</div><div id="appTitle">立体グリグリ Vide-Coded Edition V0.2</div><button id="modeToggleBottom" type="button">描画モードにする</button><div id="stepControl"><span id="stepLabel">ステップ：20mm</span><select id="stepSelect"><option value="20" selected>20mm</option><option value="10">10mm</option><option value="5">5mm</option><option value="1">1mm</option></select></div><div id="confirmOverlay"><div id="confirmBox"><div id="confirmMessage">本当に消しますか？</div><div class="buttons"><button id="confirmYes" type="button">はい</button><button id="confirmNo" type="button">いいえ</button></div></div></div><div id="aboutOverlay"><div id="aboutBox"><div id="aboutText"><p>この立体グリグリは1996年に原作であるMS-DOS版を作成した川俣純が、バイブコーディングにて30年後の2026年5月にChatGPT5.5と共に制作したものです。CC BYとしますので、ユーザーの判断にて自由に改変してご活用いただいて問題ありません。</p><p>ブラウザがあれば、HTMLファイル１つで動作するようにしてあります。動作検証はWindows11とmacOS Tahoeで行っています。iPadでHTMLファイルから起動することはできません。iPadの場合は、Webサーバー上にHTMLファイルを置きブラウザから開くことで動作します。</p></div><button id="aboutClose" type="button">閉じる</button></div></div></div>
+  <div id="viewer" tabindex="-1"><canvas id="canvas"></canvas><button id="viewModeButton" type="button">４面モードにする</button><div id="drawingModeLabel">描画モード</div><div id="appTitle">立体グリグリ Vide-Coded Edition V0.2</div><button id="modeToggleBottom" type="button">描画モードにする</button><div id="stepControl"><span id="stepLabel">ステップ：20mm</span><select id="stepSelect"><option value="20" selected>20mm</option><option value="10">10mm</option><option value="5">5mm</option><option value="1">1mm</option></select></div><div id="confirmOverlay"><div id="confirmBox"><div id="confirmMessage">本当に消しますか？</div><div class="buttons"><button id="confirmYes" type="button">はい</button><button id="confirmNo" type="button">いいえ</button></div></div></div><div id="aboutOverlay"><div id="aboutBox"><div id="aboutText"><p>この立体グリグリは1996年に原作であるMS-DOS版を作成した川俣純が、バイブコーディングにて30年後の2026年5月にChatGPT5.5と共に制作したものです。CC BYとしますので、ユーザーの判断にて自由に改変してご活用いただいて問題ありません。</p><p>ブラウザがあれば、HTMLファイル１つで動作するようにしてあります。動作検証はWindows11とmacOS Tahoeで行っています。iPadでHTMLファイルから起動することはできません。iPadの場合は、Webサーバー上にHTMLファイルを置きブラウザから開くことで動作します。</p></div><button id="aboutClose" type="button">閉じる</button></div></div></div>
 </div>
 <script>
 'use strict';
@@ -647,7 +647,7 @@ function handleCanvasPointerDown(e){
     clearPreservedFourFreeView();
     moving=false;
     stopTouchInertia();
-    touchGesture={type:'rotate',pointerId:e.pointerId,lastX:e.clientX,lastY:e.clientY,lastTime:performance.now()};
+    touchGesture={type:'rotate',pointerId:e.pointerId,lastX:e.clientX,lastY:e.clientY,lastTime:performance.now(),totalDx:0,totalDy:0,axisLock:null};
     viewName.textContent='自由視点';
   }else{
     touchGesture=null;
@@ -674,11 +674,20 @@ function handleCanvasPointerMove(e){
   if(!touchGesture||touchGesture.type!=='rotate'||touchGesture.pointerId!==e.pointerId)return;
   const dt=Math.max(0.016,(now-touchGesture.lastTime)/1000);
   const dx=e.clientX-touchGesture.lastX,dy=e.clientY-touchGesture.lastY;
+  touchGesture.totalDx=(touchGesture.totalDx||0)+dx;
+  touchGesture.totalDy=(touchGesture.totalDy||0)+dy;
+  const absTotalX=Math.abs(touchGesture.totalDx),absTotalY=Math.abs(touchGesture.totalDy);
+  if(!touchGesture.axisLock&&Math.hypot(touchGesture.totalDx,touchGesture.totalDy)>10){
+    if(absTotalX>absTotalY*1.35)touchGesture.axisLock='horizontal';
+  }
+  const horizontalOnly=touchGesture.axisLock==='horizontal'||Math.abs(dx)>Math.abs(dy)*1.6;
+  const appliedDy=horizontalOnly?0:dy;
   const rotateScale=0.008;
-  lon=normalizeAngle(lon+dx*rotateScale);
-  lat=clamp(lat-dy*rotateScale,-LAT_LIMIT,LAT_LIMIT);
-  touchLonVelocity=dx*rotateScale/dt;
-  touchLatVelocity=-dy*rotateScale/dt;
+  // 画面上で立体を直接つかんで動かす感覚に近づけるため、従来と逆向きに回転させる。
+  lon=normalizeAngle(lon-dx*rotateScale);
+  lat=clamp(lat+appliedDy*rotateScale,-LAT_LIMIT,LAT_LIMIT);
+  touchLonVelocity=-dx*rotateScale/dt;
+  touchLatVelocity=horizontalOnly?0:appliedDy*rotateScale/dt;
   touchGesture.lastX=e.clientX;touchGesture.lastY=e.clientY;touchGesture.lastTime=now;
   lastTouchMoveTime=now;
   viewName.textContent='自由視点';
@@ -692,6 +701,8 @@ function handleCanvasPointerEnd(e){
     const speed=Math.hypot(touchLonVelocity,touchLatVelocity);
     const horizontal=Math.abs(touchLonVelocity);
     if(performance.now()-lastTouchMoveTime<160&&horizontal>.65&&speed>.65){
+      // 横方向のフリック慣性では、緯度方向の微小な揺れを拾わない。
+      touchLatVelocity=0;
       inertiaLastTime=performance.now();
     }else{
       stopTouchInertia();
@@ -700,7 +711,7 @@ function handleCanvasPointerEnd(e){
   if(touchPointers.size>=2){beginPinchGesture();}
   else if(touchPointers.size===1){
     const [id,p]=[...touchPointers.entries()][0];
-    touchGesture=isFreeViewTouchPoint(p.x,p.y)?{type:'rotate',pointerId:id,lastX:p.x,lastY:p.y,lastTime:performance.now()}:null;
+    touchGesture=isFreeViewTouchPoint(p.x,p.y)?{type:'rotate',pointerId:id,lastX:p.x,lastY:p.y,lastTime:performance.now(),totalDx:0,totalDy:0,axisLock:null}:null;
   }else{
     touchGesture=null;
   }
@@ -766,7 +777,7 @@ function updateGamepad(){
   const x=dead(pad.axes[0]||0),y=dead(pad.axes[1]||0),zy=dead(pad.axes[3]||0);
   const dpadLeft=pad.buttons[14]?.pressed||false,dpadRight=pad.buttons[15]?.pressed||false,dpadUp=pad.buttons[12]?.pressed||false,dpadDown=pad.buttons[13]?.pressed||false;
   const dpadX=(dpadRight?1:0)-(dpadLeft?1:0),dpadY=(dpadDown?1:0)-(dpadUp?1:0);
-  if(!moving&&(x||y||dpadX||dpadY)){clearPreservedFourFreeView();lon=normalizeAngle(lon+(x+dpadX)*.035);lat=clamp(lat-(y+dpadY)*.035,-LAT_LIMIT,LAT_LIMIT);viewName.textContent='自由視点';click(performance.now())}
+  if(!moving&&(x||y||dpadX||dpadY)){clearPreservedFourFreeView();lon=normalizeAngle(lon-(x+dpadX)*.035);lat=clamp(lat+(y+dpadY)*.035,-LAT_LIMIT,LAT_LIMIT);viewName.textContent='自由視点';click(performance.now())}
   if(zy){changeZoom(-zy*.035);click(performance.now())}
   if(press(pad,2))moveTo(views.front);
   if(press(pad,1))moveTo(views.right);
@@ -777,7 +788,7 @@ function updateGamepad(){
   pad.buttons.forEach((b,i)=>prevButtons[i]=b.pressed)
 }
 function press(pad,i){return (pad.buttons[i]?.pressed||false)&&!prevButtons[i]} function dead(n){return Math.abs(n)<.12?0:n}
-function updateKeys(){if(moving)return;let vmove=false,other=false;if(keys.has('arrowleft')){lon=normalizeAngle(lon-.035);vmove=true}if(keys.has('arrowright')){lon=normalizeAngle(lon+.035);vmove=true}if(!shift&&keys.has('arrowup')){lat+=.035;vmove=true}if(!shift&&keys.has('arrowdown')){lat-=.035;vmove=true}if(shift&&keys.has('arrowup')){changeZoom(.035);other=true}if(shift&&keys.has('arrowdown')){changeZoom(-.035);other=true}if(vmove){clearPreservedFourFreeView();lat=clamp(lat,-LAT_LIMIT,LAT_LIMIT);viewName.textContent='自由視点';click(performance.now())}else if(other)click(performance.now())}
+function updateKeys(){if(moving)return;let vmove=false,other=false;if(keys.has('arrowleft')){lon=normalizeAngle(lon+.035);vmove=true}if(keys.has('arrowright')){lon=normalizeAngle(lon-.035);vmove=true}if(!shift&&keys.has('arrowup')){lat-=.035;vmove=true}if(!shift&&keys.has('arrowdown')){lat+=.035;vmove=true}if(shift&&keys.has('arrowup')){changeZoom(.035);other=true}if(shift&&keys.has('arrowdown')){changeZoom(-.035);other=true}if(vmove){clearPreservedFourFreeView();lat=clamp(lat,-LAT_LIMIT,LAT_LIMIT);viewName.textContent='自由視点';click(performance.now())}else if(other)click(performance.now())}
 
 function changeZoom(d){clearPreservedFourFreeView();zoom=clamp(zoom*(1+d),.05,12);zoomStatus.textContent=`表示倍率：${Math.round(zoom*100)}%`}
 function changeLine(d){lineWidth=clamp(lineWidth+d,1,8);lineWidthStatus.textContent=`線の太さ：${lineWidth.toFixed(1)}`}
@@ -928,6 +939,16 @@ function downloadUrl(url,name,afterClick){
   setTimeout(()=>{a.remove();if(afterClick)afterClick();},0);
 }
 
+
+function focusViewerForKeys(){
+  try{
+    if(document.activeElement&&typeof document.activeElement.blur==='function')document.activeElement.blur();
+    if(viewer&&typeof viewer.focus==='function')viewer.focus({preventScroll:true});
+  }catch(error){
+    try{if(viewer&&typeof viewer.focus==='function')viewer.focus();}catch(e){}
+  }
+}
+
 window.addEventListener('keydown',e=>{
   const k=e.key.toLowerCase();
   shift=e.shiftKey;
@@ -972,15 +993,19 @@ window.addEventListener('gamepaddisconnected',()=>setDualshockHelpConnected(!!ge
 griFileInput.addEventListener('click',()=>{griFileInput.value='';});
 griFileInput.addEventListener('change',async e=>{
   const f=e.target.files&&e.target.files[0];
-  if(!f)return;
+  if(!f){focusViewerForKeys();return;}
   try{
     fileStatus.textContent=`読み込み中：${f.name||'選択ファイル'}`;
     const text=await readSelectedTextFile(f);
     if(!String(text||'').trim())throw Error('選択したGRIファイルが空です。');
     loadGri(text,f.name||'selected.gri');
+    griFileInput.value='';
+    focusViewerForKeys();
   }catch(err){
     console.error(err);
     fileStatus.textContent=`読み込みエラー：${err.message||err}`;
+    griFileInput.value='';
+    focusViewerForKeys();
   }
 });
 function readSelectedTextFile(file){
@@ -1050,6 +1075,9 @@ function isUiInteractionTarget(target){
   // 押したあともカーソルキーで立体を動かせるように除外する。
   return !!target.closest('#info');
 }
+
+viewer.addEventListener('pointerdown',()=>{focusViewerForKeys();});
+
 window.addEventListener('resize',()=>{resize();fit()});
 canvas.addEventListener('pointerdown',handleCanvasPointerDown,{passive:false});
 canvas.addEventListener('pointermove',handleCanvasPointerMove,{passive:false});
