@@ -102,7 +102,6 @@
       <div><kbd>N</kbd>：すべての立体データを消去</div>
     </div>
     <div class="small" style="margin-top:6px"><label>読み込む立体を選択：<input id="griFileInput" type="file" accept=".gri,.txt" /></label></div>
-    <div id="iosGriHint" class="small">iPadでは選択画面が出たら「ファイルを選択」を選んで.griファイルを読み込んでください。直接ファイル画面になって.griが半透明になる場合は、この最新版を使ってください。</div>
     <div class="small" style="margin-top:8px">保存ファイル名：入力してください</div>
     <input id="saveFileNameInput" type="text" value="" placeholder="例：my_model（.griは自動で付きます）" style="box-sizing:border-box;width:100%;padding:6px 8px;border-radius:6px;border:1px solid #666;background:#1f1f1f;color:#eee" />
     <button id="saveGriButton" type="button" style="margin-top:6px;padding:6px 10px;border-radius:8px;border:1px solid #666;background:#383838;color:#eee;cursor:pointer">名前を指定して保存</button>
@@ -147,29 +146,7 @@ let currentGriText=initialGri.text,currentGriFileName=initialGri.name,model=pars
 const undoStack=[];
 init();
 
-function init(){updateColor();updateIosGriHandling();resize();fit();updateFileStatus(model);runSelfTests();requestAnimationFrame(loop)}
-function updateIosGriHandling(){
-  const isAppleMobile=isAppleMobileLike();
-  if(iosGriHint)iosGriHint.style.display=isAppleMobile?'block':'none';
-
-  // iPadOSでは accept を .gri/.txt に絞ると .gri が半透明で選べない場合がある。
-  // そのためiPad/iPhone系だけは受け入れ形式を広げ、
-  // 「写真ライブラリ／撮影／ファイルを選択」のメニューからファイルを選ぶ方式にする。
-  // Windows/macOSでは従来通り .gri/.txt に絞って直接ファイル選択しやすくする。
-  if(griFileInput){
-    if(isAppleMobile){
-      griFileInput.setAttribute('accept','.gri,.txt,text/plain,application/octet-stream');
-    }else{
-      griFileInput.setAttribute('accept','.gri,.txt');
-    }
-  }
-}
-function isAppleMobileLike(){
-  const ua=navigator.userAgent||'';
-  const platform=navigator.platform||'';
-  const touchPoints=navigator.maxTouchPoints||0;
-  return /iPad|iPhone|iPod/i.test(ua)||((platform==='MacIntel'||platform==='MacPPC')&&touchPoints>1);
-}
+function init(){updateColor();resize();fit();updateFileStatus(model);runSelfTests();requestAnimationFrame(loop)}
 function loadStartupGri(){
   // 起動時の初期立体は、外部ファイルを読まずHTML内部に保持した demo01.gri を使う。
   return {text:createSampleGri(),name:'demo01.gri'};
