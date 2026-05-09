@@ -9,6 +9,7 @@
   #app{display:flex;width:100vw;height:100vh;background:#000}
   #info{box-sizing:border-box;width:320px;height:100vh;overflow-y:auto;flex:0 0 320px;padding:16px 14px;background:#2a2a2a;color:#d8d8d8;border-right:1px solid #444;font-size:14px;line-height:1.6;user-select:none}
   #viewer{position:relative;flex:1;height:100vh;background:#000;min-width:0;touch-action:none}
+  #viewer:focus,#viewer:focus-visible,canvas:focus,canvas:focus-visible{outline:none}
   canvas{display:block;width:100%;height:100%;background:#000;touch-action:none}
   body.light-ui,body.light-ui #app,body.light-ui #viewer,body.light-ui canvas{background:#f4f4f4}
   body.light-ui #info{background:#fff;color:#222;border-right-color:#ccc}
@@ -47,8 +48,16 @@
   #aboutText p{margin:0 0 .8em 0}
   #aboutText p:last-child{margin-bottom:0}
   #aboutClose{display:block;margin:16px auto 0;padding:8px 22px;border-radius:8px;border:1px solid #888;background:#f5f5f5;color:#222;cursor:pointer;font-size:15px}
+
+  #stlTimeoutOverlay{display:none;position:absolute;inset:0;z-index:95;background:rgba(0,0,0,.45);align-items:center;justify-content:center}
+  #stlTimeoutBox{box-sizing:border-box;max-width:520px;margin:24px;padding:22px 26px;background:#fff;color:#222;border:2px solid #555;border-radius:14px;box-shadow:0 10px 36px rgba(0,0,0,.45);text-align:center;font-size:17px;line-height:1.7}
+  #stlTimeoutMessage{margin-bottom:18px}
+  #stlTimeoutBack{padding:8px 28px;border-radius:9px;border:1px solid #777;background:#f5f5f5;color:#222;cursor:pointer;font-size:16px;font-weight:700}
   #modeToggleBottom{position:absolute;left:14px;bottom:14px;z-index:22;min-width:142px;padding:8px 12px;border:1px solid #777;border-radius:10px;background:#222;color:#eee;font-size:15px;font-weight:700;box-shadow:none;cursor:pointer}
   body.light-ui #modeToggleBottom{background:#fff;color:#222;border-color:#777}
+  #hiddenLineToggleBottom{display:none;position:absolute;left:14px;bottom:14px;z-index:22;min-width:168px;padding:8px 12px;border:1px solid #777;border-radius:10px;background:#222;color:#eee;font-size:15px;font-weight:700;box-shadow:none;cursor:pointer}
+  #surfaceToggleBottom{display:none;position:absolute;left:196px;bottom:14px;z-index:22;min-width:168px;padding:8px 12px;border:1px solid #777;border-radius:10px;background:#222;color:#eee;font-size:15px;font-weight:700;box-shadow:none;cursor:pointer}
+  body.light-ui #hiddenLineToggleBottom,body.light-ui #surfaceToggleBottom{background:#fff;color:#222;border-color:#777}
   #stepControl{display:none;position:absolute;left:170px;bottom:14px;z-index:22;padding:8px 10px;border:2px solid #1976d2;border-radius:10px;background:#eaf4ff;color:#0d47a1;font-size:15px;font-weight:800;box-shadow:0 2px 10px rgba(0,0,0,.18)}
   body.light-ui #stepControl{display:block}
   #stepLabel{cursor:pointer;user-select:none}
@@ -82,8 +91,10 @@
       <div><kbd>↑</kbd>/<kbd>↓</kbd>：緯度方向</div>
       <div><kbd>Shift</kbd>+<kbd>↑</kbd>/<kbd>↓</kbd>：拡大縮小</div>
       <div><kbd>+</kbd>/<kbd>-</kbd>：線の太さ</div>
+      <div id="hiddenLineKeyHelp" style="display:none"><kbd>K</kbd>：かくれ線表示の切替</div>
+      <div id="surfaceKeyHelp" style="display:none"><kbd>S</kbd>：面の色表示の切替</div>
       <div><kbd>A</kbd>：自動調整</div>
-      <div><kbd>P</kbd>：白背景の線画PNG保存（４面時は４面全体）</div>
+      <div><kbd>P</kbd>：保存先とファイル名を選んでPNG保存</div>
       <div>タブレット：ピンチで拡大縮小／自由視点上でスワイプ回転</div>
       <div><kbd>1</kbd>正面　<kbd>2</kbd>右側面　<kbd>3</kbd>平面　<kbd>4</kbd>等角</div>
       <div><kbd>B</kbd>：クリック音　<kbd>D</kbd>：通常モード/描画モード</div>
@@ -102,8 +113,8 @@
       <div><kbd>Esc</kbd>：始点・終点の記録をキャンセル</div>
       <div><kbd>N</kbd>：すべての立体データを消去</div>
     </div>
-    <div class="small" style="margin-top:6px"><label>読み込む立体を選択：<input id="griFileInput" type="file" accept=".gri,.txt" /></label></div>
-    <div class="small" style="margin-top:8px">保存ファイル名：入力してください</div>
+    <div class="small" style="margin-top:6px"><label>読み込む立体を選択：<input id="griFileInput" type="file" accept=".gri,.txt,.stl" /></label></div>
+    <div class="small" style="margin-top:8px">保存ファイル名：入力してください（GRI用）</div>
     <input id="saveFileNameInput" type="text" value="" placeholder="例：my_model（.griは自動で付きます）" style="box-sizing:border-box;width:100%;padding:6px 8px;border-radius:6px;border:1px solid #666;background:#1f1f1f;color:#eee" />
     <button id="saveGriButton" type="button" style="margin-top:6px;padding:6px 10px;border-radius:8px;border:1px solid #666;background:#383838;color:#eee;cursor:pointer">名前を指定して保存</button>
     <div id="zoomStatus" class="small">表示倍率：100%</div>
@@ -114,13 +125,13 @@
     <div id="padStatus" class="small">ゲームパッド：未接続 または 未操作</div>
     <div id="testStatus" class="small">自己テスト：未実行</div>
   </div>
-  <div id="viewer" tabindex="-1"><canvas id="canvas"></canvas><button id="viewModeButton" type="button">４面モードにする</button><div id="drawingModeLabel">描画モード</div><div id="appTitle">立体グリグリ Vide-Coded Edition V0.2</div><button id="modeToggleBottom" type="button">描画モードにする</button><div id="stepControl"><span id="stepLabel">ステップ：20mm</span><select id="stepSelect"><option value="20" selected>20mm</option><option value="10">10mm</option><option value="5">5mm</option><option value="1">1mm</option></select></div><div id="confirmOverlay"><div id="confirmBox"><div id="confirmMessage">本当に消しますか？</div><div class="buttons"><button id="confirmYes" type="button">はい</button><button id="confirmNo" type="button">いいえ</button></div></div></div><div id="aboutOverlay"><div id="aboutBox"><div id="aboutText"><p>この立体グリグリは1996年に原作であるMS-DOS版を作成した川俣純が、バイブコーディングにて30年後の2026年5月にChatGPT5.5と共に制作したものです。CC BYとしますので、ユーザーの判断にて自由に改変してご活用いただいて問題ありません。</p><p>ブラウザがあれば、HTMLファイル１つで動作するようにしてあります。動作検証はWindows11とmacOS Tahoeで行っています。iPadでHTMLファイルから起動することはできません。iPadの場合は、Webサーバー上にHTMLファイルを置きブラウザから開くことで動作します。</p></div><button id="aboutClose" type="button">閉じる</button></div></div></div>
+  <div id="viewer" tabindex="-1"><canvas id="canvas"></canvas><button id="viewModeButton" type="button">４面モードにする</button><div id="drawingModeLabel">描画モード</div><div id="appTitle">立体グリグリ Vide-Coded V0.65</div><button id="hiddenLineToggleBottom" type="button">かくれ線を表示する</button><button id="surfaceToggleBottom" type="button">面の色を表示しない</button><button id="modeToggleBottom" type="button">描画モードにする</button><div id="stepControl"><span id="stepLabel">ステップ：20mm</span><select id="stepSelect"><option value="20" selected>20mm</option><option value="10">10mm</option><option value="5">5mm</option><option value="1">1mm</option></select></div><div id="confirmOverlay"><div id="confirmBox"><div id="confirmMessage">本当に消しますか？</div><div class="buttons"><button id="confirmYes" type="button">はい</button><button id="confirmNo" type="button">いいえ</button></div></div></div><div id="aboutOverlay"><div id="aboutBox"><div id="aboutText"><p>この立体グリグリは1996年に原作であるMS-DOS版を作成した川俣純が、バイブコーディングにて30年後の2026年5月にChatGPT5.5と共に制作したものです。CC BYとしますので、ユーザーの判断にて自由に改変してご活用いただいて問題ありません。</p><p>ブラウザがあれば、HTMLファイル１つで動作するようにしてあります。動作検証はWindows11とmacOS Tahoeで行っています。iPadでHTMLファイルから起動することはできません。iPadの場合は、Webサーバー上にHTMLファイルを置きブラウザから開くことで動作します。</p></div><button id="aboutClose" type="button">閉じる</button></div></div><div id="stlTimeoutOverlay"><div id="stlTimeoutBox"><div id="stlTimeoutMessage">読み込みと表示に時間がかかりすぎるので、この立体は読み込めません。</div><button id="stlTimeoutBack" type="button">戻る</button></div></div></div>
 </div>
 <script>
 'use strict';
 const $=id=>document.getElementById(id);
 const canvas=$('canvas'),ctx=canvas.getContext('2d'),viewer=$('viewer');
-const viewModeButton=$('viewModeButton'),griFileInput=$('griFileInput'),saveGriButton=$('saveGriButton'),saveFileNameInput=$('saveFileNameInput'),confirmOverlay=$('confirmOverlay'),confirmBox=$('confirmBox'),confirmYes=$('confirmYes'),confirmNo=$('confirmNo'),confirmMessage=$('confirmMessage'),aboutOverlay=$('aboutOverlay'),aboutClose=$('aboutClose'),stepControl=$('stepControl'),stepLabel=$('stepLabel'),stepSelect=$('stepSelect'),modeToggleBottom=$('modeToggleBottom'),appTitle=$('appTitle');
+const viewModeButton=$('viewModeButton'),griFileInput=$('griFileInput'),saveGriButton=$('saveGriButton'),saveFileNameInput=$('saveFileNameInput'),confirmOverlay=$('confirmOverlay'),confirmBox=$('confirmBox'),confirmYes=$('confirmYes'),confirmNo=$('confirmNo'),confirmMessage=$('confirmMessage'),aboutOverlay=$('aboutOverlay'),aboutClose=$('aboutClose'),stepControl=$('stepControl'),stepLabel=$('stepLabel'),stepSelect=$('stepSelect'),hiddenLineToggleBottom=$('hiddenLineToggleBottom'),surfaceToggleBottom=$('surfaceToggleBottom'),modeToggleBottom=$('modeToggleBottom'),hiddenLineKeyHelp=$('hiddenLineKeyHelp'),surfaceKeyHelp=$('surfaceKeyHelp'),appTitle=$('appTitle');
 const viewName=$('viewName'),fileStatus=$('fileStatus'),zoomStatus=$('zoomStatus'),lineWidthStatus=$('lineWidthStatus'),colorModeStatus=$('colorModeStatus'),beepStatus=$('beepStatus'),padStatus=$('padStatus'),testStatus=$('testStatus');
 const dualshockConnectedHelp=$('dualshockConnectedHelp'),dualshockDisconnectedHelp=$('dualshockDisconnectedHelp'),iosGriHint=$('iosGriHint');
 let lon=Math.PI/4,lat=Math.atan(1/Math.sqrt(2));
@@ -144,10 +155,20 @@ const views={front:['正面図',0,0],right:['右側面図',Math.PI/2,0],top:['�
 const layout=[['平面図',views.top,0,0,.5,.5],['自由視点',null,.5,0,.5,.5],['正面図',views.front,0,.5,.5,.5],['右側面図',views.right,.5,.5,.5,.5]];
 let initialGri=loadStartupGri();
 let currentGriText=initialGri.text,currentGriFileName=initialGri.name,model=parseGri(currentGriText,currentGriFileName);
+let currentModelType='gri';
+let showHiddenLines=false;
+let showStlSurface=true;
+let pngExportMode=false;
+const STL_LOAD_DISPLAY_TIMEOUT_MS=5000;
+const EMBEDDED_DEFAULT_STL_NAME='demo01.stl';
+const EMBEDDED_DEFAULT_STL_BASE64='AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAACAPwAAAAAAAAAAAADgwAAAMMEAAKBCAADgwAAAMMEAACCoAADgwAAATMIAACAoAAAAAIA/AAAAAAAAAAAAAODAAAAwwQAAoEIAAODAAABMwgAAICgAAODAAABMwgAAoEIAAAAAAAAAAAAAAACAPwAA4MAAAEzCAACgQqJFBUIAAEzCAACgQqJFBUIAADDBAACgQgAAAAAAAAAAAAAAAIA/AADgwAAATMIAAKBCokUFQgAAMMEAAKBCAADgwAAAMMEAAKBCAAAAAIC/AAAAAAAAAAAAAJJCAAAwwaJFIUIAAJJCAABMwqJFIUIAAJJCAABMwgAAICgAAAAAgL8AAAAAAAAAAAAAkkIAADDBokUhQgAAkkIAAEzCAAAgKAAAkkIAADDBAAAgqAAAAAAAAAAAAAAAAIC/AADgwAAAMMEAACCoAACSQgAAMMEAACCoAACSQgAATMIAACAoAAAAAAAAAAAAAAAAgL8AAODAAAAwwQAAIKgAAJJCAABMwgAAICgAAODAAABMwgAAICgAAAAAAAAAAIC/AAAAAAAAkkIAADDBAAAgqAAA4MAAADDBAAAgqAAAkkIAADDBokUhQgAAAAAAAAAAgL8AAAAAokUFQgAAMMEAAKBCAACSQgAAMMGiRSFCAADgwAAAMMEAACCoAAAAAAAAAACAvwAAAACiRQVCAAAwwQAAoEIAAODAAAAwwQAAIKgAAODAAAAwwQAAoEIAAPMENb8AAAAA8wQ1P6JFBUIAADDBAACgQqJFBUIAAEzCAACgQgAAkkIAAEzCokUhQgAA8wQ1vwAAAADzBDU/okUFQgAAMMEAAKBCAACSQgAATMKiRSFCAACSQgAAMMGiRSFCAAAAAAAAAACAPwAAAAAAAJJCAABMwgAAICgAAJJCAABMwqJFIUIAAODAAABMwgAAICgAAAAAAAAAAIA/AAAAAAAAkkIAAEzCokUhQqJFBUIAAEzCAACgQgAA4MAAAEzCAAAgKAAAAAAAAAAAgD8AAAAAAADgwAAATMIAAKBCAADgwAAATMIAACAookUFQgAATMIAAKBCAAA=';
+let activeRenderDeadline=0;
+let renderDirty=true;
+let lastInteractiveRendering=false;
 const undoStack=[];
 init();
 
-function init(){configureFileInputForDevice();updateColor();resize();fit();updateFileStatus(model);runSelfTests();requestAnimationFrame(loop)}
+function init(){configureFileInputForDevice();updateColor();updateHiddenLineButton();updateSurfaceButton();resize();loadEmbeddedDefaultStl();updateFileStatus(model);runSelfTests();requestAnimationFrame(loop)}
 function isIPadOrIPhone(){
   const ua=navigator.userAgent||'';
   const platform=navigator.platform||'';
@@ -155,13 +176,76 @@ function isIPadOrIPhone(){
   return /iPad|iPhone|iPod/.test(ua)||(/Macintosh/.test(ua)&&touchPoints>1)||/iPad|iPhone|iPod/.test(platform);
 }
 function configureFileInputForDevice(){
-  // iPadOSでは accept=".gri,.txt" に絞ると、独自拡張子 .gri が半透明で選べない場合がある。
+  // iPadOSでは accept=".gri,.txt,.stl" に絞ると、独自拡張子 .gri が半透明で選べない場合がある。
   // そのためiPad/iPhone系だけ accept を外し、写真/カメラ/ファイル選択メニュー経由で .gri を選べるようにする。
   if(isIPadOrIPhone()){
     griFileInput.removeAttribute('accept');
   }else{
-    griFileInput.setAttribute('accept','.gri,.txt');
+    griFileInput.setAttribute('accept','.gri,.txt,.stl');
   }
+}
+
+function makeStlTimeoutError(){
+  const err=new Error('読み込みと表示に時間がかかりすぎるので、この立体は読み込めません。');
+  err.isStlTimeout=true;
+  return err;
+}
+function checkStlLoadDisplayDeadline(deadline){
+  if(deadline && performance.now()>deadline)throw makeStlTimeoutError();
+}
+function markRenderDirty(){
+  renderDirty=true;
+}
+function isInteractiveRenderActive(){
+  if(moving||inertiaLastTime)return true;
+  if(touchGesture&&(touchGesture.type==='rotate'||touchGesture.type==='pinch'))return true;
+  return keys.has('arrowleft')||keys.has('arrowright')||keys.has('arrowup')||keys.has('arrowdown');
+}
+function checkActiveRenderDeadline(){
+  if(activeRenderDeadline && performance.now()>activeRenderDeadline)throw makeStlTimeoutError();
+}
+function resetToEmptyGriAfterStlTimeout(){
+  currentGriText='0 0 0 0\n';
+  currentGriFileName='empty.gri';
+  model=parseGri(currentGriText,currentGriFileName);
+  currentModelType='gri';
+  showHiddenLines=false;
+  showStlSurface=true;
+  saveGriButton.disabled=false;
+  saveGriButton.textContent='名前を指定して保存';
+  updateBottomModeButtons();
+  updateHiddenLineButton();
+  updateSurfaceButton();
+  fit();
+}
+function restoreModelStateAfterStlTimeout(state){
+  if(!state)return;
+  model=state.model;
+  currentModelType=state.currentModelType;
+  currentGriText=state.currentGriText;
+  currentGriFileName=state.currentGriFileName;
+  showHiddenLines=state.showHiddenLines;
+  showStlSurface=state.showStlSurface!==undefined?state.showStlSurface:true;
+  lon=state.lon;
+  lat=state.lat;
+  eLon=state.eLon;
+  eLat=state.eLat;
+  zoom=state.zoom;
+  four=state.four;
+  moving=false;
+  saveGriButton.disabled=currentModelType==='stl';
+  saveGriButton.textContent=currentModelType==='stl'?'STL表示中（GRI保存不可）':'名前を指定して保存';
+  updateBottomModeButtons();
+  updateHiddenLineButton();
+  updateSurfaceButton();
+  updateFileStatus(model);
+}
+function showStlTimeoutDialog(){
+  stlTimeoutOverlay.style.display='flex';
+}
+function closeStlTimeoutDialog(){
+  stlTimeoutOverlay.style.display='none';
+  focusViewerForKeys();
 }
 
 function loadStartupGri(){
@@ -200,13 +284,13 @@ function parseGri(text,name='GRIファイル'){
   }
   if(!raw.length){
     const c=v(h[1],h[2],h[3]);
-    return{edges:[],min:c,max:c,center:c,edgeCount:Math.round(h[0]),actualEdgeCount:0,fileName:name,source:lines[0]+'\n'};
+    return{edges:[],triangles:[],min:c,max:c,center:c,edgeCount:Math.round(h[0]),actualEdgeCount:0,fileName:name,source:lines[0]+'\n',sourceType:'gri'};
   }
   const min=v(Infinity,Infinity,Infinity),max=v(-Infinity,-Infinity,-Infinity);
   raw.forEach(e=>{expand(min,max,e.a);expand(min,max,e.b)});
   const c=v((min.x+max.x)/2,(min.y+max.y)/2,(min.z+max.z)/2),size=Math.max(max.x-min.x,max.y-min.y,max.z-min.z,1),scale=4.2/size;
   const edges=raw.map(e=>({a:mul(sub(e.a,c),scale),b:mul(sub(e.b,c),scale)}));
-  return{edges,min,max,center:c,scale,edgeCount:Math.round(h[0]),actualEdgeCount:raw.length,fileName:name,source:text};
+  return{edges,triangles:[],min,max,center:c,scale,edgeCount:Math.round(h[0]),actualEdgeCount:raw.length,fileName:name,source:text,sourceType:'gri'};
 }
 
 function parseGriKeepingViewTransform(text,name='GRIファイル',baseModel=model){
@@ -224,12 +308,12 @@ function parseGriKeepingViewTransform(text,name='GRIファイル',baseModel=mode
   const keepCenter=baseModel&&baseModel.center?{...baseModel.center}:v(h[1],h[2],h[3]);
   const keepScale=baseModel&&Number.isFinite(baseModel.scale)?baseModel.scale:1;
   if(!raw.length){
-    return{edges:[],min:keepCenter,max:keepCenter,center:keepCenter,scale:keepScale,edgeCount:Math.round(h[0]),actualEdgeCount:0,fileName:name,source:text};
+    return{edges:[],triangles:[],min:keepCenter,max:keepCenter,center:keepCenter,scale:keepScale,edgeCount:Math.round(h[0]),actualEdgeCount:0,fileName:name,source:text,sourceType:'gri'};
   }
   const min=v(Infinity,Infinity,Infinity),max=v(-Infinity,-Infinity,-Infinity);
   raw.forEach(e=>{expand(min,max,e.a);expand(min,max,e.b)});
   const edges=raw.map(e=>({a:mul(sub(e.a,keepCenter),keepScale),b:mul(sub(e.b,keepCenter),keepScale)}));
-  return{edges,min,max,center:keepCenter,scale:keepScale,edgeCount:Math.round(h[0]),actualEdgeCount:raw.length,fileName:name,source:text};
+  return{edges,triangles:[],min,max,center:keepCenter,scale:keepScale,edgeCount:Math.round(h[0]),actualEdgeCount:raw.length,fileName:name,source:text,sourceType:'gri'};
 }
 function keepCurrentZoomStatus(note=''){
   zoomStatus.textContent=`表示倍率：${Math.round(zoom*100)}%${note}`;
@@ -238,9 +322,10 @@ function keepCurrentZoomStatus(note=''){
 function nums(s){return String(s).split(/\s+/).filter(Boolean).map(Number)}
 function v(x,y,z){return{x,y,z}} function sub(a,b){return v(a.x-b.x,a.y-b.y,a.z-b.z)} function mul(a,k){return v(a.x*k,a.y*k,a.z*k)}
 function expand(min,max,p){min.x=Math.min(min.x,p.x);min.y=Math.min(min.y,p.y);min.z=Math.min(min.z,p.z);max.x=Math.max(max.x,p.x);max.y=Math.max(max.y,p.y);max.z=Math.max(max.z,p.z)}
-function updateFileStatus(m){fileStatus.textContent=`読み込み：${m.fileName} / ${m.actualEdgeCount}辺`+(m.actualEdgeCount!==m.edgeCount?`（1行目の指定は${m.edgeCount}辺）`:'')}
-function loadGri(text,name){model=parseGri(text,name);currentGriText=text;currentGriFileName=name;saveFileNameInput.value=(name||'drawing.gri').replace(/\.[^.]*$/,'');undoStack.length=0;fit(...views.iso.slice(1));updateFileStatus(model);moveTo(views.iso)}
+function updateFileStatus(m){if(m&&m.sourceType==='stl'){fileStatus.textContent=`読み込み：${m.fileName} / STL ${m.triangles.length}三角形（サーフェス表示）`;return;}fileStatus.textContent=`読み込み：${m.fileName} / ${m.actualEdgeCount}辺`+(m.actualEdgeCount!==m.edgeCount?`（1行目の指定は${m.edgeCount}辺）`:'')}
+function loadGri(text,name){model=parseGri(text,name);currentModelType='gri';currentGriText=text;currentGriFileName=name;showHiddenLines=false;saveGriButton.disabled=false;saveGriButton.textContent='名前を指定して保存';saveFileNameInput.value=(name||'drawing.gri').replace(/\.[^.]*$/,'');undoStack.length=0;updateBottomModeButtons();fit(...views.iso.slice(1));updateFileStatus(model);moveTo(views.iso)}
 async function saveCurrentGri(){
+  if(model&&model.sourceType==='stl'){fileStatus.textContent='STL表示中です。STLをGRIとしては保存しません。';return;}
   const nl=String.fromCharCode(10);
   const text=currentGriText&&currentGriText.trim()?currentGriText:rebuildGriHeader(['0 0 0 0']);
   const safeText=text.endsWith(nl)?text:text+nl;
@@ -359,13 +444,469 @@ function clearAllEdges(){
   drawingPointer=v(0,0,0);drawingStartPoint=null;
   currentGriText=`0 0 0 0${nl}`;
   currentGriFileName=currentGriFileName||'drawing.gri';
-  model={edges:[],min:c,max:c,center:c,scale:1,edgeCount:0,actualEdgeCount:0,fileName:currentGriFileName,source:currentGriText};
+  model={edges:[],triangles:[],min:c,max:c,center:c,scale:1,edgeCount:0,actualEdgeCount:0,fileName:currentGriFileName,source:currentGriText,sourceType:'gri'};
   moving=false;updateFileStatus(model);fit();draw();
 }
 
 function draw(){ctx.fillStyle=inverted?'#000':'#f4f4f4';ctx.fillRect(0,0,canvas.width,canvas.height);four?drawFour():drawView(lon,lat,{x:0,y:0,w:canvas.width,h:canvas.height},null,true,inverted)}
 function drawFour(){layout.forEach(([label,view,x,y,w,h])=>{const viewInverted=inverted||!!view;drawView(view?view[1]:lon,view?view[2]:lat,{x:x*canvas.width,y:y*canvas.height,w:w*canvas.width,h:h*canvas.height},label,!view,viewInverted)});ctx.strokeStyle=inverted?'#555':'#bbb';ctx.lineWidth=dpr();ctx.beginPath();ctx.moveTo(canvas.width/2,0);ctx.lineTo(canvas.width/2,canvas.height);ctx.moveTo(0,canvas.height/2);ctx.lineTo(canvas.width,canvas.height/2);ctx.stroke()}
-function drawView(lo,la,r,label,axis,viewInverted=inverted){const basis=viewBasis(lo,la),scale=(r.h/5.2)*zoom,cx=r.x+r.w/2,cy=r.y+r.h/2;ctx.save();ctx.fillStyle=viewInverted?'#000':'#f4f4f4';ctx.fillRect(r.x,r.y,r.w,r.h);ctx.beginPath();ctx.rect(r.x,r.y,r.w,r.h);ctx.clip();if(!viewInverted)originAxes(basis,scale,cx,cy);ctx.strokeStyle=viewInverted?'#fff':'#111';ctx.lineWidth=lineWidth*dpr();ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();for(const e of model.edges){const a=proj(e.a,basis,scale,cx,cy),b=proj(e.b,basis,scale,cx,cy);ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y)}ctx.stroke();if(!viewInverted&&axis)drawHoveredEdge(basis,scale,cx,cy);if(!viewInverted)drawPreviewEdge(basis,scale,cx,cy);if(!viewInverted)drawPointer(basis,scale,cx,cy,r);if(label)labelBox(label,r,viewInverted);if(axis)axes(basis,r,viewInverted);ctx.restore()}
+function drawView(lo,la,r,label,axis,viewInverted=inverted){const basis=viewBasis(lo,la),scale=(r.h/5.2)*zoom,cx=r.x+r.w/2,cy=r.y+r.h/2;ctx.save();ctx.fillStyle=viewInverted?'#000':'#f4f4f4';ctx.fillRect(r.x,r.y,r.w,r.h);ctx.beginPath();ctx.rect(r.x,r.y,r.w,r.h);ctx.clip();if(!viewInverted)originAxes(basis,scale,cx,cy);if(model.triangles&&model.triangles.length)drawSurfaceTriangles(basis,scale,cx,cy,viewInverted);if(model.edges&&model.edges.length){ctx.strokeStyle=viewInverted?'#fff':'#111';ctx.lineWidth=lineWidth*dpr();ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();for(const e of model.edges){const a=proj(e.a,basis,scale,cx,cy),b=proj(e.b,basis,scale,cx,cy);ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y)}ctx.stroke();}if(!viewInverted&&axis)drawHoveredEdge(basis,scale,cx,cy);if(!viewInverted&&(!model.triangles||!model.triangles.length))drawPreviewEdge(basis,scale,cx,cy);if(!viewInverted&&(!model.triangles||!model.triangles.length))drawPointer(basis,scale,cx,cy,r);if(label)labelBox(label,r,viewInverted);if(axis)axes(basis,r,viewInverted);ctx.restore()}
+
+function drawSurfaceTriangles(b,viewScale,cx,cy,viewInverted=inverted){
+  const tris=model.triangles||[];
+  // 回転・拡大縮小の最中にZバッファや隠れ線解析を毎フレーム行うと、
+  // 大きめのSTLで操作が非常に重くなる。操作中だけは簡易サーフェス表示にし、
+  // 操作が止まった次のフレームで通常の詳細描画に戻す。
+  if(!pngExportMode&&isInteractiveRenderActive()&&tris.length>1200&&!activeRenderDeadline){
+    drawSurfaceTrianglesFast(b,viewScale,cx,cy,viewInverted);
+    return;
+  }
+  // STLの面表示は、三角形を単純に奥から順に塗る方式では角度によって破綻する。
+  // 通常時はCanvas 2D上で小さな深度バッファを作り、ピクセル単位で手前の面だけを描画する。
+  const zState=renderSurfaceTrianglesWithZBuffer(b,viewScale,cx,cy,viewInverted);
+  drawSurfaceVisibleEdges(b,viewScale,cx,cy,viewInverted,zState);
+}
+
+function drawSurfaceTrianglesFast(b,viewScale,cx,cy,viewInverted=inverted){
+  const tris=model.triangles||[];
+  if(!tris.length)return;
+  // 面色を消している場合、操作中は重いZバッファを作らず、詳細線は停止後に描く。
+  if(!showStlSurface)return;
+  const projected=[];
+  for(let i=0;i<tris.length;i++){
+    const tri=tris[i];
+    const pa=proj(tri.a,b,viewScale,cx,cy),pb=proj(tri.b,b,viewScale,cx,cy),pc=proj(tri.c,b,viewScale,cx,cy);
+    const depth=(dot(tri.a,b.forward)+dot(tri.b,b.forward)+dot(tri.c,b.forward))/3;
+    const normal=tri.normal||norm(cross(sub(tri.b,tri.a),sub(tri.c,tri.a)));
+    const light=Math.abs(dot(normal,b.forward));
+    projected.push({pa,pb,pc,depth,light});
+  }
+  projected.sort((a,b)=>a.depth-b.depth);
+  ctx.save();
+  for(const item of projected){
+    const blueR=Math.round(4+item.light*22);
+    const blueG=Math.round(16+item.light*42);
+    const blueB=Math.round(62+item.light*86);
+    ctx.fillStyle=`rgb(${blueR},${blueG},${blueB})`;
+    ctx.beginPath();
+    ctx.moveTo(item.pa.x,item.pa.y);
+    ctx.lineTo(item.pb.x,item.pb.y);
+    ctx.lineTo(item.pc.x,item.pc.y);
+    ctx.closePath();
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function renderSurfaceTrianglesWithZBuffer(b,viewScale,cx,cy,viewInverted=inverted){
+  checkActiveRenderDeadline();
+  const tris=model.triangles||[];
+  if(!tris.length)return null;
+  const pad=2*dpr();
+  let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+  const projected=[];
+  for(let i=0;i<tris.length;i++){
+    if((i&1023)===0)checkActiveRenderDeadline();
+    const tri=tris[i];
+    const pa=proj(tri.a,b,viewScale,cx,cy),pb=proj(tri.b,b,viewScale,cx,cy),pc=proj(tri.c,b,viewScale,cx,cy);
+    const da=dot(tri.a,b.forward),db=dot(tri.b,b.forward),dc=dot(tri.c,b.forward);
+    projected.push({tri,pa,pb,pc,da,db,dc});
+    minX=Math.min(minX,pa.x,pb.x,pc.x); minY=Math.min(minY,pa.y,pb.y,pc.y);
+    maxX=Math.max(maxX,pa.x,pb.x,pc.x); maxY=Math.max(maxY,pa.y,pb.y,pc.y);
+  }
+  if(!Number.isFinite(minX))return null;
+  const x0=clamp(Math.floor(minX-pad),0,canvas.width-1);
+  const y0=clamp(Math.floor(minY-pad),0,canvas.height-1);
+  const x1=clamp(Math.ceil(maxX+pad),0,canvas.width);
+  const y1=clamp(Math.ceil(maxY+pad),0,canvas.height);
+  const w=Math.max(1,x1-x0),h=Math.max(1,y1-y0);
+  const image=ctx.getImageData(x0,y0,w,h);
+  const data=image.data;
+  const zbuf=new Float64Array(w*h);
+  zbuf.fill(-Infinity);
+  const eps=1e-9;
+
+  for(let itemIndex=0;itemIndex<projected.length;itemIndex++){
+    if((itemIndex&127)===0)checkActiveRenderDeadline();
+    const item=projected[itemIndex];
+    const ax=item.pa.x-x0,ay=item.pa.y-y0;
+    const bx=item.pb.x-x0,by=item.pb.y-y0;
+    const cx2=item.pc.x-x0,cy2=item.pc.y-y0;
+    const area=edgeFunction(ax,ay,bx,by,cx2,cy2);
+    if(Math.abs(area)<eps)continue;
+    const invArea=1/area;
+    const tx0=clamp(Math.floor(Math.min(ax,bx,cx2)),0,w-1);
+    const ty0=clamp(Math.floor(Math.min(ay,by,cy2)),0,h-1);
+    const tx1=clamp(Math.ceil(Math.max(ax,bx,cx2)),0,w-1);
+    const ty1=clamp(Math.ceil(Math.max(ay,by,cy2)),0,h-1);
+    const normal=item.tri.normal||norm(cross(sub(item.tri.b,item.tri.a),sub(item.tri.c,item.tri.a)));
+    const light=Math.abs(dot(normal,b.forward));
+    // STLの面表示は濃いブルー系のグラデーションにする。
+    // showStlSurface がOFFでもZバッファだけは計算し、稜線・隠れ線判定に使う。
+    const blueR=Math.round(4+light*22);
+    const blueG=Math.round(16+light*42);
+    const blueB=Math.round(62+light*86);
+    for(let py=ty0;py<=ty1;py++){
+      if((py&31)===0)checkActiveRenderDeadline();
+      const y=py+.5;
+      for(let px=tx0;px<=tx1;px++){
+        const x=px+.5;
+        const w0=edgeFunction(bx,by,cx2,cy2,x,y)*invArea;
+        const w1=edgeFunction(cx2,cy2,ax,ay,x,y)*invArea;
+        const w2=edgeFunction(ax,ay,bx,by,x,y)*invArea;
+        if(w0>=-eps&&w1>=-eps&&w2>=-eps){
+          const depth=w0*item.da+w1*item.db+w2*item.dc;
+          const zi=py*w+px;
+          // この座標系では、forward方向の値が大きいほど手前として扱う。
+          if(depth>zbuf[zi]){
+            zbuf[zi]=depth;
+            if(showStlSurface && !pngExportMode){
+              const di=zi*4;
+              data[di]=blueR;data[di+1]=blueG;data[di+2]=blueB;data[di+3]=255;
+            }
+          }
+        }
+      }
+    }
+  }
+  if(showStlSurface && !pngExportMode)ctx.putImageData(image,x0,y0);
+  return {x0,y0,w,h,zbuf};
+}
+
+function drawSurfaceVisibleEdges(b,viewScale,cx,cy,viewInverted,zState){
+  if(!zState)return;
+  const visibleSegments=[];
+  const hiddenSegments=[];
+
+  // STLでは同じ稜線が隣接する2枚の三角形から二重に出ることがある。
+  // 二重描画は線の濃さや破線判定の揺れにつながるため、描く稜線は座標キーで一意化する。
+  // 曲面近似として消した辺でも、視点から見た一番外側のシルエット線なら描画対象に戻す。
+  let edgeDrawIndex=0;
+  for(const edge of collectDrawableSurfaceEdges(b)){
+    if(((edgeDrawIndex++)&255)===0)checkActiveRenderDeadline();
+    const a=edge.a,bp=edge.b;
+    const pa=proj(a,b,viewScale,cx,cy),pb=proj(bp,b,viewScale,cx,cy);
+    const runs=getSurfaceEdgeVisibilityRuns(a,bp,pa,pb,b,zState);
+    for(const run of runs.visible)visibleSegments.push(run);
+    for(const run of runs.hidden)hiddenSegments.push(run);
+  }
+
+  ctx.save();
+  ctx.lineWidth=Math.max(0.6*dpr(), lineWidth*dpr());
+  ctx.lineJoin='round';
+
+  // 隠れ線表示がONのときだけ、隠れている稜線を破線で描く。
+  // OFFのときは通常のサーフェス＋見えている稜線だけにする。
+  if(showHiddenLines){
+    // 隠れ線も実線も完全な白で描く。
+    // v0.42では、実線との重なりを事前に消す判定が強すぎ、隠れ線全体が消えることがあった。
+    // ここでは隠れ線を先に描き、その上から実線を描く。重なった部分は実線が自然に上書きする。
+    ctx.strokeStyle=pngExportMode?'#000000':'#ffffff';
+    ctx.lineCap='butt';
+    const hiddenDashLen=Math.max(10*dpr(), Math.min(18*dpr(), lineWidth*dpr()*2.2));
+    const hiddenGapLen=Math.max(7*dpr(), Math.min(14*dpr(), lineWidth*dpr()*1.6));
+    drawManualDashedSegments(hiddenSegments, hiddenDashLen, hiddenGapLen);
+  }
+
+  // 見えている稜線は完全な白の実線。
+  ctx.setLineDash([]);
+  ctx.lineCap='round';
+  ctx.strokeStyle=pngExportMode?'#000000':'#ffffff';
+  ctx.beginPath();
+  for(const [pa,pb] of visibleSegments){ctx.moveTo(pa.x,pa.y);ctx.lineTo(pb.x,pb.y);}
+  ctx.stroke();
+
+  // 曲面近似で消した稜線の代わりに、Zバッファで描かれた面全体の
+  // 画面上の外形を最後に現在の線幅と同じ太さの白で描く。これにより、正30角柱などを
+  // 円柱の近似として縦線を消しても、一番外側のシルエット線は消えない。
+  drawZBufferSilhouetteOutline(zState);
+  ctx.restore();
+}
+
+function drawZBufferSilhouetteOutline(zState){
+  checkActiveRenderDeadline();
+  if(!zState||!zState.zbuf)return;
+  const {x0,y0,w,h,zbuf}=zState;
+  if(w<=2||h<=2)return;
+  const lw=Math.max(1, Math.round(lineWidth*dpr()));
+  const r=Math.max(1, lw);
+  ctx.save();
+  ctx.fillStyle=pngExportMode?'#000000':'#ffffff';
+  // 画面上でZバッファが存在する領域と、存在しない背景の境界を拾う。
+  // ベクトル稜線ではなくレンダリング結果の外周から描くので、
+  // 滑らかな曲面近似の外形が角度で消える問題を避けられる。
+  for(let y=1;y<h-1;y++){
+    if((y&31)===0)checkActiveRenderDeadline();
+    const row=y*w;
+    for(let x=1;x<w-1;x++){
+      const i=row+x;
+      if(zbuf[i]===-Infinity)continue;
+      if(zbuf[i-1]===-Infinity||zbuf[i+1]===-Infinity||zbuf[i-w]===-Infinity||zbuf[i+w]===-Infinity||
+         zbuf[i-w-1]===-Infinity||zbuf[i-w+1]===-Infinity||zbuf[i+w-1]===-Infinity||zbuf[i+w+1]===-Infinity){
+        ctx.fillRect(x0+x-r/2,y0+y-r/2,r,r);
+      }
+    }
+  }
+  ctx.restore();
+}
+
+function collectDrawableSurfaceEdges(basis=null){
+  const edges=[];
+  const used=new Set();
+  let drawableTriIndex=0;
+  for(const tri of model.triangles||[]){
+    if(((drawableTriIndex++)&1023)===0)checkActiveRenderDeadline();
+    const pts=[tri.a,tri.b,tri.c];
+    const visible=tri.visibleEdges||[true,true,true];
+    const smooth=tri.smoothHiddenEdges||[false,false,false];
+    for(let i=0;i<3;i++){
+      // 通常の稜線は描く。
+      // ただし正21角柱以上などで「なめらかな曲面近似」とみなして消した辺でも、
+      // 視点から見たシルエット線になる場合は復活させる。
+      // これにより、立方体を円柱が貫通するSTLの内側円筒面でも、
+      // 円筒面の奥側の輪郭が隠れ線として出せる。
+      const shouldDraw=visible[i] || (basis && smooth[i] && isSmoothSilhouetteEdge(tri,i,basis));
+      if(!shouldDraw)continue;
+      const a=pts[i],bp=pts[(i+1)%3];
+      const key=edgeVisibilityKey(a,bp);
+      if(used.has(key))continue;
+      used.add(key);
+      edges.push({a,b:bp,key,fromSmoothSilhouette:!visible[i]&&smooth[i]});
+    }
+  }
+  return edges;
+}
+
+function isSmoothSilhouetteEdge(tri,edgeIndex,basis){
+  const pair=tri.smoothEdgeNormals&&tri.smoothEdgeNormals[edgeIndex];
+  if(!pair||pair.length<2)return false;
+  const n1=pair[0],n2=pair[1];
+  const d1=dot(n1,basis.forward);
+  const d2=dot(n2,basis.forward);
+  // なめらかな曲面近似で消した内部線のうち、視点から見たシルエットに
+  // 相当する辺だけを復活させる。v0.63では「視線に近い面」を広く拾いすぎ、
+  // 内側円筒面に複数本の破線が出たため、判定を狭くした。
+
+  // 隣接する2面の法線が視線方向に対して表裏で入れ替わる辺はシルエット。
+  // ちょうど0付近で判定が揺れないよう、ごく小さい許容を入れる。
+  const eps=0.0015;
+  if(d1*d2<=eps && Math.max(Math.abs(d1),Math.abs(d2))>eps)return true;
+
+  // 回転角度によって、シルエットが三角形の辺の上に完全には乗らない場合がある。
+  // その救済として、片方の面が本当に視線に近い場合だけ候補にする。
+  // 値を大きくすると、円筒側面の複数の縦線が復活してしまう。
+  const nearTangent=0.055;
+  const minAbs=Math.min(Math.abs(d1),Math.abs(d2));
+  const maxAbs=Math.max(Math.abs(d1),Math.abs(d2));
+  if(minAbs<nearTangent && maxAbs<0.22)return true;
+  return false;
+}
+
+function drawManualDashedSegments(segments,dashLen,gapLen){
+  ctx.beginPath();
+  for(const [pa,pb] of segments){
+    const dx=pb.x-pa.x,dy=pb.y-pa.y;
+    const len=Math.hypot(dx,dy);
+    if(len<0.5)continue;
+    const ux=dx/len,uy=dy/len;
+    let d=0;
+    while(d<len){
+      const d2=Math.min(len,d+dashLen);
+      if(d2-d>0.5){
+        ctx.moveTo(pa.x+ux*d,pa.y+uy*d);
+        ctx.lineTo(pa.x+ux*d2,pa.y+uy*d2);
+      }
+      d+=dashLen+gapLen;
+    }
+  }
+  ctx.stroke();
+}
+
+function drawManualDashedSegmentsAvoiding(segments,dashLen,gapLen,solidSegments,overlapTol){
+  // 隠れ線と実線が同じ投影位置に来る場合は、実線を優先する。
+  // 破線の各ダッシュをさらに短く調べ、可視実線に十分近い部分は描かない。
+  ctx.beginPath();
+  const subStep=Math.max(1.5*dpr(), overlapTol*0.75);
+  for(const [pa,pb] of segments){
+    const dx=pb.x-pa.x,dy=pb.y-pa.y;
+    const len=Math.hypot(dx,dy);
+    if(len<0.5)continue;
+    const ux=dx/len,uy=dy/len;
+    let d=0;
+    while(d<len){
+      const dashEnd=Math.min(len,d+dashLen);
+      let runStart=null;
+      for(let t=d;t<=dashEnd+0.001;t+=subStep){
+        const tt=Math.min(t,dashEnd);
+        const p={x:pa.x+ux*tt,y:pa.y+uy*tt};
+        const overlaps=pointNearAnyColinearSegment(p,pa,pb,solidSegments,overlapTol);
+        if(!overlaps && runStart===null){
+          runStart=tt;
+        }else if((overlaps || tt>=dashEnd) && runStart!==null){
+          const runEnd=overlaps?Math.max(runStart,tt-subStep):tt;
+          if(runEnd-runStart>0.7){
+            ctx.moveTo(pa.x+ux*runStart,pa.y+uy*runStart);
+            ctx.lineTo(pa.x+ux*runEnd,pa.y+uy*runEnd);
+          }
+          runStart=null;
+        }
+      }
+      d+=dashLen+gapLen;
+    }
+  }
+  ctx.stroke();
+}
+
+
+function pointNearAnyColinearSegment(p,segA,segB,segments,tol){
+  // 隠れ線を消すのは、実線と「同じ方向でほぼ同一直線上」にある時だけ。
+  // 交差しているだけ、近くを通っているだけの場合は消さない。
+  const ux=segB.x-segA.x, uy=segB.y-segA.y;
+  const ulen=Math.hypot(ux,uy);
+  if(ulen<1e-6)return false;
+  const nx=ux/ulen, ny=uy/ulen;
+  const tol2=tol*tol;
+  const angleTol=0.985; // 約10度以内なら同方向とみなす
+  for(const [a,bp] of segments){
+    const vx=bp.x-a.x, vy=bp.y-a.y;
+    const vlen=Math.hypot(vx,vy);
+    if(vlen<1e-6)continue;
+    const dotAbs=Math.abs(nx*(vx/vlen)+ny*(vy/vlen));
+    if(dotAbs<angleTol)continue;
+    if(pointSegmentDistanceSq(p,a,bp)<=tol2)return true;
+  }
+  return false;
+}
+
+function pointNearAnySegment(p,segments,tol){
+  const tol2=tol*tol;
+  for(const [a,bp] of segments){
+    if(pointSegmentDistanceSq(p,a,bp)<=tol2)return true;
+  }
+  return false;
+}
+
+function pointSegmentDistanceSq(p,a,bp){
+  const vx=bp.x-a.x,vy=bp.y-a.y;
+  const wx=p.x-a.x,wy=p.y-a.y;
+  const len2=vx*vx+vy*vy;
+  if(len2<1e-9){
+    const dx=p.x-a.x,dy=p.y-a.y;
+    return dx*dx+dy*dy;
+  }
+  const t=Math.max(0,Math.min(1,(wx*vx+wy*vy)/len2));
+  const x=a.x+vx*t,y=a.y+vy*t;
+  const dx=p.x-x,dy=p.y-y;
+  return dx*dx+dy*dy;
+}
+
+function getSurfaceEdgeVisibilityRuns(a,bp,pa,pb,basis,zState){
+  const length=Math.hypot(pb.x-pa.x,pb.y-pa.y);
+  const step=Math.max(2.5*dpr(),5);
+  const samples=clamp(Math.ceil(length/step),8,128);
+  const states=[];
+  for(let i=0;i<=samples;i++){
+    const t=i/samples;
+    states.push(classifySurfaceEdgePointOnZBuffer(a,bp,pa,pb,basis,zState,t));
+  }
+  const visible=[];
+  const hidden=[];
+  let start=null;
+  let state='none';
+  for(let i=0;i<=samples;i++){
+    const s=states[i];
+    if(s==='none'){
+      if(start!==null){
+        addSurfaceEdgeRun(state==='visible'?visible:hidden,pa,pb,start/samples,Math.max(start,(i-1))/samples);
+        start=null;state='none';
+      }
+      continue;
+    }
+    if(start===null){
+      start=i;state=s;
+    }else if(s!==state){
+      addSurfaceEdgeRun(state==='visible'?visible:hidden,pa,pb,start/samples,Math.max(start,(i-1))/samples);
+      start=i;state=s;
+    }
+  }
+  if(start!==null)addSurfaceEdgeRun(state==='visible'?visible:hidden,pa,pb,start/samples,1);
+  return {visible,hidden};
+}
+
+function getSurfaceEdgeVisibleRuns(a,bp,pa,pb,basis,zState){
+  return getSurfaceEdgeVisibilityRuns(a,bp,pa,pb,basis,zState).visible;
+}
+
+function addSurfaceEdgeRun(runs,pa,pb,t0,t1){
+  if(t1-t0<0.02)return;
+  const a={x:pa.x+(pb.x-pa.x)*t0,y:pa.y+(pb.y-pa.y)*t0};
+  const b={x:pa.x+(pb.x-pa.x)*t1,y:pa.y+(pb.y-pa.y)*t1};
+  if(Math.hypot(b.x-a.x,b.y-a.y)<2*dpr())return;
+  runs.push([a,b]);
+}
+
+function classifySurfaceEdgePointOnZBuffer(a,bp,pa,pb,basis,zState,t){
+  // v0.38:
+  // Zバッファの画素だけで線を判定すると、線が面の境界付近に重なる角度で
+  // サンプル画素が少しずれ、隠れ線が実線になったり、実線が破線になったりする。
+  // そこで、線上の点から視線方向へ伸びる直交投影のレイを考え、
+  // その点を画面上で覆っている三角形の奥行きを解析的に計算する。
+  // 自分自身が属する隣接三角形は除外し、別の面が手前にあれば隠れ線とする。
+  const p3=v(a.x+(bp.x-a.x)*t,a.y+(bp.y-a.y)*t,a.z+(bp.z-a.z)*t);
+  return isPointOccludedAnalytically(p3,a,bp,basis)?'hidden':'visible';
+}
+
+function isPointOccludedAnalytically(p3,edgeA,edgeB,basis){
+  const sx=dot(p3,basis.right);
+  const sy=dot(p3,basis.up);
+  const edgeDepth=dot(p3,basis.forward);
+  const depthEps=0.010;
+  const insideEps=1e-7;
+  let occTriIndex=0;
+  for(const tri of model.triangles||[]){
+    if(((occTriIndex++)&1023)===0)checkActiveRenderDeadline();
+    // この稜線を構成している三角形そのものは、稜線を隠す面として扱わない。
+    if(triangleHasEdge(tri,edgeA,edgeB))continue;
+
+    const ax=dot(tri.a,basis.right),ay=dot(tri.a,basis.up),ad=dot(tri.a,basis.forward);
+    const bx=dot(tri.b,basis.right),by=dot(tri.b,basis.up),bd=dot(tri.b,basis.forward);
+    const cx2=dot(tri.c,basis.right),cy2=dot(tri.c,basis.up),cd=dot(tri.c,basis.forward);
+    const area=edgeFunction(ax,ay,bx,by,cx2,cy2);
+    if(Math.abs(area)<1e-12)continue;
+    const invArea=1/area;
+    const w0=edgeFunction(bx,by,cx2,cy2,sx,sy)*invArea;
+    const w1=edgeFunction(cx2,cy2,ax,ay,sx,sy)*invArea;
+    const w2=edgeFunction(ax,ay,bx,by,sx,sy)*invArea;
+    if(w0>=-insideEps&&w1>=-insideEps&&w2>=-insideEps){
+      const triDepth=w0*ad+w1*bd+w2*cd;
+      if(triDepth>edgeDepth+depthEps)return true;
+    }
+  }
+  return false;
+}
+
+function triangleHasEdge(tri,a,bp){
+  const pts=[tri.a,tri.b,tri.c];
+  let hasA=false,hasB=false;
+  for(const p of pts){
+    if(pointsAlmostEqual(p,a))hasA=true;
+    if(pointsAlmostEqual(p,bp))hasB=true;
+  }
+  return hasA&&hasB;
+}
+
+function pointsAlmostEqual(p,q){
+  return Math.abs(p.x-q.x)<1e-6&&Math.abs(p.y-q.y)<1e-6&&Math.abs(p.z-q.z)<1e-6;
+}
+function isSurfaceEdgePointVisibleOnZBuffer(a,bp,pa,pb,basis,zState,t){
+  return classifySurfaceEdgePointOnZBuffer(a,bp,pa,pb,basis,zState,t)==='visible';
+}
+
+function isSurfaceEdgeVisibleOnZBuffer(a,bp,pa,pb,basis,zState){
+  return getSurfaceEdgeVisibleRuns(a,bp,pa,pb,basis,zState).length>0;
+}
+
+function edgeFunction(ax,ay,bx,by,cx,cy){return (cx-ax)*(by-ay)-(cy-ay)*(bx-ax)}
 function labelBox(t,r,viewInverted=inverted){const rect=getLabelRect(t,r);const s=dpr();ctx.fillStyle=viewInverted?'rgba(0,0,0,.7)':'rgba(255,255,255,.85)';ctx.strokeStyle=viewInverted?'#555':'#bbb';ctx.font=`${14*s}px sans-serif`;ctx.beginPath();ctx.roundRect(rect.x,rect.y,rect.w,rect.h,8*s);ctx.fill();ctx.stroke();ctx.fillStyle=viewInverted?'#ccc':'#555';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(t,rect.x+rect.w/2,rect.y+rect.h/2)}
 function getLabelRect(t,r){const s=dpr();ctx.save();ctx.font=`${14*s}px sans-serif`;const w=ctx.measureText(t).width+20*s,h=28*s,x=r.x+10*s,y=(four&&t==='自由視点')?r.y+r.h-h-10*s:r.y+10*s;ctx.restore();return{x,y,w,h,label:t}}
 function fourLabelRect(t,r){return getLabelRect(t,r)}
@@ -723,6 +1264,7 @@ function updateTouchInertia(now){
   inertiaLastTime=now;
   lon=normalizeAngle(lon+touchLonVelocity*dt);
   lat=clamp(lat+touchLatVelocity*dt,-LAT_LIMIT,LAT_LIMIT);
+  markRenderDirty();
   const decay=Math.exp(-dt/1.15);
   touchLonVelocity*=decay;
   touchLatVelocity*=decay;
@@ -753,9 +1295,10 @@ function updateMove(now){
     moving=false;
     lon=normalizeAngle(eLon);
     lat=eLat;
+    markRenderDirty();
   }
 }
-function fit(lo=lon,la=lat){const b=viewBasis(lo,la),r=four?{w:canvas.width/2,h:canvas.height/2}:{w:canvas.width,h:canvas.height};let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;const addPoint=p=>{const x=dot(p,b.right),y=dot(p,b.up);minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y)};for(const e of model.edges){addPoint(e.a);addPoint(e.b)}if(!inverted){getAxisModelPoints().forEach(addPoint);getModelMaxCornerPoints().forEach(addPoint);}if(!Number.isFinite(minX)){zoom=1;zoomStatus.textContent='表示倍率：100%（空）';return;}const base=r.h/5.2;const spanX=Math.max(Math.abs(minX),Math.abs(maxX))*2||1;const spanY=Math.max(Math.abs(minY),Math.abs(maxY))*2||1;zoom=clamp(Math.min(r.w*.82/(spanX*base),r.h*.82/(spanY*base)),.05,12);zoomStatus.textContent=`表示倍率：${Math.round(zoom*100)}%（自動調整）`;}
+function fit(lo=lon,la=lat){const b=viewBasis(lo,la),r=four?{w:canvas.width/2,h:canvas.height/2}:{w:canvas.width,h:canvas.height};let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;const addPoint=p=>{const x=dot(p,b.right),y=dot(p,b.up);minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y)};for(const e of (model.edges||[])){addPoint(e.a);addPoint(e.b)}for(const tri of (model.triangles||[])){addPoint(tri.a);addPoint(tri.b);addPoint(tri.c)}if(!inverted){getAxisModelPoints().forEach(addPoint);getModelMaxCornerPoints().forEach(addPoint);}if(!Number.isFinite(minX)){zoom=1;zoomStatus.textContent='表示倍率：100%（空）';return;}const base=r.h/5.2;const spanX=Math.max(Math.abs(minX),Math.abs(maxX))*2||1;const spanY=Math.max(Math.abs(minY),Math.abs(maxY))*2||1;zoom=clamp(Math.min(r.w*.82/(spanX*base),r.h*.82/(spanY*base)),.05,12);zoomStatus.textContent=`表示倍率：${Math.round(zoom*100)}%（自動調整）`;}
 
 function setDualshockHelpConnected(isConnected){
   if(dualshockConnectedHelp)dualshockConnectedHelp.style.display=isConnected?'block':'none';
@@ -790,9 +1333,25 @@ function updateGamepad(){
 function press(pad,i){return (pad.buttons[i]?.pressed||false)&&!prevButtons[i]} function dead(n){return Math.abs(n)<.12?0:n}
 function updateKeys(){if(moving)return;let vmove=false,other=false;if(keys.has('arrowleft')){lon=normalizeAngle(lon+.035);vmove=true}if(keys.has('arrowright')){lon=normalizeAngle(lon-.035);vmove=true}if(!shift&&keys.has('arrowup')){lat-=.035;vmove=true}if(!shift&&keys.has('arrowdown')){lat+=.035;vmove=true}if(shift&&keys.has('arrowup')){changeZoom(.035);other=true}if(shift&&keys.has('arrowdown')){changeZoom(-.035);other=true}if(vmove){clearPreservedFourFreeView();lat=clamp(lat,-LAT_LIMIT,LAT_LIMIT);viewName.textContent='自由視点';click(performance.now())}else if(other)click(performance.now())}
 
-function changeZoom(d){clearPreservedFourFreeView();zoom=clamp(zoom*(1+d),.05,12);zoomStatus.textContent=`表示倍率：${Math.round(zoom*100)}%`}
-function changeLine(d){lineWidth=clamp(lineWidth+d,1,8);lineWidthStatus.textContent=`線の太さ：${lineWidth.toFixed(1)}`}
-function updateColor(keepZoom=false){document.body.classList.toggle('light-ui',!inverted);colorModeStatus.textContent=inverted?'表示モード：通常モード（黒背景・白線）':'表示モード：描画モード（白背景・黒線）';modeToggleBottom.textContent=inverted?'描画モードにする':'通常モードにする';if(!inverted){drawingPointer=v(0,0,0);drawingStartPoint=null;}if(!keepZoom)fit()}
+function changeZoom(d){clearPreservedFourFreeView();zoom=clamp(zoom*(1+d),.05,12);zoomStatus.textContent=`表示倍率：${Math.round(zoom*100)}%`;markRenderDirty()}
+function changeLine(d){lineWidth=clamp(lineWidth+d,1,8);lineWidthStatus.textContent=`線の太さ：${lineWidth.toFixed(1)}`;markRenderDirty()}
+function updateColor(keepZoom=false){markRenderDirty();document.body.classList.toggle('light-ui',!inverted);colorModeStatus.textContent=inverted?'表示モード：通常モード（黒背景・白線）':'表示モード：描画モード（白背景・黒線）';modeToggleBottom.textContent=inverted?'描画モードにする':'通常モードにする';if(!inverted){drawingPointer=v(0,0,0);drawingStartPoint=null;}updateBottomModeButtons();if(!keepZoom)fit()}
+function updateHiddenLineButton(){if(hiddenLineToggleBottom)hiddenLineToggleBottom.textContent=showHiddenLines?'かくれ線を表示しない':'かくれ線を表示する'}
+function updateSurfaceButton(){if(surfaceToggleBottom)surfaceToggleBottom.textContent=showStlSurface?'面の色を表示しない':'面の色を表示'}
+function updateBottomModeButtons(){
+  const isStl=!!(model&&model.sourceType==='stl');
+  if(modeToggleBottom)modeToggleBottom.style.display=isStl?'none':'block';
+  if(hiddenLineToggleBottom)hiddenLineToggleBottom.style.display=isStl?'block':'none';
+  if(surfaceToggleBottom)surfaceToggleBottom.style.display=isStl?'block':'none';
+  if(hiddenLineKeyHelp)hiddenLineKeyHelp.style.display=isStl?'block':'none';
+  if(surfaceKeyHelp)surfaceKeyHelp.style.display=isStl?'block':'none';
+  if(isStl&&stepControl){stepControl.style.display='none';stepControl.classList.remove('open');}
+  else if(stepControl){stepControl.style.display='';}
+  updateHiddenLineButton();
+  updateSurfaceButton();
+}
+function toggleHiddenLines(){if(!(model&&model.sourceType==='stl'))return;showHiddenLines=!showHiddenLines;updateHiddenLineButton();markRenderDirty();click(performance.now())}
+function toggleStlSurface(){if(!(model&&model.sourceType==='stl'))return;showStlSurface=!showStlSurface;updateSurfaceButton();markRenderDirty();click(performance.now())}
 function toggleBeep(){beep=!beep;beepStatus.textContent=beep?'クリック音：ON':'クリック音：OFF'}
 function soundReady(){
   try{
@@ -805,6 +1364,7 @@ function soundReady(){
   }
 }
 function click(now){
+  markRenderDirty();
   if(selfTesting)return;
   if(!beep||now-lastBeep<65)return;
   try{
@@ -827,48 +1387,59 @@ function click(now){
 }
 
 async function savePng(){
-  try{
-    // PNG保存時は画面表示の黒背景をそのまま写さず、白背景・黒線の線画として書き出す。
-    // HTML上のボタンやタイトルはcanvas外の要素なので、canvasだけを書き出すことで含まれない。
-    // ４面モード時は、４面全体を１枚のPNGとして保存する。
-    drawPngExport();
-    const name=createPngFileName();
-    const blob=await canvasToPngBlob();
-    draw();
+  const suggestedName=createPngFileName();
+  let fileHandle=null;
 
-    // File System Access API 対応ブラウザでは、保存先を選ぶダイアログを出す。
-    // Safari/iPadなど非対応の場合は、従来通りブラウザのダウンロード保存に戻す。
-    if(blob&&window.showSaveFilePicker){
-      try{
-        const handle=await window.showSaveFilePicker({
-          suggestedName:name,
-          types:[{description:'PNG画像',accept:{'image/png':['.png']}}]
-        });
-        const writable=await handle.createWritable();
-        await writable.write(blob);
-        await writable.close();
-        fileStatus.textContent=`PNG保存：${name}`;
+  // まず保存先とファイル名をユーザーに選んでもらう。
+  // showSaveFilePicker 対応ブラウザでは、ここでOS標準の保存ダイアログが開く。
+  if(window.showSaveFilePicker){
+    try{
+      fileHandle=await window.showSaveFilePicker({
+        suggestedName,
+        types:[{
+          description:'PNG画像',
+          accept:{'image/png':['.png']}
+        }]
+      });
+    }catch(error){
+      if(error&&error.name==='AbortError'){
+        fileStatus.textContent='PNG保存をキャンセルしました。';
         return;
-      }catch(error){
-        if(error&&error.name==='AbortError')return;
-        console.warn('保存先選択で保存できなかったため、ダウンロード方式に切り替えます。',error);
       }
+      console.error('PNG保存ダイアログを開けませんでした。',error);
+      fileStatus.textContent='PNG保存エラー：保存先を選べませんでした。';
+      return;
     }
+  }else{
+    // SafariなどFile System Access API非対応のブラウザでは、保存先選択をアプリ側から制御できない。
+    // その場合のみ従来のダウンロード動作に戻す。
+    fileStatus.textContent='このブラウザでは保存先選択に対応していないため、通常のダウンロードとして保存します。';
+  }
 
-    if(blob){
-      const url=URL.createObjectURL(blob);
-      downloadUrl(url,name,()=>URL.revokeObjectURL(url));
+  const oldPngExportMode=pngExportMode;
+  try{
+    pngExportMode=true;
+    drawPngExport();
+    const blob=await canvasToPngBlob();
+    if(!blob)throw new Error('canvas.toBlob failed');
+
+    if(fileHandle){
+      const writable=await fileHandle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+      fileStatus.textContent=`PNG保存：${fileHandle.name||suggestedName}`;
     }else{
-      drawPngExport();
       const dataUrl=canvas.toDataURL('image/png');
-      draw();
-      downloadUrl(dataUrl,name);
+      downloadUrl(dataUrl,suggestedName);
+      fileStatus.textContent=`PNG保存：${suggestedName}`;
     }
-    fileStatus.textContent=`PNG保存：${name}`;
   }catch(error){
-    draw();
     console.error('PNG保存に失敗しました。',error);
     fileStatus.textContent='PNG保存エラー：画像を書き出せませんでした。';
+  }finally{
+    pngExportMode=oldPngExportMode;
+    markRenderDirty();
+    draw();
   }
 }
 function drawPngExport(){
@@ -898,17 +1469,20 @@ function drawPngExportView(lo,la,r){
   ctx.beginPath();
   ctx.rect(r.x,r.y,r.w,r.h);
   ctx.clip();
-  ctx.strokeStyle='#111';
-  ctx.lineWidth=lineWidth*dpr();
-  ctx.lineCap='round';
-  ctx.lineJoin='round';
-  ctx.beginPath();
-  for(const e of model.edges){
-    const a=proj(e.a,basis,scale,cx,cy),b=proj(e.b,basis,scale,cx,cy);
-    ctx.moveTo(a.x,a.y);
-    ctx.lineTo(b.x,b.y);
+  if(model.triangles&&model.triangles.length)drawSurfaceTriangles(basis,scale,cx,cy,false);
+  if(model.edges&&model.edges.length){
+    ctx.strokeStyle='#111';
+    ctx.lineWidth=lineWidth*dpr();
+    ctx.lineCap='round';
+    ctx.lineJoin='round';
+    ctx.beginPath();
+    for(const e of model.edges){
+      const a=proj(e.a,basis,scale,cx,cy),b=proj(e.b,basis,scale,cx,cy);
+      ctx.moveTo(a.x,a.y);
+      ctx.lineTo(b.x,b.y);
+    }
+    ctx.stroke();
   }
-  ctx.stroke();
   ctx.restore();
 }
 function canvasToPngBlob(){
@@ -961,17 +1535,22 @@ window.addEventListener('keydown',e=>{
   if(k==='delete'){e.preventDefault();if(!inverted)deleteEdgeFromStartToPointer();return;}
   if(k==='backspace'){e.preventDefault();if(!inverted){shift?restoreLastEdge():removeLastEdge();}return;}
   if(k==='p'){e.preventDefault();savePng();return;}
+  if(k==='k'){e.preventDefault();toggleHiddenLines();return;}
+  if(k==='s'){e.preventDefault();toggleStlSurface();return;}
   soundReady();
   // 線の太さは、物理キーボードの + / - キーを押した瞬間だけ変更する。
   // iPadの外部キーボード付きタッチパッドのピンチ操作が + / - 相当として残り、
   // フレームごとに線が太くなり続ける症状を避けるため、keys Setには入れない。
-  if(k==='+'||k==='='){
+  const code=(e.code||'').toLowerCase();
+  const plusKey=(k==='+'||k==='='||code==='numpadadd');
+  const minusKey=(k==='-'||k==='_'||code==='numpadsubtract'||code==='minus');
+  if(plusKey){
     e.preventDefault();
     changeLine(.25);
     click(performance.now());
     return;
   }
-  if(k==='-'||k==='_'){
+  if(minusKey){
     e.preventDefault();
     changeLine(-.25);
     click(performance.now());
@@ -994,20 +1573,266 @@ griFileInput.addEventListener('click',()=>{griFileInput.value='';});
 griFileInput.addEventListener('change',async e=>{
   const f=e.target.files&&e.target.files[0];
   if(!f){focusViewerForKeys();return;}
+  const isStl=/\.stl$/i.test(f.name||'');
+  const stlDeadline=isStl?performance.now()+STL_LOAD_DISPLAY_TIMEOUT_MS:0;
+  const previousState={model,currentModelType,currentGriText,currentGriFileName,showHiddenLines,showStlSurface,lon,lat,eLon,eLat,zoom,four};
   try{
     fileStatus.textContent=`読み込み中：${f.name||'選択ファイル'}`;
-    const text=await readSelectedTextFile(f);
-    if(!String(text||'').trim())throw Error('選択したGRIファイルが空です。');
-    loadGri(text,f.name||'selected.gri');
+    if(isStl){
+      const buffer=await readSelectedArrayBufferFile(f);
+      checkStlLoadDisplayDeadline(stlDeadline);
+      loadStl(buffer,f.name||'selected.stl',stlDeadline);
+    }else{
+      const text=await readSelectedTextFile(f);
+      if(!String(text||'').trim())throw Error('選択したGRIファイルが空です。');
+      loadGri(text,f.name||'selected.gri');
+    }
     griFileInput.value='';
     focusViewerForKeys();
   }catch(err){
     console.error(err);
-    fileStatus.textContent=`読み込みエラー：${err.message||err}`;
+    if(err&&err.isStlTimeout){
+      restoreModelStateAfterStlTimeout(previousState);
+      fileStatus.textContent='読み込み中止：STLが大きすぎます。';
+      showStlTimeoutDialog();
+    }else{
+      fileStatus.textContent=`読み込みエラー：${err.message||err}`;
+    }
     griFileInput.value='';
     focusViewerForKeys();
+  }finally{
+    activeRenderDeadline=0;
   }
 });
+
+
+function base64ToArrayBuffer(base64){
+  const binary=atob(base64);
+  const bytes=new Uint8Array(binary.length);
+  for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+  return bytes.buffer;
+}
+function loadEmbeddedDefaultStl(){
+  try{
+    const buffer=base64ToArrayBuffer(EMBEDDED_DEFAULT_STL_BASE64);
+    loadStl(buffer,EMBEDDED_DEFAULT_STL_NAME,0);
+    fileStatus.textContent='読み込み：demo01.stl / デフォルトSTL（内蔵）';
+  }catch(err){
+    console.error(err);
+    fit();
+    updateFileStatus(model);
+  }
+}
+function readSelectedArrayBufferFile(file){
+  if(file&&typeof file.arrayBuffer==='function'){
+    return file.arrayBuffer().catch(()=>readSelectedArrayBufferFileByReader(file));
+  }
+  return readSelectedArrayBufferFileByReader(file);
+}
+function readSelectedArrayBufferFileByReader(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>resolve(reader.result);
+    reader.onerror=()=>reject(reader.error||Error('ファイルを読み込めませんでした。'));
+    reader.readAsArrayBuffer(file);
+  });
+}
+function loadStl(buffer,name,deadline=0){
+  const parsed=parseStlSurface(buffer,name,deadline);
+  model=parsed;
+  currentModelType='stl';
+  showHiddenLines=false;
+  showStlSurface=true;
+  currentGriText='';
+  currentGriFileName=name;
+  undoStack.length=0;
+  if(!inverted){inverted=true;updateColor(true);}
+  updateBottomModeButtons();
+  saveGriButton.disabled=true;
+  saveGriButton.textContent='STL表示中（GRI保存不可）';
+  saveFileNameInput.value=(name||'surface.stl').replace(/\.[^.]*$/,'');
+  fit(...views.iso.slice(1));
+  updateFileStatus(model);
+  moveTo(views.iso);
+  if(deadline){
+    // STLは初回表示までを5秒以内に完了できるか確認する。
+    // ここで描画まで試し、重すぎるSTLは以後の通常描画ループに渡さない。
+    lon=eLon;
+    lat=eLat;
+    moving=false;
+    activeRenderDeadline=deadline;
+    draw();
+    activeRenderDeadline=0;
+    checkStlLoadDisplayDeadline(deadline);
+  }
+}
+function parseStlSurface(buffer,name='STLファイル',deadline=0){
+  checkStlLoadDisplayDeadline(deadline);
+  const bytes=new Uint8Array(buffer);
+  const asText=looksLikeAsciiStl(bytes)?new TextDecoder('utf-8').decode(bytes):null;
+  const rawTriangles=asText?parseAsciiStlTriangles(asText,deadline):parseBinaryStlTriangles(buffer,deadline);
+  if(!rawTriangles.length)throw Error('STLの三角形面を読み取れませんでした。');
+  const converted=[];
+  const min=v(Infinity,Infinity,Infinity),max=v(-Infinity,-Infinity,-Infinity);
+  for(let i=0;i<rawTriangles.length;i++){
+    if((i&1023)===0)checkStlLoadDisplayDeadline(deadline);
+    const tri=rawTriangles[i];
+    const a=stlToGriPoint(tri.a),b=stlToGriPoint(tri.b),c=stlToGriPoint(tri.c);
+    [a,b,c].forEach(p=>{expand(min,max,p)});
+    converted.push({a,b,c});
+  }
+  const shift=v(min.x,min.y,min.z);
+  const normalizedRaw=[];
+  for(let i=0;i<converted.length;i++){
+    if((i&1023)===0)checkStlLoadDisplayDeadline(deadline);
+    const t=converted[i];
+    normalizedRaw.push({a:sub(t.a,shift),b:sub(t.b,shift),c:sub(t.c,shift)});
+  }
+  const rawMin=v(0,0,0),rawMax=v(max.x-min.x,max.y-min.y,max.z-min.z);
+  const center=v((rawMin.x+rawMax.x)/2,(rawMin.y+rawMax.y)/2,(rawMin.z+rawMax.z)/2);
+  const size=Math.max(rawMax.x-rawMin.x,rawMax.y-rawMin.y,rawMax.z-rawMin.z,1);
+  const scale=4.2/size;
+  const triangles=[];
+  for(let i=0;i<normalizedRaw.length;i++){
+    if((i&1023)===0)checkStlLoadDisplayDeadline(deadline);
+    const t=normalizedRaw[i];
+    triangles.push({a:mul(sub(t.a,center),scale),b:mul(sub(t.b,center),scale),c:mul(sub(t.c,center),scale)});
+  }
+  markVisibleSurfaceEdges(triangles,deadline);
+  return {edges:[],triangles,min:rawMin,max:rawMax,center,scale,edgeCount:0,actualEdgeCount:0,fileName:name,source:'',sourceType:'stl',rawTriangleCount:rawTriangles.length};
+}
+
+function markVisibleSurfaceEdges(triangles,deadline=0){
+  // STLの三角形同士が同じ平面上で辺を共有している場合、その共有辺は
+  // 本来の立体の稜線ではなく、三角形分割のための内部線なので非表示にする。
+  const edgeMap=new Map();
+  triangles.forEach((tri,triIndex)=>{
+    if((triIndex&1023)===0)checkStlLoadDisplayDeadline(deadline);
+    tri.visibleEdges=[true,true,true];
+    tri.smoothHiddenEdges=[false,false,false];
+    tri.smoothEdgeNormals=[null,null,null];
+    tri.normal=norm(cross(sub(tri.b,tri.a),sub(tri.c,tri.a)));
+    const centroid=v((tri.a.x+tri.b.x+tri.c.x)/3,(tri.a.y+tri.b.y+tri.c.y)/3,(tri.a.z+tri.b.z+tri.c.z)/3);
+    // STLの三角形の頂点順や法線が必ず外向きとは限らないため、表示用法線を中心から外向きにそろえる。
+    // モデルは表示用に中心が原点付近へ移動済みなので、重心方向との内積で外向きを判定する。
+    tri.outwardNormal=dot(tri.normal,centroid)>=0?tri.normal:mul(tri.normal,-1);
+    const pts=[tri.a,tri.b,tri.c];
+    for(let edgeIndex=0;edgeIndex<3;edgeIndex++){
+      const p1=pts[edgeIndex],p2=pts[(edgeIndex+1)%3];
+      const key=edgeVisibilityKey(p1,p2);
+      if(!edgeMap.has(key))edgeMap.set(key,[]);
+      edgeMap.get(key).push({triIndex,edgeIndex});
+    }
+  });
+  let edgeCheckIndex=0;
+  for(const items of edgeMap.values()){
+    if(((edgeCheckIndex++)&2047)===0)checkStlLoadDisplayDeadline(deadline);
+    if(items.length<2)continue;
+    if(items.length===2){
+      const t1=triangles[items[0].triIndex],t2=triangles[items[1].triIndex];
+      if(areTrianglesCoplanar(t1,t2)){
+        // 完全に同一平面の共有辺は三角形分割線なので、常に非表示。
+        t1.visibleEdges[items[0].edgeIndex]=false;
+        t2.visibleEdges[items[1].edgeIndex]=false;
+      }else if(areTrianglesSmoothContinuation(t1,t2)){
+        // 円柱などの曲面近似の内部線は通常は消す。
+        // ただし描画時にシルエット線と判定された場合だけ復活させるため、
+        // 隣接面の外向き法線を保持しておく。
+        const n1=t1.normal;
+        const n2=t2.normal;
+        t1.visibleEdges[items[0].edgeIndex]=false;
+        t2.visibleEdges[items[1].edgeIndex]=false;
+        t1.smoothHiddenEdges[items[0].edgeIndex]=true;
+        t2.smoothHiddenEdges[items[1].edgeIndex]=true;
+        t1.smoothEdgeNormals[items[0].edgeIndex]=[n1,n2];
+        t2.smoothEdgeNormals[items[1].edgeIndex]=[n1,n2];
+      }
+    }else{
+      // 非多様体などで3面以上が同じ辺を共有する場合は、完全に同一平面の場合だけ消す。
+      let allCoplanar=true;
+      const base=triangles[items[0].triIndex];
+      for(let i=1;i<items.length;i++){
+        if(!areTrianglesCoplanar(base,triangles[items[i].triIndex])){allCoplanar=false;break;}
+      }
+      if(allCoplanar){
+        items.forEach(item=>{triangles[item.triIndex].visibleEdges[item.edgeIndex]=false;});
+      }
+    }
+  }
+}
+function edgeVisibilityKey(a,b){
+  const ka=pointVisibilityKey(a),kb=pointVisibilityKey(b);
+  return ka<kb?ka+'|'+kb:kb+'|'+ka;
+}
+function pointVisibilityKey(p){
+  const q=n=>String(Math.round(n*1000000));
+  return q(p.x)+','+q(p.y)+','+q(p.z);
+}
+function areTrianglesCoplanar(t1,t2){
+  const n1=t1.normal||norm(cross(sub(t1.b,t1.a),sub(t1.c,t1.a)));
+  const n2=t2.normal||norm(cross(sub(t2.b,t2.a),sub(t2.c,t2.a)));
+  // 法線が平行なら、同じ辺を共有する三角形同士は同一平面上とみなせる。
+  return Math.abs(dot(n1,n2))>0.9999;
+}
+function areTrianglesSmoothContinuation(t1,t2){
+  const n1=t1.normal||norm(cross(sub(t1.b,t1.a),sub(t1.c,t1.a)));
+  const n2=t2.normal||norm(cross(sub(t2.b,t2.a),sub(t2.c,t2.a)));
+  const c=Math.abs(dot(n1,n2));
+  // 完全な同一平面は areTrianglesCoplanar 側で処理する。
+  // ここでは「同一平面ではないが、角度差が小さい」面だけを
+  // なめらかな曲面近似として扱う。
+  if(c>0.9999)return false;
+  const smoothCos=Math.cos(17.5*Math.PI/180); // 正20角柱は角柱として線を残し、正21角柱以上は曲面近似として縦線を消す
+  return c>smoothCos;
+}
+function stlToGriPoint(p){
+  // Tinkercad/STLの一般的な座標系は X=左右、Y=奥行き、Z=高さ。
+  // 立体グリグリの座標系は X=左右、Y=高さ、Z=奥行きとして扱う。
+  // したがって高さは STL Z -> グリグリ Y にし、奥行きは STL Y -> グリグリ Z にする。
+  // Tinkercadの見え方に合わせるため、奥行き方向だけを反転する。
+  // その後、各軸の最小値が0になるように平行移動する。
+  return v(p.x,p.z,-p.y);
+}
+function looksLikeAsciiStl(bytes){
+  const head=new TextDecoder('utf-8').decode(bytes.slice(0,Math.min(bytes.length,512))).trimStart().toLowerCase();
+  if(!head.startsWith('solid'))return false;
+  return /facet\s+normal|outer\s+loop|vertex\s+/i.test(head);
+}
+function parseAsciiStlTriangles(text,deadline=0){
+  const vertexRe=/vertex\s+([-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)\s+([-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)\s+([-+]?\d*\.?\d+(?:[eE][-+]?\d+)?)/g;
+  const verts=[];
+  let m;
+  let vertexCount=0;
+  while((m=vertexRe.exec(text))!==null){
+    if(((vertexCount++)&4095)===0)checkStlLoadDisplayDeadline(deadline);
+    verts.push(v(Number(m[1]),Number(m[2]),Number(m[3])));
+  }
+  const tris=[];
+  for(let i=0;i+2<verts.length;i+=3){
+    if((i&12287)===0)checkStlLoadDisplayDeadline(deadline);
+    tris.push({a:verts[i],b:verts[i+1],c:verts[i+2]});
+  }
+  return tris;
+}
+function parseBinaryStlTriangles(buffer,deadline=0){
+  if(buffer.byteLength<84)throw Error('Binary STLとしては短すぎます。');
+  const view=new DataView(buffer);
+  const count=view.getUint32(80,true);
+  const expected=84+count*50;
+  if(expected>buffer.byteLength)throw Error('Binary STLのサイズと三角形数が一致しません。');
+  const tris=[];
+  let offset=84;
+  for(let i=0;i<count;i++){
+    if((i&4095)===0)checkStlLoadDisplayDeadline(deadline);
+    offset+=12; // normal
+    const a=v(view.getFloat32(offset,true),view.getFloat32(offset+4,true),view.getFloat32(offset+8,true));offset+=12;
+    const b=v(view.getFloat32(offset,true),view.getFloat32(offset+4,true),view.getFloat32(offset+8,true));offset+=12;
+    const c=v(view.getFloat32(offset,true),view.getFloat32(offset+4,true),view.getFloat32(offset+8,true));offset+=12;
+    offset+=2;
+    tris.push({a,b,c});
+  }
+  return tris;
+}
 function readSelectedTextFile(file){
   // iPadOS/Safariでは、独自拡張子 .gri や一部の場所にあるファイルで
   // File.text() がうまく働かないことがあるため、FileReaderにも対応する。
@@ -1032,6 +1857,10 @@ appTitle.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();sho
 appTitle.addEventListener('touchstart',e=>{e.preventDefault();e.stopPropagation();showAppAbout();},{passive:false});
 aboutClose.addEventListener('click',closeAppAbout);
 aboutOverlay.addEventListener('click',e=>{if(e.target===aboutOverlay)closeAppAbout();});
+stlTimeoutBack.addEventListener('click',closeStlTimeoutDialog);
+stlTimeoutOverlay.addEventListener('click',e=>{if(e.target===stlTimeoutOverlay)closeStlTimeoutDialog();});
+hiddenLineToggleBottom.addEventListener('click',()=>{toggleHiddenLines();focusViewerForKeys();});
+surfaceToggleBottom.addEventListener('click',()=>{toggleStlSurface();focusViewerForKeys();});
 modeToggleBottom.addEventListener('click',()=>{inverted=!inverted;updateColor(true);});
 confirmYes.addEventListener('click',()=>{const action=confirmAction;closeClearConfirm();if(typeof action==='function')action();});
 confirmNo.addEventListener('click',closeClearConfirm);
@@ -1060,6 +1889,7 @@ function toggleViewMode(){
     }
     preservedFourFreeView=null;
   }
+  markRenderDirty();
 }
 
 function isUiInteractionTarget(target){
@@ -1078,13 +1908,27 @@ function isUiInteractionTarget(target){
 
 viewer.addEventListener('pointerdown',()=>{focusViewerForKeys();});
 
-window.addEventListener('resize',()=>{resize();fit()});
+window.addEventListener('resize',()=>{resize();fit();markRenderDirty()});
 canvas.addEventListener('pointerdown',handleCanvasPointerDown,{passive:false});
 canvas.addEventListener('pointermove',handleCanvasPointerMove,{passive:false});
 canvas.addEventListener('pointerup',handleCanvasPointerEnd,{passive:false});
 canvas.addEventListener('pointercancel',handleCanvasPointerEnd,{passive:false});
 
-function loop(now){requestAnimationFrame(loop);updateGamepad();updateKeys();updateMove(now);updateTouchInertia(now);draw()}
+function loop(now){
+  requestAnimationFrame(loop);
+  updateGamepad();
+  updateKeys();
+  updateMove(now);
+  updateTouchInertia(now);
+  const interactive=isInteractiveRenderActive();
+  if(lastInteractiveRendering&&!interactive)markRenderDirty();
+  lastInteractiveRendering=interactive;
+  if(renderDirty){
+    draw();
+    renderDirty=false;
+  }
+}
+
 function resize(){const r=viewer.getBoundingClientRect(),s=dpr();canvas.width=Math.max(1,Math.floor(r.width*s));canvas.height=Math.max(1,Math.floor(r.height*s));canvas.style.width=`${Math.floor(r.width)}px`;canvas.style.height=`${Math.floor(r.height)}px`}
 function runSelfTests(){
   const savedState={
