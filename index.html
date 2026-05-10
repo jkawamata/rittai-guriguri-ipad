@@ -125,7 +125,7 @@
     <div id="padStatus" class="small">ゲームパッド：未接続 または 未操作</div>
     <div id="testStatus" class="small">自己テスト：未実行</div>
   </div>
-  <div id="viewer" tabindex="-1"><canvas id="canvas"></canvas><button id="viewModeButton" type="button">４面モードにする</button><div id="drawingModeLabel">.gri描画モード</div><div id="appTitle">立体グリグリ Vibe-Coded V0.75</div><button id="hiddenLineToggleBottom" type="button">かくれ線を表示する</button><button id="surfaceToggleBottom" type="button">面の色を表示しない</button><button id="modeToggleBottom" type="button">.gri描画モードにする</button><div id="stepControl"><span id="stepLabel">ステップ：20mm</span><select id="stepSelect"><option value="20" selected>20mm</option><option value="10">10mm</option><option value="5">5mm</option><option value="1">1mm</option></select></div><div id="confirmOverlay"><div id="confirmBox"><div id="confirmMessage">本当に消しますか？</div><div class="buttons"><button id="confirmYes" type="button">はい</button><button id="confirmNo" type="button">いいえ</button></div></div></div><div id="aboutOverlay"><div id="aboutBox"><div id="aboutText"><p>「立体グリグリ」は、第三角法による正投影図の学習のために、1996年頃に川俣純がMS-DOS上で動作するアプリケーションとして開発しました。このバージョンは、バイブコーディングにて30年後の2026年5月にChatGPT5.5と共に制作したものです。CC BYとしますので、ユーザーの判断にて自由に改変してご活用いただいて問題ありません。</p><p>STLファイルを読み込めるようにしてみました。ただし、STLファイルを作成することはできません。TinkercadなどのツールでSTLファイルを作成し、そのファイルを読み込ませてみてください。隠れ線の表示などもほぼできます。</p></div><button id="aboutClose" type="button">閉じる</button></div></div><div id="stlTimeoutOverlay"><div id="stlTimeoutBox"><div id="stlTimeoutMessage">読み込みと表示に時間がかかりすぎるので、この立体は読み込めません。</div><button id="stlTimeoutBack" type="button">戻る</button></div></div></div>
+  <div id="viewer" tabindex="-1"><canvas id="canvas"></canvas><button id="viewModeButton" type="button">４面モードにする</button><div id="drawingModeLabel">.gri描画モード</div><div id="appTitle">立体グリグリ Vibe-Coded V0.76</div><button id="hiddenLineToggleBottom" type="button">かくれ線を表示する</button><button id="surfaceToggleBottom" type="button">面の色を表示しない</button><button id="modeToggleBottom" type="button">.gri描画モードにする</button><div id="stepControl"><span id="stepLabel">ステップ：20mm</span><select id="stepSelect"><option value="20" selected>20mm</option><option value="10">10mm</option><option value="5">5mm</option><option value="1">1mm</option></select></div><div id="confirmOverlay"><div id="confirmBox"><div id="confirmMessage">本当に消しますか？</div><div class="buttons"><button id="confirmYes" type="button">はい</button><button id="confirmNo" type="button">いいえ</button></div></div></div><div id="aboutOverlay"><div id="aboutBox"><div id="aboutText"><p>「立体グリグリ」は、第三角法による正投影図の学習のために、1996年頃に川俣純がMS-DOS上で動作するアプリケーションとして開発しました。このバージョンは、バイブコーディングにて30年後の2026年5月にChatGPT5.5と共に制作したものです。CC BYとしますので、ユーザーの判断にて自由に改変してご活用いただいて問題ありません。</p><p>STLファイルを読み込めるようにしてみました。ただし、STLファイルを作成することはできません。TinkercadなどのツールでSTLファイルを作成し、そのファイルを読み込ませてみてください。隠れ線の表示などもほぼできます。</p></div><button id="aboutClose" type="button">閉じる</button></div></div><div id="stlTimeoutOverlay"><div id="stlTimeoutBox"><div id="stlTimeoutMessage">読み込みと表示に時間がかかりすぎるので、この立体は読み込めません。</div><button id="stlTimeoutBack" type="button">戻る</button></div></div></div>
 </div>
 <script>
 'use strict';
@@ -158,6 +158,10 @@ let currentGriText=initialGri.text,currentGriFileName=initialGri.name,model=pars
 let currentModelType='gri';
 let showHiddenLines=false;
 let showStlSurface=true;
+// STLの表示設定は、STLを読み替えても直前のユーザー設定を保持する。
+// .gri表示中やNキーで空にした後でも、この設定は次のSTL読み込みに引き継ぐ。
+let stlHiddenLinesPreference=showHiddenLines;
+let stlSurfacePreference=showStlSurface;
 let pngExportMode=false;
 const STL_LOAD_DISPLAY_TIMEOUT_MS=5000;
 const EMBEDDED_DEFAULT_STL_NAME='demo01.stl';
@@ -471,8 +475,9 @@ function clearAllEdges(){
   currentGriText=`0 0 0 0${nl}`;
   currentGriFileName='empty.gri';
   currentModelType='gri';
+  // 空GRI状態に戻すが、STL用の隠れ線・面色設定は次回STL読み込み用に保持する。
   showHiddenLines=false;
-  showStlSurface=true;
+  showStlSurface=stlSurfacePreference;
   model={edges:[],triangles:[],min:c,max:c,center:c,scale:1,edgeCount:0,actualEdgeCount:0,fileName:currentGriFileName,source:currentGriText,sourceType:'gri'};
   moving=false;
   activeRenderDeadline=0;
@@ -1464,8 +1469,8 @@ function updateBottomModeButtons(){
   updateHiddenLineButton();
   updateSurfaceButton();
 }
-function toggleHiddenLines(){if(!(model&&model.sourceType==='stl'))return;showHiddenLines=!showHiddenLines;updateHiddenLineButton();markRenderDirty();click(performance.now())}
-function toggleStlSurface(){if(!(model&&model.sourceType==='stl'))return;showStlSurface=!showStlSurface;updateSurfaceButton();markRenderDirty();click(performance.now())}
+function toggleHiddenLines(){if(!(model&&model.sourceType==='stl'))return;showHiddenLines=!showHiddenLines;stlHiddenLinesPreference=showHiddenLines;updateHiddenLineButton();markRenderDirty();click(performance.now())}
+function toggleStlSurface(){if(!(model&&model.sourceType==='stl'))return;showStlSurface=!showStlSurface;stlSurfacePreference=showStlSurface;updateSurfaceButton();markRenderDirty();click(performance.now())}
 function toggleBeep(){beep=!beep;beepStatus.textContent=beep?'クリック音：ON':'クリック音：OFF'}
 function soundReady(){
   try{
@@ -1755,8 +1760,8 @@ function loadStl(buffer,name,deadline=0){
   const parsed=parseStlSurface(buffer,name,deadline);
   model=parsed;
   currentModelType='stl';
-  showHiddenLines=false;
-  showStlSurface=true;
+  showHiddenLines=stlHiddenLinesPreference;
+  showStlSurface=stlSurfacePreference;
   currentGriText='';
   currentGriFileName=name;
   undoStack.length=0;
