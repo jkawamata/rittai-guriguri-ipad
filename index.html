@@ -125,7 +125,7 @@
     <div id="padStatus" class="small">ゲームパッド：未接続 または 未操作</div>
     <div id="testStatus" class="small">自己テスト：未実行</div>
   </div>
-  <div id="viewer" tabindex="-1"><canvas id="canvas"></canvas><button id="viewModeButton" type="button">４面モードにする</button><div id="drawingModeLabel">.gri描画モード</div><div id="appTitle">立体グリグリ Vibe-Coded V0.74</div><button id="hiddenLineToggleBottom" type="button">かくれ線を表示する</button><button id="surfaceToggleBottom" type="button">面の色を表示しない</button><button id="modeToggleBottom" type="button">.gri描画モードにする</button><div id="stepControl"><span id="stepLabel">ステップ：20mm</span><select id="stepSelect"><option value="20" selected>20mm</option><option value="10">10mm</option><option value="5">5mm</option><option value="1">1mm</option></select></div><div id="confirmOverlay"><div id="confirmBox"><div id="confirmMessage">本当に消しますか？</div><div class="buttons"><button id="confirmYes" type="button">はい</button><button id="confirmNo" type="button">いいえ</button></div></div></div><div id="aboutOverlay"><div id="aboutBox"><div id="aboutText"><p>「立体グリグリ」は、第三角法による正投影図の学習のために、1996年頃に川俣純がMS-DOS上で動作するアプリケーションとして開発しました。このバージョンは、バイブコーディングにて30年後の2026年5月にChatGPT5.5と共に制作したものです。CC BYとしますので、ユーザーの判断にて自由に改変してご活用いただいて問題ありません。</p><p>STLファイルを読み込めるようにしてみました。ただし、STLファイルを作成することはできません。TinkercadなどのツールでSTLファイルを作成し、そのファイルを読み込ませてみてください。隠れ線の表示などもほぼできます。</p></div><button id="aboutClose" type="button">閉じる</button></div></div><div id="stlTimeoutOverlay"><div id="stlTimeoutBox"><div id="stlTimeoutMessage">読み込みと表示に時間がかかりすぎるので、この立体は読み込めません。</div><button id="stlTimeoutBack" type="button">戻る</button></div></div></div>
+  <div id="viewer" tabindex="-1"><canvas id="canvas"></canvas><button id="viewModeButton" type="button">４面モードにする</button><div id="drawingModeLabel">.gri描画モード</div><div id="appTitle">立体グリグリ Vibe-Coded V0.75</div><button id="hiddenLineToggleBottom" type="button">かくれ線を表示する</button><button id="surfaceToggleBottom" type="button">面の色を表示しない</button><button id="modeToggleBottom" type="button">.gri描画モードにする</button><div id="stepControl"><span id="stepLabel">ステップ：20mm</span><select id="stepSelect"><option value="20" selected>20mm</option><option value="10">10mm</option><option value="5">5mm</option><option value="1">1mm</option></select></div><div id="confirmOverlay"><div id="confirmBox"><div id="confirmMessage">本当に消しますか？</div><div class="buttons"><button id="confirmYes" type="button">はい</button><button id="confirmNo" type="button">いいえ</button></div></div></div><div id="aboutOverlay"><div id="aboutBox"><div id="aboutText"><p>「立体グリグリ」は、第三角法による正投影図の学習のために、1996年頃に川俣純がMS-DOS上で動作するアプリケーションとして開発しました。このバージョンは、バイブコーディングにて30年後の2026年5月にChatGPT5.5と共に制作したものです。CC BYとしますので、ユーザーの判断にて自由に改変してご活用いただいて問題ありません。</p><p>STLファイルを読み込めるようにしてみました。ただし、STLファイルを作成することはできません。TinkercadなどのツールでSTLファイルを作成し、そのファイルを読み込ませてみてください。隠れ線の表示などもほぼできます。</p></div><button id="aboutClose" type="button">閉じる</button></div></div><div id="stlTimeoutOverlay"><div id="stlTimeoutBox"><div id="stlTimeoutMessage">読み込みと表示に時間がかかりすぎるので、この立体は読み込めません。</div><button id="stlTimeoutBack" type="button">戻る</button></div></div></div>
 </div>
 <script>
 'use strict';
@@ -648,7 +648,7 @@ function drawSurfaceVisibleEdges(b,viewScale,cx,cy,viewInverted,zState){
     ctx.lineCap='butt';
     const hiddenDashLen=Math.max(10*dpr(), Math.min(18*dpr(), lineWidth*dpr()*2.2));
     const hiddenGapLen=Math.max(7*dpr(), Math.min(14*dpr(), lineWidth*dpr()*1.6));
-    drawManualDashedSegments(hiddenSegments, hiddenDashLen, hiddenGapLen);
+    drawManualDashedSegments(mergeProjectedHiddenSegments(hiddenSegments), hiddenDashLen, hiddenGapLen);
   }
 
   // 見えている稜線は完全な白の実線。
@@ -743,6 +743,67 @@ function isSmoothSilhouetteEdge(tri,edgeIndex,basis){
   const maxAbs=Math.max(Math.abs(d1),Math.abs(d2));
   if(minAbs<nearTangent && maxAbs<0.22)return true;
   return false;
+}
+
+
+function mergeProjectedHiddenSegments(segments){
+  // STLの隠れ線は、複数の三角形や隣接面から同じ投影線分が何度も渡ってくることがある。
+  // そのまま破線を重ね描きすると、破線の隙間が別の破線で埋まり、実線のように見える。
+  // ここで画面上でほぼ同一直線・同一区間の線分を1本にまとめてから破線化する。
+  if(!segments||segments.length<2)return segments||[];
+  const tol=Math.max(1.25*dpr(), lineWidth*dpr()*0.75);
+  const angleStep=0.0025;
+  const groups=new Map();
+
+  for(const seg of segments){
+    const [pa,pb]=seg;
+    const dx=pb.x-pa.x,dy=pb.y-pa.y;
+    const length=Math.hypot(dx,dy);
+    if(length<0.5)continue;
+
+    // 方向は180度反転しても同じ直線として扱う。
+    let ux=dx/length,uy=dy/length;
+    if(ux<0||(Math.abs(ux)<1e-9&&uy<0)){ux=-ux;uy=-uy;}
+    const angle=Math.atan2(uy,ux);
+    const angleKey=Math.round(angle/angleStep);
+
+    // 法線方向の距離で、ほぼ同じ画面上の直線をグループ化する。
+    const nx=-uy,ny=ux;
+    const c=(pa.x*nx+pa.y*ny+pb.x*nx+pb.y*ny)/2;
+    const cKey=Math.round(c/tol);
+    const key=angleKey+':'+cKey;
+
+    if(!groups.has(key))groups.set(key,{ux,uy,nx,ny,cSum:0,cCount:0,intervals:[]});
+    const g=groups.get(key);
+    const t0=pa.x*g.ux+pa.y*g.uy;
+    const t1=pb.x*g.ux+pb.y*g.uy;
+    g.cSum+=c;g.cCount++;
+    g.intervals.push([Math.min(t0,t1),Math.max(t0,t1)]);
+  }
+
+  const merged=[];
+  for(const g of groups.values()){
+    if(!g.intervals.length)continue;
+    const c=g.cSum/Math.max(1,g.cCount);
+    g.intervals.sort((a,b)=>a[0]-b[0]||a[1]-b[1]);
+    const out=[];
+    for(const interval of g.intervals){
+      const last=out[out.length-1];
+      if(last&&interval[0]<=last[1]+tol){
+        last[1]=Math.max(last[1],interval[1]);
+      }else{
+        out.push(interval.slice());
+      }
+    }
+    for(const [t0,t1] of out){
+      if(t1-t0<0.5)continue;
+      merged.push([
+        {x:g.ux*t0+g.nx*c,y:g.uy*t0+g.ny*c},
+        {x:g.ux*t1+g.nx*c,y:g.uy*t1+g.ny*c}
+      ]);
+    }
+  }
+  return merged;
 }
 
 function drawManualDashedSegments(segments,dashLen,gapLen){
