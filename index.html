@@ -27,6 +27,7 @@
   #dualshockHelp .helpTitle{font-weight:800;color:#ffd54f;margin-bottom:4px}
   body.light-ui #dualshockHelp{background:#fff8df;color:#5d4300;border-color:#fbc02d}
   body.light-ui #dualshockHelp .helpTitle{color:#7a5600}
+  #embeddedStlSelect.gamepad-selecting{outline:3px solid #fbc02d;box-shadow:0 0 0 3px rgba(251,192,45,.25)}
   #drawingModeHelp{display:none;margin-top:10px;padding:8px 10px;border:2px solid #1e88e5;border-radius:8px;background:rgba(30,136,229,.10);color:#90caf9;font-size:12px}
   #drawingModeHelp .helpTitle{font-weight:800;color:#64b5f6;margin-bottom:4px}
   body.light-ui #drawingModeHelp{display:block;background:#eaf4ff;color:#164a7a;border-color:#1976d2}
@@ -72,14 +73,18 @@
     <div id="dualshockHelp">
       <div id="dualshockConnectedHelp" style="display:none">
         <div class="helpTitle">DUALSHOCK 4 操作</div>
-        <div>左スティック：視点移動</div>
-        <div>右スティック上下：拡大縮小</div>
+        <div>左スティック上下：拡大縮小</div>
+        <div>右スティック：視点移動</div>
         <div>□：正面図　○：右側面図　△：平面図　×：等角図</div>
         <div>方向キー上下：緯度方向に回転</div>
         <div>方向キー左右：経度方向に回転</div>
-        <div>OPTIONS：通常モード/.gri描画モード</div>
+        <div>R1：かくれ線表示の切替</div>
+        <div>R2：面の色表示の切替</div>
+        <div>OPTIONS：内蔵STL選択（方向キーで即読み込み／再度OPTIONSで決定）</div>
+        <div>内蔵STL選択中：方向キーで選択</div>
         <div>SHARE：４面/１面モード切替</div>
         <div>４面モードの各ラベル：クリック/タップで１面表示</div>
+        <div>L1：クリック音ON/OFF</div>
       </div>
       <div id="dualshockDisconnectedHelp">
         <div class="helpTitle">ゲームコントローラー操作</div>
@@ -130,7 +135,7 @@
     <div id="padStatus" class="small">ゲームパッド：未接続 または 未操作</div>
     <div id="testStatus" class="small">自己テスト：未実行</div>
   </div>
-  <div id="viewer" tabindex="-1"><canvas id="canvas"></canvas><button id="viewModeButton" type="button">４面モードにする</button><div id="drawingModeLabel">.gri描画モード</div><div id="appTitle">立体グリグリ Vibe-Coded V0.83</div><button id="hiddenLineToggleBottom" type="button">かくれ線を表示する</button><button id="surfaceToggleBottom" type="button">面の色を表示しない</button><button id="modeToggleBottom" type="button">.gri描画モードにする</button><div id="stepControl"><span id="stepLabel">ステップ：20mm</span><select id="stepSelect"><option value="20" selected>20mm</option><option value="10">10mm</option><option value="5">5mm</option><option value="1">1mm</option></select></div><div id="confirmOverlay"><div id="confirmBox"><div id="confirmMessage">本当に消しますか？</div><div class="buttons"><button id="confirmYes" type="button">はい</button><button id="confirmNo" type="button">いいえ</button></div></div></div><div id="aboutOverlay"><div id="aboutBox"><div id="aboutText"><p>「立体グリグリ」は、第三角法による正投影図の学習のために、1996年頃に川俣純がMS-DOS上で動作するアプリケーションとして開発しました。このバージョンは、バイブコーディングにて30年後の2026年5月にChatGPT5.5と共に制作したものです。CC BYとしますので、ユーザーの判断にて自由に改変してご活用いただいて問題ありません。</p><p>STLファイルを読み込めるようにしてみました。ただし、STLファイルを作成することはできません。TinkercadなどのツールでSTLファイルを作成し、そのファイルを読み込ませてみてください。隠れ線の表示などもほぼできます。</p></div><button id="aboutClose" type="button">閉じる</button></div></div><div id="stlTimeoutOverlay"><div id="stlTimeoutBox"><div id="stlTimeoutMessage">読み込みと表示に時間がかかりすぎるので、この立体は読み込めません。</div><button id="stlTimeoutBack" type="button">戻る</button></div></div></div>
+  <div id="viewer" tabindex="-1"><canvas id="canvas"></canvas><button id="viewModeButton" type="button">４面モードにする</button><div id="drawingModeLabel">.gri描画モード</div><div id="appTitle">立体グリグリ Vibe-Coded V1.0</div><button id="hiddenLineToggleBottom" type="button">かくれ線を表示する</button><button id="surfaceToggleBottom" type="button">面の色を表示しない</button><button id="modeToggleBottom" type="button">.gri描画モードにする</button><div id="stepControl"><span id="stepLabel">ステップ：20mm</span><select id="stepSelect"><option value="20" selected>20mm</option><option value="10">10mm</option><option value="5">5mm</option><option value="1">1mm</option></select></div><div id="confirmOverlay"><div id="confirmBox"><div id="confirmMessage">本当に消しますか？</div><div class="buttons"><button id="confirmYes" type="button">はい</button><button id="confirmNo" type="button">いいえ</button></div></div></div><div id="aboutOverlay"><div id="aboutBox"><div id="aboutText"><p>「立体グリグリ」は、第三角法による正投影図の学習のために、1996年頃に川俣純がMS-DOS上で動作するアプリケーションとして開発しました。このバージョンは、バイブコーディングにて30年後の2026年5月にChatGPT5.5と共に制作したものです。CC BYとしますので、ユーザーの判断にて自由に改変してご活用いただいて問題ありません。</p><p>STLファイルを読み込めるようにしてみました。ただし、STLファイルを作成することはできません。TinkercadなどのツールでSTLファイルを作成し、そのファイルを読み込ませてみてください。隠れ線の表示などもほぼできます。</p></div><button id="aboutClose" type="button">閉じる</button></div></div><div id="stlTimeoutOverlay"><div id="stlTimeoutBox"><div id="stlTimeoutMessage">読み込みと表示に時間がかかりすぎるので、この立体は読み込めません。</div><button id="stlTimeoutBack" type="button">戻る</button></div></div></div>
 </div>
 <script>
 'use strict';
@@ -153,7 +158,7 @@ let confirmAction=null;
 let moving=false,t0=0,duration=700,sLon=lon,sLat=lat,eLon=lon,eLat=lat;
 let audio=null,beep=true,lastBeep=0;
 let selfTesting=false;
-const keys=new Set(),prevButtons=[];let shift=false;
+const keys=new Set(),prevButtons=[];let shift=false,activeGamepadSignature='';
 const touchPointers=new Map();
 let touchGesture=null,lastTouchMoveTime=0,touchLonVelocity=0,touchLatVelocity=0,inertiaLastTime=0;
 const views={front:['正面図',0,0],right:['右側面図',Math.PI/2,0],top:['平面図',0,TOP_LAT],iso:['等角図',Math.PI/4,Math.atan(1/Math.sqrt(2))]};
@@ -176,6 +181,13 @@ let activeRenderDeadline=0;
 let renderDirty=true;
 let lastInteractiveRendering=false;
 const undoStack=[];
+let gamepadEmbeddedStlSelectMode=false;
+let gamepadEmbeddedStlIndex=0;
+// 現在表示中の立体が、内蔵STLリストの何番かを覚えておく。
+// OPTIONSで内蔵STL選択に入った時、ここから次/前の立体をすぐ選べるようにする。
+let currentEmbeddedStlLibraryIndex=-1;
+let gamepadEmbeddedStlRestoreState=null;
+let gamepadEmbeddedStlPreviewLoaded=false;
 init();
 
 function init(){configureFileInputForDevice();populateEmbeddedStlSelect();updateColor();updateHiddenLineButton();updateSurfaceButton();resize();loadEmbeddedDefaultStl();updateFileStatus(model);runSelfTests();requestAnimationFrame(loop)}
@@ -1474,33 +1486,335 @@ function setDualshockHelpConnected(isConnected){
   if(dualshockConnectedHelp)dualshockConnectedHelp.style.display=isConnected?'block':'none';
   if(dualshockDisconnectedHelp)dualshockDisconnectedHelp.style.display=isConnected?'none':'block';
 }
-function getActiveGamepad(){
+function getConnectedGamepads(){
   const pads=navigator.getGamepads?.();
-  if(!pads)return null;
-  for(const pad of pads){
-    if(pad&&pad.connected)return pad;
+  return pads?[...pads].filter(pad=>pad&&pad.connected):[];
+}
+function gamepadSignature(pad){
+  return pad?`${pad.index}:${pad.id}:${pad.buttons?.length||0}:${pad.axes?.length||0}`:'';
+}
+function isProbablyKeyboardAdapter(pad){
+  const id=(pad&&pad.id||'').toLowerCase();
+  return id.includes('keychron')||id.includes('keyboard')||id.includes('mouse');
+}
+function isLikelyDualShock4(pad){
+  const id=(pad&&pad.id||'').toLowerCase();
+  return id.includes('dualshock')||id.includes('dual shock')||id.includes('wireless controller')||id.includes('sony')||id.includes('054c');
+}
+function gamepadScore(pad){
+  if(!pad)return -9999;
+  const buttons=pad.buttons?.length||0, axes=pad.axes?.length||0;
+  let score=0;
+  if(isLikelyDualShock4(pad))score+=1000;
+  if(pad.mapping==='standard')score+=120;
+  if(buttons>=16)score+=80;
+  else if(buttons>=12)score+=40;
+  if(axes>=4)score+=80;
+  else if(axes>=2)score+=40;
+  if(buttons>=12&&axes>=2)score+=100;
+  if(isProbablyKeyboardAdapter(pad))score-=1000;
+  return score;
+}
+function getActiveGamepad(){
+  const pads=getConnectedGamepads();
+  if(!pads.length)return null;
+  const sorted=pads.slice().sort((a,b)=>gamepadScore(b)-gamepadScore(a));
+  const best=sorted[0];
+  // MacではKeychronなどのキーボードがGamepad APIに見えることがある。
+  // それを操作対象にすると「接続判定だけは出るが、DualShock4のボタンが一切効かない」状態になる。
+  // Keychron等しか見えていない時は、あえて操作対象なしにする。
+  if(isProbablyKeyboardAdapter(best)&&!isLikelyDualShock4(best)&&(best.axes?.length||0)<2)return null;
+  return best;
+}
+function buttonDown(pad,i){
+  const b=pad.buttons?.[i];
+  return !!(b&&(b.pressed||b.touched||Number(b.value)>0.5));
+}
+function press(pad,i){
+  const now=buttonDown(pad,i);
+  const was=!!prevButtons[i];
+  return now&&!was;
+}
+function pressAny(pad,indices){
+  // DualShock 4 は環境やブラウザによって L1/L2 付近のボタン番号がずれることがある。
+  // 代表的な標準配置では L1=4 だが、Mac側で別番号に見える場合があるため、候補をまとめて判定する。
+  return indices.some(i=>press(pad,i));
+}
+function axisValue(pad,i){
+  return dead(Number(pad.axes?.[i]||0));
+}
+function dpadValue(pad,minusIndex,plusIndex){
+  return (buttonDown(pad,plusIndex)?1:0)-(buttonDown(pad,minusIndex)?1:0);
+}
+function updatePrevButtons(pad){
+  const len=pad.buttons?.length||0;
+  for(let i=0;i<len;i++)prevButtons[i]=buttonDown(pad,i);
+  prevButtons.length=len;
+}
+function gamepadListSummary(pads,activePad){
+  if(!pads.length)return '未接続 または 未操作';
+  return pads.map(pad=>{
+    const mark=pad===activePad?'★':'・';
+    const id=String(pad.id||'unknown').replace(/\s+/g,' ').trim();
+    const mapping=pad.mapping||'なし';
+    return `${mark}${id} / buttons:${pad.buttons?.length||0} / axes:${pad.axes?.length||0} / mapping:${mapping}`;
+  }).join(' | ');
+}
+function embeddedStlLibraryCount(){return Array.isArray(EMBEDDED_STL_LIBRARY)?EMBEDDED_STL_LIBRARY.length:0}
+function clampEmbeddedStlIndex(index){const count=embeddedStlLibraryCount();if(count<=0)return -1;return ((index%count)+count)%count}
+function getEmbeddedStlLabel(index){const item=EMBEDDED_STL_LIBRARY[index];return item?(item.label||item.name||`No.${index+1}`):'未選択'}
+function captureGamepadEmbeddedStlRestoreState(){
+  return {
+    model,currentModelType,currentGriText,currentGriFileName,showHiddenLines,showStlSurface,
+    stlHiddenLinesPreference,stlSurfacePreference,lon,lat,eLon,eLat,zoom,four,inverted,
+    viewNameText:viewName.textContent,lineWidth,saveFileNameValue:saveFileNameInput.value,
+    embeddedStlValue:embeddedStlSelect?embeddedStlSelect.value:'',
+    currentEmbeddedStlLibraryIndex
+  };
+}
+function restoreGamepadEmbeddedStlOriginal(){
+  const state=gamepadEmbeddedStlRestoreState;
+  if(!state)return;
+  activeRenderDeadline=0;
+  model=state.model;
+  currentModelType=state.currentModelType;
+  currentGriText=state.currentGriText;
+  currentGriFileName=state.currentGriFileName;
+  showHiddenLines=state.showHiddenLines;
+  showStlSurface=state.showStlSurface;
+  stlHiddenLinesPreference=state.stlHiddenLinesPreference;
+  stlSurfacePreference=state.stlSurfacePreference;
+  lon=state.lon;lat=state.lat;eLon=state.eLon;eLat=state.eLat;zoom=state.zoom;four=state.four;
+  inverted=state.inverted;
+  lineWidth=state.lineWidth;
+  moving=false;
+  if(viewName) viewName.textContent=state.viewNameText||'自由視点';
+  if(saveFileNameInput) saveFileNameInput.value=state.saveFileNameValue||'';
+  if(embeddedStlSelect) embeddedStlSelect.value=state.embeddedStlValue||'';
+  currentEmbeddedStlLibraryIndex=Number.isInteger(state.currentEmbeddedStlLibraryIndex)?state.currentEmbeddedStlLibraryIndex:-1;
+  viewModeButton.textContent=four?'１面モードにする':'４面モードにする';
+  updateColor(true);
+  updateHiddenLineButton();
+  updateSurfaceButton();
+  updateFileStatus(model);
+  zoomStatus.textContent=`表示倍率：${Math.round(zoom*100)}%`;
+  lineWidthStatus.textContent=`線の太さ：${lineWidth.toFixed(1)}`;
+  saveGriButton.disabled=currentModelType==='stl';
+  saveGriButton.textContent=currentModelType==='stl'?'STL表示中（GRI保存不可）':'名前を指定して保存';
+  markRenderDirty();
+  try{draw();renderDirty=false;}catch(error){console.error('内蔵STL選択前の状態へ戻す描画に失敗しました。',error);renderDirty=true;}
+}
+function embeddedStlLibraryCount(){return Array.isArray(EMBEDDED_STL_LIBRARY)?EMBEDDED_STL_LIBRARY.length:0}
+function clampEmbeddedStlIndex(index){const count=embeddedStlLibraryCount();if(count<=0)return -1;return ((index%count)+count)%count}
+function getEmbeddedStlLabel(index){const item=EMBEDDED_STL_LIBRARY[index];return item?(item.label||item.name||`No.${index+1}`):'未選択'}
+function setGamepadEmbeddedStlIndex(index,{statusOnly=false}={}){
+  const count=embeddedStlLibraryCount();
+  if(count<=0){gamepadEmbeddedStlIndex=-1;return;}
+  gamepadEmbeddedStlIndex=clampEmbeddedStlIndex(index);
+  if(embeddedStlSelect)embeddedStlSelect.value=String(gamepadEmbeddedStlIndex);
+  if(statusOnly){
+    fileStatus.textContent=`内蔵STL選択中：${gamepadEmbeddedStlIndex+1}/${count} ${getEmbeddedStlLabel(gamepadEmbeddedStlIndex)}（方向キーで即読み込み／OPTIONSで決定／□○△×・L1/R1/R2・スティック・SHAREは通常操作）`;
   }
-  return null;
+}
+function showGamepadEmbeddedStlSelectStatus(extra=''){
+  const count=embeddedStlLibraryCount();
+  if(count<=0)return;
+  const suffix=extra?` / ${extra}`:'';
+  fileStatus.textContent=`内蔵STL選択中：${gamepadEmbeddedStlIndex+1}/${count} ${getEmbeddedStlLabel(gamepadEmbeddedStlIndex)}（方向キーで即読み込み／OPTIONSで決定／□○△×・L1/R1/R2・スティック・SHAREは通常操作）${suffix}`;
+}
+function enterGamepadEmbeddedStlSelectMode(){
+  const count=embeddedStlLibraryCount();
+  if(count<=0){fileStatus.textContent='内蔵STLが登録されていません。';return;}
+
+  // select.value が空文字のとき Number('') は 0 になる。
+  // そのまま Number.isInteger(0) で判定すると、現在の立体ではなく常に最初の内蔵STLから始まってしまう。
+  // 空文字は「未選択」として扱い、現在表示中の内蔵STL番号を優先する。
+  const selectValue=embeddedStlSelect?String(embeddedStlSelect.value||''):'';
+  const selected=selectValue!==''?Number(selectValue):NaN;
+
+  // まず、前回 loadEmbeddedStlFromLibrary で記録した番号を使う。
+  let currentIndex=(Number.isInteger(currentEmbeddedStlLibraryIndex)&&currentEmbeddedStlLibraryIndex>=0)?currentEmbeddedStlLibraryIndex:-1;
+
+  // 念のため、記録が失われていても現在表示中のファイル名から内蔵STL番号を復元する。
+  // Mac/iPadや読み込み経路の違いで select が空に戻っていても、ここで現在位置を再取得できる。
+  if(currentIndex<0&&model&&model.fileName){
+    currentIndex=EMBEDDED_STL_LIBRARY.findIndex(item=>item&&item.name===model.fileName);
+  }
+  if(currentIndex<0&&currentGriFileName){
+    currentIndex=EMBEDDED_STL_LIBRARY.findIndex(item=>item&&item.name===currentGriFileName);
+  }
+
+  // プルダウンで明示的に選ばれている値がある場合だけそれを優先する。
+  // それ以外は、現在表示中の内蔵STL番号から選択を開始する。
+  let startIndex=(Number.isInteger(selected)&&selected>=0)?selected:currentIndex;
+  if(!Number.isInteger(startIndex)||startIndex<0){
+    startIndex=(Number.isInteger(gamepadEmbeddedStlIndex)&&gamepadEmbeddedStlIndex>=0)?gamepadEmbeddedStlIndex:0;
+  }
+  startIndex=clampEmbeddedStlIndex(startIndex);
+
+  // 起点を明示的に保持してから選択モードへ入る。
+  currentEmbeddedStlLibraryIndex=startIndex;
+  gamepadEmbeddedStlIndex=startIndex;
+
+  gamepadEmbeddedStlRestoreState=captureGamepadEmbeddedStlRestoreState();
+  gamepadEmbeddedStlPreviewLoaded=false;
+  gamepadEmbeddedStlSelectMode=true;
+  if(embeddedStlSelect)embeddedStlSelect.classList.add('gamepad-selecting');
+  setGamepadEmbeddedStlIndex(startIndex,{statusOnly:true});
+  showGamepadEmbeddedStlSelectStatus('選択開始');
+  click(performance.now());
+}
+function exitGamepadEmbeddedStlSelectMode({clearSelect=true,clearRestore=true}={}){
+  gamepadEmbeddedStlSelectMode=false;
+  gamepadEmbeddedStlPreviewLoaded=false;
+  if(embeddedStlSelect){
+    embeddedStlSelect.classList.remove('gamepad-selecting');
+    if(clearSelect)embeddedStlSelect.value='';
+  }
+  if(clearRestore)gamepadEmbeddedStlRestoreState=null;
+}
+function keepGamepadEmbeddedStlSelection(){
+  exitGamepadEmbeddedStlSelectMode({clearSelect:true,clearRestore:true});
+  fileStatus.textContent=`読み込み：${model.fileName||getEmbeddedStlLabel(gamepadEmbeddedStlIndex)} / 内蔵STLを選択しました`;
+  click(performance.now());
+}
+function restoreAndExitGamepadEmbeddedStlSelectMode(){
+  restoreGamepadEmbeddedStlOriginal();
+  exitGamepadEmbeddedStlSelectMode({clearSelect:true,clearRestore:true});
+  fileStatus.textContent+=' / 内蔵STL選択前に戻しました';
+  click(performance.now());
+}
+function loadGamepadEmbeddedStlPreview(index){
+  setGamepadEmbeddedStlIndex(index);
+  const restoreState=gamepadEmbeddedStlRestoreState;
+  loadEmbeddedStlFromLibrary(gamepadEmbeddedStlIndex);
+  // loadEmbeddedStlFromLibrary は通常のプルダウン利用も想定して select を空に戻すため、
+  // DualShock4の内蔵STL選択中だけは選択状態と黄色枠を復元する。
+  gamepadEmbeddedStlRestoreState=restoreState;
+  gamepadEmbeddedStlSelectMode=true;
+  gamepadEmbeddedStlPreviewLoaded=true;
+  if(embeddedStlSelect){
+    embeddedStlSelect.classList.add('gamepad-selecting');
+    embeddedStlSelect.value=String(gamepadEmbeddedStlIndex);
+  }
+  showGamepadEmbeddedStlSelectStatus('読み込み済み');
+}
+function handleGamepadEmbeddedStlSelectMode(pad){
+  let moved=0;
+  if(press(pad,13)||press(pad,15))moved=1;      // 方向キー 下・右：次の内蔵STLを即読み込み
+  if(press(pad,12)||press(pad,14))moved=-1;     // 方向キー 上・左：前の内蔵STLを即読み込み
+  if(moved){
+    loadGamepadEmbeddedStlPreview(gamepadEmbeddedStlIndex+moved);
+    return true;
+  }
+
+  // 内蔵STL選択中でも、左右スティックは通常操作として使えるようにする。
+  // ただし機能は左右で入れ替え、右スティックで視点移動、左スティック上下で拡大縮小にする。
+  // 方向キーだけはSTL選択に専用化し、回転には使わない。
+  const rx=axisValue(pad,2), ry=axisValue(pad,3), leftZoomY=axisValue(pad,1);
+  if(!moving&&(rx||ry)){
+    clearPreservedFourFreeView();
+    lon=normalizeAngle(lon-rx*.035);
+    lat=clamp(lat+ry*.035,-LAT_LIMIT,LAT_LIMIT);
+    viewName.textContent='自由視点';
+    markRenderDirty();
+    click(performance.now());
+    showGamepadEmbeddedStlSelectStatus('自由視点');
+    return true;
+  }
+  if(leftZoomY){
+    changeZoom(-leftZoomY*.035);
+    click(performance.now());
+    showGamepadEmbeddedStlSelectStatus('拡大縮小');
+    return true;
+  }
+
+  // 内蔵STL選択中でも、□○△×による視点切替は通常通り使えるようにする。
+  // ただし、選択モード自体は継続し、方向キーは引き続きSTL選択に使う。
+  if(press(pad,2)){moveTo(views.front);showGamepadEmbeddedStlSelectStatus('正面図');return true;} // □：正面図
+  if(press(pad,1)){moveTo(views.right);showGamepadEmbeddedStlSelectStatus('右側面図');return true;} // ○：右側面図
+  if(press(pad,3)){moveTo(views.top);showGamepadEmbeddedStlSelectStatus('平面図');return true;}    // △：平面図
+  if(press(pad,0)){moveTo(views.iso);showGamepadEmbeddedStlSelectStatus('等角図');return true;}     // ×：等角図
+
+  // 内蔵STL選択中でも、R1/R2による表示切替は通常通り使えるようにする。
+  // L1は updateGamepad() の先頭側で、クリック音が鳴る処理より先に処理する。
+  if(press(pad,5)){toggleHiddenLines();showGamepadEmbeddedStlSelectStatus(showHiddenLines?'かくれ線ON':'かくれ線OFF');return true;} // R1：かくれ線
+  if(press(pad,7)){toggleStlSurface();showGamepadEmbeddedStlSelectStatus(showStlSurface?'面の色ON':'面の色OFF');return true;}       // R2：面表示
+
+  // 内蔵STL選択中でも、SHAREによる４面/１面モード切替は通常通り使えるようにする。
+  if(press(pad,8)){toggleViewMode();click(performance.now());showGamepadEmbeddedStlSelectStatus(four?'４面モード':'１面モード');return true;}
+
+  if(press(pad,9)){keepGamepadEmbeddedStlSelection();return true;} // OPTIONS：現在表示中の内蔵STLで決定
+
+  // 選択中は、方向キーだけをSTL候補選択に使う。
+  // その他の主要操作（スティック、□○△×、L1/R1/R2、SHARE）は上で通常通り受け付ける。
+  return true;
 }
 function updateGamepad(){
+  const pads=getConnectedGamepads();
   const pad=getActiveGamepad();
   setDualshockHelpConnected(!!pad);
-  if(!pad){padStatus.textContent='ゲームパッド：未接続 または 未操作';return}
-  padStatus.textContent=`ゲームパッド：${pad.id}`;
-  const x=dead(pad.axes[0]||0),y=dead(pad.axes[1]||0),zy=dead(pad.axes[3]||0);
-  const dpadLeft=pad.buttons[14]?.pressed||false,dpadRight=pad.buttons[15]?.pressed||false,dpadUp=pad.buttons[12]?.pressed||false,dpadDown=pad.buttons[13]?.pressed||false;
-  const dpadX=(dpadRight?1:0)-(dpadLeft?1:0),dpadY=(dpadDown?1:0)-(dpadUp?1:0);
-  if(!moving&&(x||y||dpadX||dpadY)){clearPreservedFourFreeView();lon=normalizeAngle(lon-(x+dpadX)*.035);lat=clamp(lat+(y+dpadY)*.035,-LAT_LIMIT,LAT_LIMIT);viewName.textContent='自由視点';click(performance.now())}
-  if(zy){changeZoom(-zy*.035);click(performance.now())}
+  if(!pad){
+    padStatus.textContent=`ゲームパッド：操作対象なし（${gamepadListSummary(pads,null)}）`;
+    activeGamepadSignature='';
+    prevButtons.length=0;
+    if(gamepadEmbeddedStlSelectMode)exitGamepadEmbeddedStlSelectMode();
+    return;
+  }
+
+  const signature=gamepadSignature(pad);
+  if(signature!==activeGamepadSignature){
+    activeGamepadSignature=signature;
+    prevButtons.length=0;
+  }
+
+  padStatus.textContent=`ゲームパッド：${gamepadListSummary(pads,pad)}${gamepadEmbeddedStlSelectMode?' / 内蔵STL選択中':''}`;
+
+  // L1のクリック音ON/OFFは、回転・ズーム・STL選択などクリック音を出す処理より先に処理する。
+  // そうしないと、L1を押した同じフレームでスティックの微小入力などが先に click() を呼び、
+  // 表示はOFFなのにクリック音だけ鳴ることがある。
+  if(press(pad,4)){
+    toggleBeep();
+    updatePrevButtons(pad);
+    return;
+  }
+
+  // 内蔵STL選択中は、方向キーをSTL選択に使う。
+  // ただし、スティック、□○△×、L1/R1/R2、SHAREは選択中でも使えるように、専用処理内で受け付ける。
+  if(gamepadEmbeddedStlSelectMode){
+    handleGamepadEmbeddedStlSelectMode(pad);
+    updatePrevButtons(pad);
+    return;
+  }
+
+  // 左右スティックの機能を入れ替え：右スティックで視点移動、左スティック上下で拡大縮小。
+  const rx=axisValue(pad,2),ry=axisValue(pad,3),leftZoomY=axisValue(pad,1);
+  const dpadX=dpadValue(pad,14,15);
+  const dpadY=dpadValue(pad,12,13);
+  if(!moving&&(rx||ry||dpadX||dpadY)){
+    clearPreservedFourFreeView();
+    lon=normalizeAngle(lon-(rx+dpadX)*.035);
+    lat=clamp(lat+(ry+dpadY)*.035,-LAT_LIMIT,LAT_LIMIT);
+    viewName.textContent='自由視点';
+    markRenderDirty();
+    click(performance.now());
+  }
+
+  if(leftZoomY){changeZoom(-leftZoomY*.035);click(performance.now())}
+
   if(press(pad,2))moveTo(views.front);
   if(press(pad,1))moveTo(views.right);
   if(press(pad,3))moveTo(views.top);
   if(press(pad,0))moveTo(views.iso);
-  if(press(pad,9)){if(toggleDrawingMode())click(performance.now())}
+  // L1はこの関数の先頭側で処理済み。
+  if(press(pad,5))toggleHiddenLines();   // R1
+  if(press(pad,7))toggleStlSurface();    // R2
+  if(press(pad,9))enterGamepadEmbeddedStlSelectMode();
   if(press(pad,8)){toggleViewMode();click(performance.now())}
-  pad.buttons.forEach((b,i)=>prevButtons[i]=b.pressed)
+
+  updatePrevButtons(pad);
 }
-function press(pad,i){return (pad.buttons[i]?.pressed||false)&&!prevButtons[i]} function dead(n){return Math.abs(n)<.12?0:n}
+function dead(n){return Math.abs(n)<.12?0:n}
 function updateKeys(){if(moving)return;let vmove=false,other=false;if(keys.has('arrowleft')){lon=normalizeAngle(lon+.035);vmove=true}if(keys.has('arrowright')){lon=normalizeAngle(lon-.035);vmove=true}if(!shift&&keys.has('arrowup')){lat-=.035;vmove=true}if(!shift&&keys.has('arrowdown')){lat+=.035;vmove=true}if(shift&&keys.has('arrowup')){changeZoom(.035);other=true}if(shift&&keys.has('arrowdown')){changeZoom(-.035);other=true}if(vmove){clearPreservedFourFreeView();lat=clamp(lat,-LAT_LIMIT,LAT_LIMIT);viewName.textContent='自由視点';click(performance.now())}else if(other)click(performance.now())}
 
 function changeZoom(d){clearPreservedFourFreeView();zoom=clamp(zoom*(1+d),.05,12);zoomStatus.textContent=`表示倍率：${Math.round(zoom*100)}%`;markRenderDirty()}
@@ -1792,6 +2106,7 @@ function loadEmbeddedDefaultStl(){
   try{
     const buffer=base64ToArrayBuffer(EMBEDDED_DEFAULT_STL_BASE64);
     loadStl(buffer,EMBEDDED_DEFAULT_STL_NAME,0);
+    currentEmbeddedStlLibraryIndex=-1;
     fileStatus.textContent='読み込み：demo01.stl / デフォルトSTL（内蔵）';
   }catch(err){
     console.error(err);
@@ -1821,6 +2136,8 @@ function loadEmbeddedStlFromLibrary(index){
     const buffer=base64ToArrayBuffer(item.base64);
     checkStlLoadDisplayDeadline(deadline);
     loadStl(buffer,item.name,deadline);
+    currentEmbeddedStlLibraryIndex=clampEmbeddedStlIndex(index);
+    gamepadEmbeddedStlIndex=currentEmbeddedStlLibraryIndex;
     fileStatus.textContent=`読み込み：${item.name} / 内蔵STL`;
   }catch(err){
     console.error(err);
