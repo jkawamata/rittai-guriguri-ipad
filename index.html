@@ -83,7 +83,6 @@
         <div>OPTIONS：内蔵STL選択（方向キーで即読み込み／再度OPTIONSで決定）</div>
         <div>内蔵STL選択中：方向キーで選択</div>
         <div>SHARE：４面/１面モード切替</div>
-        <div>４面モードの各ラベル：クリック/タップで１面表示</div>
         <div>L1：クリック音ON/OFF</div>
       </div>
       <div id="dualshockDisconnectedHelp">
@@ -100,6 +99,7 @@
       <div id="surfaceKeyHelp" style="display:none"><kbd>S</kbd>：面の色表示の切替</div>
       <div><kbd>P</kbd>：保存先とファイル名を選んでPNG保存</div>
       <div>タブレット：ピンチで拡大縮小／自由視点上でスワイプ回転</div>
+      <div>４面モードの各ラベル：クリック/タップで１面表示</div>
       <div><kbd>1</kbd>正面　<kbd>2</kbd>右側面　<kbd>3</kbd>平面　<kbd>4</kbd>等角</div>
       <div><kbd>B</kbd>：クリック音</div><div id="modeKeyHelp"><kbd>D</kbd>：通常モード/描画モード</div>
     </div>
@@ -1687,7 +1687,24 @@ function restoreAndExitGamepadEmbeddedStlSelectMode(){
 function loadGamepadEmbeddedStlPreview(index){
   setGamepadEmbeddedStlIndex(index);
   const restoreState=gamepadEmbeddedStlRestoreState;
+
+  // 内蔵STL選択中に方向キーで立体を差し替える時、loadStl() 内の fit() で
+  // 表示倍率が自動調整されてしまう。選択操作は「立体の差し替え」だけにしたいので、
+  // 読み込み前の表示倍率を保持し、読み込み後に戻す。
+  const keepZoom=zoom;
+  const keepZoomStatusText=zoomStatus?zoomStatus.textContent:'';
+
   loadEmbeddedStlFromLibrary(gamepadEmbeddedStlIndex);
+
+  if(Number.isFinite(keepZoom)){
+    zoom=keepZoom;
+    if(zoomStatus)zoomStatus.textContent=`表示倍率：${Math.round(zoom*100)}%`;
+    markRenderDirty();
+    try{draw();renderDirty=false;}catch(error){console.error('内蔵STL選択中の表示倍率復元後の再描画に失敗しました。',error);renderDirty=true;}
+  }else if(zoomStatus&&keepZoomStatusText){
+    zoomStatus.textContent=keepZoomStatusText;
+  }
+
   // loadEmbeddedStlFromLibrary は通常のプルダウン利用も想定して select を空に戻すため、
   // DualShock4の内蔵STL選択中だけは選択状態と黄色枠を復元する。
   gamepadEmbeddedStlRestoreState=restoreState;
