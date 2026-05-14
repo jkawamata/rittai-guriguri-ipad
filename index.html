@@ -80,6 +80,7 @@
         <div>方向キー左右：経度方向に回転</div>
         <div>R1：かくれ線表示の切替</div>
         <div>R2：面の色表示の切替</div>
+        <div>L2＋方向キー上下：線の太さ</div>
         <div>OPTIONS：内蔵STL選択（方向キーで即読み込み／再度OPTIONSで決定）</div>
         <div>内蔵STL選択中：方向キーで選択</div>
         <div>SHARE：４面/１面モード切替</div>
@@ -135,7 +136,7 @@
     <div id="padStatus" class="small">ゲームパッド：未接続 または 未操作</div>
     <div id="testStatus" class="small">自己テスト：未実行</div>
   </div>
-  <div id="viewer" tabindex="-1"><canvas id="canvas"></canvas><button id="viewModeButton" type="button">４面モードにする</button><div id="drawingModeLabel">.gri描画モード</div><div id="appTitle">立体グリグリ Vibe-Coded V1.0</div><button id="hiddenLineToggleBottom" type="button">かくれ線を表示する</button><button id="surfaceToggleBottom" type="button">面の色を表示しない</button><button id="modeToggleBottom" type="button">.gri描画モードにする</button><div id="stepControl"><span id="stepLabel">ステップ：20mm</span><select id="stepSelect"><option value="20" selected>20mm</option><option value="10">10mm</option><option value="5">5mm</option><option value="1">1mm</option></select></div><div id="confirmOverlay"><div id="confirmBox"><div id="confirmMessage">本当に消しますか？</div><div class="buttons"><button id="confirmYes" type="button">はい</button><button id="confirmNo" type="button">いいえ</button></div></div></div><div id="aboutOverlay"><div id="aboutBox"><div id="aboutText"><p>「立体グリグリ」は、第三角法による正投影図の学習のために、1996年頃に川俣純がMS-DOS上で動作するアプリケーションとして開発しました。このバージョンは、バイブコーディングにて30年後の2026年5月にChatGPT5.5と共に制作したものです。CC BYとしますので、ユーザーの判断にて自由に改変してご活用いただいて問題ありません。</p><p>STLファイルを読み込めるようにしてみました。ただし、STLファイルを作成することはできません。TinkercadなどのツールでSTLファイルを作成し、そのファイルを読み込ませてみてください。隠れ線の表示などもほぼできます。</p></div><button id="aboutClose" type="button">閉じる</button></div></div><div id="stlTimeoutOverlay"><div id="stlTimeoutBox"><div id="stlTimeoutMessage">読み込みと表示に時間がかかりすぎるので、この立体は読み込めません。</div><button id="stlTimeoutBack" type="button">戻る</button></div></div></div>
+  <div id="viewer" tabindex="-1"><canvas id="canvas"></canvas><button id="viewModeButton" type="button">４面モードにする</button><div id="drawingModeLabel">.gri描画モード</div><div id="appTitle">立体グリグリ Vibe-Coded V1.01</div><button id="hiddenLineToggleBottom" type="button">かくれ線を表示する</button><button id="surfaceToggleBottom" type="button">面の色を表示しない</button><button id="modeToggleBottom" type="button">.gri描画モードにする</button><div id="stepControl"><span id="stepLabel">ステップ：20mm</span><select id="stepSelect"><option value="20" selected>20mm</option><option value="10">10mm</option><option value="5">5mm</option><option value="1">1mm</option></select></div><div id="confirmOverlay"><div id="confirmBox"><div id="confirmMessage">本当に消しますか？</div><div class="buttons"><button id="confirmYes" type="button">はい</button><button id="confirmNo" type="button">いいえ</button></div></div></div><div id="aboutOverlay"><div id="aboutBox"><div id="aboutText"><p>「立体グリグリ」は、第三角法による正投影図の学習のために、1996年頃に川俣純がMS-DOS上で動作するアプリケーションとして開発しました。このバージョンは、バイブコーディングにて30年後の2026年5月にChatGPT5.5と共に制作したものです。CC BYとしますので、ユーザーの判断にて自由に改変してご活用いただいて問題ありません。</p><p>STLファイルを読み込めるようにしてみました。ただし、STLファイルを作成することはできません。TinkercadなどのツールでSTLファイルを作成し、そのファイルを読み込ませてみてください。隠れ線の表示などもほぼできます。</p></div><button id="aboutClose" type="button">閉じる</button></div></div><div id="stlTimeoutOverlay"><div id="stlTimeoutBox"><div id="stlTimeoutMessage">読み込みと表示に時間がかかりすぎるので、この立体は読み込めません。</div><button id="stlTimeoutBack" type="button">戻る</button></div></div></div>
 </div>
 <script>
 'use strict';
@@ -145,8 +146,17 @@ const viewModeButton=$('viewModeButton'),griFileInput=$('griFileInput'),embedded
 const viewName=$('viewName'),fileStatus=$('fileStatus'),zoomStatus=$('zoomStatus'),lineWidthStatus=$('lineWidthStatus'),colorModeStatus=$('colorModeStatus'),beepStatus=$('beepStatus'),padStatus=$('padStatus'),testStatus=$('testStatus');
 const dualshockConnectedHelp=$('dualshockConnectedHelp'),dualshockDisconnectedHelp=$('dualshockDisconnectedHelp'),iosGriHint=$('iosGriHint');
 let lon=Math.PI/4,lat=Math.atan(1/Math.sqrt(2));
-const LAT_LIMIT=Math.PI/2-.02;
+const LAT_LIMIT=Math.PI/2;
 const TOP_LAT=Math.PI/2;
+const ISO_LAT=Math.atan(1/Math.sqrt(2));
+const ORTHOGRAPHIC_SNAP_TOLERANCE=0.045; // 約2.6度。カーソルキー/DS4操作時に正投影方向へ吸着させる幅。
+const ORTHOGRAPHIC_SNAP_RELEASE_DISTANCE=0.12; // 約6.9度。吸着後、押し続けた時だけ抜け出すための距離。
+let orthographicSnapLonLock=null;
+let orthographicSnapLatLock=null;
+let orthographicSnapLonEscape=0;
+let orthographicSnapLatEscape=0;
+// 緯度方向の自由回転も、北極点・南極点ちょうどまで動けるようにする。
+// viewBasis() 側で ±90度専用の基底を用意しているため、特異点でも描画できる。
 let zoom=1,lineWidth=1,inverted=true,four=false;
 let preservedFourFreeView=null;
 let drawingPointer=v(0,0,0);
@@ -161,7 +171,7 @@ let selfTesting=false;
 const keys=new Set(),prevButtons=[];let shift=false,activeGamepadSignature='';
 const touchPointers=new Map();
 let touchGesture=null,lastTouchMoveTime=0,touchLonVelocity=0,touchLatVelocity=0,inertiaLastTime=0;
-const views={front:['正面図',0,0],right:['右側面図',Math.PI/2,0],top:['平面図',0,TOP_LAT],iso:['等角図',Math.PI/4,Math.atan(1/Math.sqrt(2))]};
+const views={front:['正面図',0,0],right:['右側面図',Math.PI/2,0],top:['平面図',0,TOP_LAT],iso:['等角図',Math.PI/4,ISO_LAT]};
 const layout=[['平面図',views.top,0,0,.5,.5],['自由視点',null,.5,0,.5,.5],['正面図',views.front,0,.5,.5,.5],['右側面図',views.right,.5,.5,.5,.5]];
 let initialGri=loadStartupGri();
 let currentGriText=initialGri.text,currentGriFileName=initialGri.name,model=parseGri(currentGriText,currentGriFileName);
@@ -1235,7 +1245,22 @@ function deleteEdgeFromStartToPointer(){
 }
 function appendEdgeToGriText(text,edge){const nl=String.fromCharCode(10),cr=String.fromCharCode(13);const lines=String(text||'0 0 0 0').split(cr).join(nl).split(nl).map(s=>s.trim()).filter(Boolean);if(lines.length<1)lines.push('0 0 0 0');lines.push(edge.map(n=>Math.round(n)).join(' '));return rebuildGriHeader(lines);}
 function rebuildGriHeader(lines){const nl=String.fromCharCode(10),edgeLines=[],values=[];for(let i=1;i<lines.length;i++){const a=nums(lines[i]);if(a.length>=6&&!a.some(Number.isNaN)){edgeLines.push(a.slice(0,6).map(n=>Math.round(n)).join(' '));values.push(a[0],a[1],a[2],a[3],a[4],a[5]);}}let cx=0,cy=0,cz=0;if(values.length){const xs=[],ys=[],zs=[];for(let i=0;i<values.length;i+=3){xs.push(values[i]);ys.push(values[i+1]);zs.push(values[i+2]);}cx=Math.round((Math.min(...xs)+Math.max(...xs))/2);cy=Math.round((Math.min(...ys)+Math.max(...ys))/2);cz=Math.round((Math.min(...zs)+Math.max(...zs))/2);}return [`${edgeLines.length} ${cx} ${cy} ${cz}`,...edgeLines].join(nl)+nl;}
-function viewBasis(lo,la){if(Math.abs(Math.abs(la)-Math.PI/2)<1e-6){const sign=la>0?1:-1;return {right:v(1,0,0),up:v(0,0,-sign),forward:v(0,sign,0)};}la=clamp(la,-LAT_LIMIT,LAT_LIMIT);const f=norm(v(Math.cos(la)*Math.sin(lo),Math.sin(la),Math.cos(la)*Math.cos(lo)));let right=cross(v(0,1,0),f);right=len(right)<1e-5?v(1,0,0):norm(right);return{right,up:norm(cross(f,right)),forward:f}}
+function viewBasis(lo,la){
+  if(Math.abs(Math.abs(la)-Math.PI/2)<1e-6){
+    // 北緯90度・南緯90度では forward が真上/真下になり、
+    // worldUp との外積だけでは左右方向が決まらない。
+    // ここで lon から right を作ることで、極点に到達しても東西方向の向きを保持する。
+    const sign=la>0?1:-1;
+    const forward=v(0,sign,0);
+    const right=norm(v(Math.cos(lo),0,-Math.sin(lo)));
+    return {right,up:norm(cross(forward,right)),forward};
+  }
+  la=clamp(la,-LAT_LIMIT,LAT_LIMIT);
+  const f=norm(v(Math.cos(la)*Math.sin(lo),Math.sin(la),Math.cos(la)*Math.cos(lo)));
+  let right=cross(v(0,1,0),f);
+  right=len(right)<1e-5?norm(v(Math.cos(lo),0,-Math.sin(lo))):norm(right);
+  return{right,up:norm(cross(f,right)),forward:f}
+}
 function proj(p,b,s,cx,cy){return{x:cx+dot(p,b.right)*s,y:cy-dot(p,b.up)*s}}
 
 
@@ -1368,6 +1393,7 @@ function handleCanvasPointerDown(e){
   if(touchPointers.size>=2){beginPinchGesture();return;}
   if(isFreeViewTouchPoint(e.clientX,e.clientY)){
     clearPreservedFourFreeView();
+    clearOrthographicSnapLocks();
     moving=false;
     stopTouchInertia();
     touchGesture={type:'rotate',pointerId:e.pointerId,lastX:e.clientX,lastY:e.clientY,lastTime:performance.now(),totalDx:0,totalDy:0,axisLock:null};
@@ -1441,6 +1467,7 @@ function handleCanvasPointerEnd(e){
 }
 function updateTouchInertia(now){
   if(!inertiaLastTime)return;
+  clearOrthographicSnapLocks();
   if(touchPointers.size>0){stopTouchInertia();return;}
   const dt=Math.min(.05,Math.max(0,(now-inertiaLastTime)/1000));
   inertiaLastTime=now;
@@ -1453,8 +1480,123 @@ function updateTouchInertia(now){
   if(Math.hypot(touchLonVelocity,touchLatVelocity)<.04)stopTouchInertia();
 }
 
+
+function signedAngleDifference(a,b){
+  let d=normalizeAngle(a)-normalizeAngle(b);
+  if(d>Math.PI)d-=Math.PI*2;
+  if(d<-Math.PI)d+=Math.PI*2;
+  return d;
+}
+function crossedOrReachedSnapTarget(previous,current,target,tolerance=ORTHOGRAPHIC_SNAP_TOLERANCE){
+  const before=signedAngleDifference(previous,target);
+  const after=signedAngleDifference(current,target);
+  return Math.abs(after)<=tolerance || before*after<0;
+}
+function clearOrthographicSnapLocks(){
+  orthographicSnapLonLock=null;
+  orthographicSnapLatLock=null;
+  orthographicSnapLonEscape=0;
+  orthographicSnapLatEscape=0;
+}
+function snapLongitudeToRightAngle(previous,current){
+  // 連続回転中に正面/背面/右側面/左側面へ「吸着」する。
+  // ただし、一度ぴったり吸着したあと同じ方向へ操作し続けた場合は、
+  // 次のフレームでその角度から抜け出せるようにする。
+  // 「吸着したまま動けなくなる」問題を避けるため、ロック保持ではなく、
+  // 目標角へ近づいた/通過した瞬間だけスナップする。
+  const previousContinuous=normalizeAngle(previous);
+  const currentContinuous=nearestLon(previousContinuous,current);
+  const EPS=1e-7;
+  const targets=[0,Math.PI/2,Math.PI,-Math.PI/2];
+  for(const baseTarget of targets){
+    const target=nearestLon(previousContinuous,baseTarget);
+    const before=previousContinuous-target;
+    const after=currentContinuous-target;
+
+    // すでに目標角にぴったりいる状態から、ユーザーがさらに同じ方向へ
+    // 操作した場合は、再吸着せずに抜け出させる。
+    if(Math.abs(before)<EPS && Math.abs(after)>EPS)continue;
+
+    if(Math.abs(after)<=ORTHOGRAPHIC_SNAP_TOLERANCE || before*after<0){
+      orthographicSnapLonLock=normalizeAngle(target);
+      orthographicSnapLonEscape=0;
+      return normalizeAngle(target);
+    }
+  }
+  orthographicSnapLonLock=null;
+  orthographicSnapLonEscape=0;
+  return normalizeAngle(currentContinuous);
+}
+function snapLatitudeToOrthographic(previous,current){
+  // 緯度方向も、正面/背面の0度、平面の90度、底面の-90度へ吸着する。
+  // 経度方向と同じく、吸着後に押し続けた時は次のフレームで抜け出せる。
+  const EPS=1e-7;
+  const targets=[-Math.PI/2,0,Math.PI/2];
+  for(const target of targets){
+    const before=previous-target;
+    const after=current-target;
+
+    if(Math.abs(before)<EPS && Math.abs(after)>EPS)continue;
+
+    if(Math.abs(after)<=ORTHOGRAPHIC_SNAP_TOLERANCE || before*after<0){
+      orthographicSnapLatLock=target;
+      orthographicSnapLatEscape=0;
+      return target;
+    }
+  }
+  orthographicSnapLatLock=null;
+  orthographicSnapLatEscape=0;
+  return clamp(current,-LAT_LIMIT,LAT_LIMIT);
+}
+function snapToIsometricDirection(previousLon,previousLat,currentLon,currentLat){
+  // 等角図の代表的な8方向にも吸着する。
+  // 右側面/正面などの正投影方向と同じく、近づいた瞬間だけスナップし、
+  // その後押し続けた場合は次のフレームで抜け出せるようにする。
+  const EPS=1e-7;
+  const previousContinuous=normalizeAngle(previousLon);
+  const currentContinuous=nearestLon(previousContinuous,currentLon);
+  const lonTargets=[Math.PI/4,Math.PI*3/4,-Math.PI*3/4,-Math.PI/4];
+  const latTargets=[ISO_LAT,-ISO_LAT];
+  let best=null;
+  for(const baseLonTarget of lonTargets){
+    const targetLon=nearestLon(previousContinuous,baseLonTarget);
+    const beforeLon=previousContinuous-targetLon;
+    const afterLon=currentContinuous-targetLon;
+    for(const targetLat of latTargets){
+      const beforeLat=previousLat-targetLat;
+      const afterLat=currentLat-targetLat;
+      const distBefore=Math.hypot(beforeLon,beforeLat);
+      const distAfter=Math.hypot(afterLon,afterLat);
+
+      // すでに等角図の角度にぴったりいる状態から操作を続けた場合は、
+      // 再吸着せずに自然に抜け出す。
+      if(distBefore<EPS&&distAfter>EPS)continue;
+
+      if(Math.abs(afterLon)<=ORTHOGRAPHIC_SNAP_TOLERANCE && Math.abs(afterLat)<=ORTHOGRAPHIC_SNAP_TOLERANCE){
+        if(!best||distAfter<best.dist)best={lon:targetLon,lat:targetLat,dist:distAfter};
+      }
+    }
+  }
+  if(best)return {lon:normalizeAngle(best.lon),lat:best.lat,snapped:true};
+  return {lon:normalizeAngle(currentContinuous),lat:clamp(currentLat,-LAT_LIMIT,LAT_LIMIT),snapped:false};
+}
+function snapToOrthographicDirection(previousLon,previousLat){
+  // カーソルキーやDualShock4で少しずつ動かす時、
+  // 正面/背面/右側面/左側面/平面/底面にぴったり合わせやすくする。
+  // 加えて、等角図の方向にも吸着する。
+  const isoSnap=snapToIsometricDirection(previousLon,previousLat,lon,lat);
+  if(isoSnap.snapped){
+    lon=isoSnap.lon;
+    lat=isoSnap.lat;
+    return;
+  }
+  lon=snapLongitudeToRightAngle(previousLon,isoSnap.lon);
+  lat=snapLatitudeToOrthographic(previousLat,isoSnap.lat);
+}
+
 function moveTo(view){
   clearPreservedFourFreeView();
+  clearOrthographicSnapLocks();
   soundReady();
   stopTouchInertia();
   moving=true;
@@ -1716,7 +1858,27 @@ function loadGamepadEmbeddedStlPreview(index){
   }
   showGamepadEmbeddedStlSelectStatus('読み込み済み');
 }
+function handleGamepadL2LineWidth(pad){
+  // L2を押している間だけ、方向キー上下をキーボードの + / - と同じ「線の太さ」変更に使う。
+  // 標準配置では L2 = button 6、方向キー上 = 12、下 = 13。
+  // L2中の上下方向キーは、視点回転や内蔵STL選択には回さない。
+  if(!buttonDown(pad,6))return false;
+  if(press(pad,12)){
+    changeLine(.25);
+    click(performance.now());
+    return true;
+  }
+  if(press(pad,13)){
+    changeLine(-.25);
+    click(performance.now());
+    return true;
+  }
+  // 上下方向キーを押しっぱなしにしている間は、回転やSTL選択へ流れないように消費する。
+  if(buttonDown(pad,12)||buttonDown(pad,13))return true;
+  return false;
+}
 function handleGamepadEmbeddedStlSelectMode(pad){
+  if(handleGamepadL2LineWidth(pad)){showGamepadEmbeddedStlSelectStatus(`線の太さ ${lineWidth.toFixed(1)}`);return true;}
   let moved=0;
   if(press(pad,13)||press(pad,15))moved=1;      // 方向キー 下・右：次の内蔵STLを即読み込み
   if(press(pad,12)||press(pad,14))moved=-1;     // 方向キー 上・左：前の内蔵STLを即読み込み
@@ -1731,8 +1893,10 @@ function handleGamepadEmbeddedStlSelectMode(pad){
   const rx=axisValue(pad,2), ry=axisValue(pad,3), leftZoomY=axisValue(pad,1);
   if(!moving&&(rx||ry)){
     clearPreservedFourFreeView();
+    const previousLon=lon, previousLat=lat;
     lon=normalizeAngle(lon-rx*.035);
     lat=clamp(lat+ry*.035,-LAT_LIMIT,LAT_LIMIT);
+    snapToOrthographicDirection(previousLon,previousLat);
     viewName.textContent='自由視点';
     markRenderDirty();
     click(performance.now());
@@ -1796,6 +1960,13 @@ function updateGamepad(){
     return;
   }
 
+  // L2を押している間は、方向キー上下を線の太さ変更に使う。
+  // この処理を方向キーによる回転より前に置くことで、L2中に立体が動かないようにする。
+  if(!gamepadEmbeddedStlSelectMode&&handleGamepadL2LineWidth(pad)){
+    updatePrevButtons(pad);
+    return;
+  }
+
   // 内蔵STL選択中は、方向キーをSTL選択に使う。
   // ただし、スティック、□○△×、L1/R1/R2、SHAREは選択中でも使えるように、専用処理内で受け付ける。
   if(gamepadEmbeddedStlSelectMode){
@@ -1810,8 +1981,10 @@ function updateGamepad(){
   const dpadY=dpadValue(pad,12,13);
   if(!moving&&(rx||ry||dpadX||dpadY)){
     clearPreservedFourFreeView();
+    const previousLon=lon, previousLat=lat;
     lon=normalizeAngle(lon-(rx+dpadX)*.035);
     lat=clamp(lat+(ry+dpadY)*.035,-LAT_LIMIT,LAT_LIMIT);
+    snapToOrthographicDirection(previousLon,previousLat);
     viewName.textContent='自由視点';
     markRenderDirty();
     click(performance.now());
@@ -1832,7 +2005,25 @@ function updateGamepad(){
   updatePrevButtons(pad);
 }
 function dead(n){return Math.abs(n)<.12?0:n}
-function updateKeys(){if(moving)return;let vmove=false,other=false;if(keys.has('arrowleft')){lon=normalizeAngle(lon+.035);vmove=true}if(keys.has('arrowright')){lon=normalizeAngle(lon-.035);vmove=true}if(!shift&&keys.has('arrowup')){lat-=.035;vmove=true}if(!shift&&keys.has('arrowdown')){lat+=.035;vmove=true}if(shift&&keys.has('arrowup')){changeZoom(.035);other=true}if(shift&&keys.has('arrowdown')){changeZoom(-.035);other=true}if(vmove){clearPreservedFourFreeView();lat=clamp(lat,-LAT_LIMIT,LAT_LIMIT);viewName.textContent='自由視点';click(performance.now())}else if(other)click(performance.now())}
+function updateKeys(){
+  if(moving)return;
+  let vmove=false,other=false;
+  const previousLon=lon, previousLat=lat;
+  if(keys.has('arrowleft')){lon=normalizeAngle(lon+.035);vmove=true}
+  if(keys.has('arrowright')){lon=normalizeAngle(lon-.035);vmove=true}
+  if(!shift&&keys.has('arrowup')){lat-=.035;vmove=true}
+  if(!shift&&keys.has('arrowdown')){lat+=.035;vmove=true}
+  if(shift&&keys.has('arrowup')){changeZoom(.035);other=true}
+  if(shift&&keys.has('arrowdown')){changeZoom(-.035);other=true}
+  if(vmove){
+    clearPreservedFourFreeView();
+    lat=clamp(lat,-LAT_LIMIT,LAT_LIMIT);
+    snapToOrthographicDirection(previousLon,previousLat);
+    viewName.textContent='自由視点';
+    markRenderDirty();
+    click(performance.now());
+  }else if(other)click(performance.now())
+}
 
 function changeZoom(d){clearPreservedFourFreeView();zoom=clamp(zoom*(1+d),.05,12);zoomStatus.textContent=`表示倍率：${Math.round(zoom*100)}%`;markRenderDirty()}
 function changeLine(d){lineWidth=clamp(lineWidth+d,1,8);lineWidthStatus.textContent=`線の太さ：${lineWidth.toFixed(1)}`;markRenderDirty()}
