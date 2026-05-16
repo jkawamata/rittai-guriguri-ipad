@@ -7,12 +7,16 @@
 <style>
   html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;font-family:system-ui,"Hiragino Sans","Yu Gothic",sans-serif}
   #app{display:flex;width:100vw;height:100vh;background:#000}
-  #info{box-sizing:border-box;width:320px;height:100vh;overflow-y:auto;flex:0 0 320px;padding:16px 14px;background:#2a2a2a;color:#d8d8d8;border-right:1px solid #444;font-size:14px;line-height:1.6;user-select:none}
+  #info{box-sizing:border-box;width:320px;height:100vh;overflow-y:auto;flex:0 0 320px;padding:16px 14px;background:#2a2a2a;color:#d8d8d8;border-right:1px solid #444;font-size:14px;line-height:1.6;user-select:none;transition:margin-left .22s ease}
+  body.info-hidden #info{margin-left:-320px}
+  #infoToggle{position:absolute;left:320px;top:10px;z-index:120;padding:7px 10px;border:1px solid #666;border-radius:0 8px 8px 0;background:#2a2a2a;color:#eee;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.25);transition:left .22s ease;white-space:nowrap}
+  body.info-hidden #infoToggle{left:0}
   #viewer{position:relative;flex:1;height:100vh;background:#000;min-width:0;touch-action:none}
   #viewer:focus,#viewer:focus-visible,canvas:focus,canvas:focus-visible{outline:none}
   canvas{display:block;width:100%;height:100%;background:#000;touch-action:none}
   body.light-ui,body.light-ui #app,body.light-ui #viewer,body.light-ui canvas{background:#f4f4f4}
   body.light-ui #info{background:#fff;color:#222;border-right-color:#ccc}
+  body.light-ui #infoToggle{background:#fff;color:#222;border-color:#aaa}
   #viewModeButton{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:20;padding:8px 16px;border:1px solid #666;border-radius:999px;background:#2a2a2a;color:#eee;cursor:pointer}
   #appTitle{position:absolute;right:14px;top:14px;z-index:80;padding:6px 10px;border:1px solid #555;border-radius:8px;background:rgba(0,0,0,.55);color:#ddd;font-size:13px;letter-spacing:.02em;pointer-events:auto;cursor:pointer}
   #drawingModeLabel{display:none;position:absolute;left:18px;top:18px;z-index:21;color:#d00000;font-size:28px;font-weight:800;letter-spacing:.04em;pointer-events:none;text-shadow:0 1px 0 rgba(255,255,255,.85)}
@@ -33,6 +37,17 @@
   body.light-ui #drawingModeHelp{display:block;background:#eaf4ff;color:#164a7a;border-color:#1976d2}
   body.light-ui #drawingModeHelp .helpTitle{color:#0d47a1}
   kbd{padding:1px 5px;border:1px solid #666;border-radius:4px;background:#3a3a3a;color:#eee;font-size:12px} body.light-ui kbd{background:#eee;color:#222;border-color:#aaa}
+
+  .viewPresetControls{margin-top:8px;padding:8px;border:1px solid #555;border-radius:8px;background:rgba(255,255,255,.04)}
+  .viewPresetTitle{font-weight:700;margin-bottom:6px;color:#ddd}
+  body.light-ui .viewPresetTitle{color:#333}
+  .viewPresetGrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .viewPresetButton{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:6px 8px;border:1px solid #666;border-radius:8px;background:#383838;color:#eee;font-size:12px;font-weight:700;cursor:pointer}
+  .viewPresetButton:hover{background:#454545}
+  .viewPresetButton kbd{margin-left:4px}
+  body.light-ui .viewPresetControls{background:#f7f7f7;border-color:#ccc}
+  body.light-ui .viewPresetButton{background:#fff;color:#222;border-color:#aaa}
+  body.light-ui .viewPresetButton:hover{background:#eee}
   input,textarea,select{color-scheme:dark} body.light-ui input,body.light-ui textarea,body.light-ui select{color-scheme:light} body.light-ui #embeddedStlSelect{background:#fff;color:#222;border-color:#aaa}
   #confirmOverlay{display:none;position:absolute;inset:0;z-index:50;background:transparent}
   #confirmOverlay.center{background:rgba(0,0,0,.35);align-items:center;justify-content:center}
@@ -66,7 +81,8 @@
   #stepControl.open #stepSelect{display:inline-block}
 </style>
 </head>
-<body>
+<body class="info-hidden">
+<button id="infoToggle" type="button">＞操作説明表示</button>
 <div id="app">
   <div id="info">
     <div id="viewName" style="font-weight:700;font-size:16px;margin-bottom:6px">等角図</div>
@@ -102,8 +118,18 @@
       <div>タブレット：ピンチで拡大縮小／自由視点上でスワイプ回転</div>
       <div>タブレット：三本指で上下すると線の太さを変更</div>
       <div>４面モードの各ラベル：クリック/タップで１面表示</div>
-      <div><kbd>1</kbd>正面　<kbd>2</kbd>右側面　<kbd>3</kbd>平面　<kbd>4</kbd>等角</div>
-      <div><kbd>B</kbd>：クリック音</div><div id="modeKeyHelp"><kbd>D</kbd>：通常モード/描画モード</div>
+      <div class="viewPresetControls">
+        <div class="viewPresetTitle">視点切替（キーボード割り当て）</div>
+        <div class="viewPresetGrid">
+          <button class="viewPresetButton" type="button" data-view-preset="top"><span>平面図</span><kbd>3</kbd></button>
+          <button class="viewPresetButton" type="button" data-view-preset="iso"><span>等角図</span><kbd>4</kbd></button>
+          <button class="viewPresetButton" type="button" data-view-preset="front"><span>正面図</span><kbd>1</kbd></button>
+          <button class="viewPresetButton" type="button" data-view-preset="right"><span>右側面図</span><kbd>2</kbd></button>
+        </div>
+      </div>
+      <div><kbd>B</kbd>：クリック音</div>
+      <div><kbd>N</kbd>：立体データを消去</div>
+      <div id="modeKeyHelp"><kbd>D</kbd>：通常モード/描画モード</div>
     </div>
     <div id="drawingModeHelp">
       <div class="helpTitle">.gri描画モード専用操作</div>
@@ -117,7 +143,7 @@
       <div>自由視点で線分にマウスを近づける：赤く強調表示</div>
       <div>強調表示された線分を右クリック：確認して削除</div>
       <div><kbd>Esc</kbd>：始点・終点の記録をキャンセル</div>
-      <div><kbd>N</kbd>：すべての立体データを消去</div>
+      <div><kbd>N</kbd>：立体データを消去</div>
     </div>
     <div class="small" style="margin-top:6px"><label>読み込む立体を選択：（GRI、STLのみ）<input id="griFileInput" type="file" accept=".gri,.txt,.stl" /></label></div>
     <div class="small" style="margin-top:8px">内蔵STLを読み込む：</div>
@@ -137,11 +163,12 @@
     <div id="padStatus" class="small">ゲームパッド：未接続 または 未操作</div>
     <div id="testStatus" class="small">自己テスト：未実行</div>
   </div>
-  <div id="viewer" tabindex="-1"><canvas id="canvas"></canvas><button id="viewModeButton" type="button">４面モードにする</button><div id="drawingModeLabel">.gri描画モード</div><div id="appTitle">立体グリグリ Vibe-Coded V1.01</div><button id="hiddenLineToggleBottom" type="button">かくれ線を表示する</button><button id="surfaceToggleBottom" type="button">面の色を表示しない</button><button id="modeToggleBottom" type="button">.gri描画モードにする</button><div id="stepControl"><span id="stepLabel">ステップ：20mm</span><select id="stepSelect"><option value="20" selected>20mm</option><option value="10">10mm</option><option value="5">5mm</option><option value="1">1mm</option></select></div><div id="confirmOverlay"><div id="confirmBox"><div id="confirmMessage">本当に消しますか？</div><div class="buttons"><button id="confirmYes" type="button">はい</button><button id="confirmNo" type="button">いいえ</button></div></div></div><div id="aboutOverlay"><div id="aboutBox"><div id="aboutText"><p>「立体グリグリ」は、第三角法による正投影図の学習のために、1996年頃に川俣純がMS-DOS上で動作するアプリケーションとして開発しました。このバージョンは、バイブコーディングにて30年後の2026年5月にChatGPT5.5と共に制作したものです。CC BYとしますので、ユーザーの判断にて自由に改変してご活用いただいて問題ありません。</p><p>STLファイルを読み込めるようにしてみました。ただし、STLファイルを作成することはできません。TinkercadなどのツールでSTLファイルを作成し、そのファイルを読み込ませてみてください。隠れ線の表示などもほぼできます。</p></div><button id="aboutClose" type="button">閉じる</button></div></div><div id="stlTimeoutOverlay"><div id="stlTimeoutBox"><div id="stlTimeoutMessage">読み込みと表示に時間がかかりすぎるので、この立体は読み込めません。</div><button id="stlTimeoutBack" type="button">戻る</button></div></div></div>
+  <div id="viewer" tabindex="-1"><canvas id="canvas"></canvas><button id="viewModeButton" type="button">４面モードにする</button><div id="drawingModeLabel">.gri描画モード</div><div id="appTitle">立体グリグリ Vibe-Coded V1.02</div><button id="hiddenLineToggleBottom" type="button">かくれ線を表示する</button><button id="surfaceToggleBottom" type="button">面の色を表示しない</button><button id="modeToggleBottom" type="button">.gri描画モードにする</button><div id="stepControl"><span id="stepLabel">ステップ：20mm</span><select id="stepSelect"><option value="20" selected>20mm</option><option value="10">10mm</option><option value="5">5mm</option><option value="1">1mm</option></select></div><div id="confirmOverlay"><div id="confirmBox"><div id="confirmMessage">本当に消しますか？</div><div class="buttons"><button id="confirmYes" type="button">はい</button><button id="confirmNo" type="button">いいえ</button></div></div></div><div id="aboutOverlay"><div id="aboutBox"><div id="aboutText"><p>「立体グリグリ」は、第三角法による正投影図の学習のために、1996年頃に川俣純がMS-DOS上で動作するアプリケーションとして開発しました。このバージョンは、バイブコーディングにて30年後の2026年5月にChatGPT5.5と共に制作したものです。CC BYとしますので、ユーザーの判断にて自由に改変してご活用いただいて問題ありません。</p><p>STLファイルを読み込めるようにしてみました。ただし、STLファイルを作成することはできません。TinkercadなどのツールでSTLファイルを作成し、そのファイルを読み込ませてみてください。隠れ線の表示などもほぼできます。</p></div><button id="aboutClose" type="button">閉じる</button></div></div><div id="stlTimeoutOverlay"><div id="stlTimeoutBox"><div id="stlTimeoutMessage">読み込みと表示に時間がかかりすぎるので、この立体は読み込めません。</div><button id="stlTimeoutBack" type="button">戻る</button></div></div></div>
 </div>
 <script>
 'use strict';
 const $=id=>document.getElementById(id);
+const infoToggle=$('infoToggle');
 const canvas=$('canvas'),ctx=canvas.getContext('2d'),viewer=$('viewer');
 const viewModeButton=$('viewModeButton'),griFileInput=$('griFileInput'),embeddedStlSelect=$('embeddedStlSelect'),saveGriControls=$('saveGriControls'),saveGriButton=$('saveGriButton'),saveFileNameInput=$('saveFileNameInput'),confirmOverlay=$('confirmOverlay'),confirmBox=$('confirmBox'),confirmYes=$('confirmYes'),confirmNo=$('confirmNo'),confirmMessage=$('confirmMessage'),aboutOverlay=$('aboutOverlay'),aboutClose=$('aboutClose'),stepControl=$('stepControl'),stepLabel=$('stepLabel'),stepSelect=$('stepSelect'),hiddenLineToggleBottom=$('hiddenLineToggleBottom'),surfaceToggleBottom=$('surfaceToggleBottom'),modeToggleBottom=$('modeToggleBottom'),hiddenLineKeyHelp=$('hiddenLineKeyHelp'),surfaceKeyHelp=$('surfaceKeyHelp'),modeKeyHelp=$('modeKeyHelp'),appTitle=$('appTitle');
 const viewName=$('viewName'),fileStatus=$('fileStatus'),zoomStatus=$('zoomStatus'),lineWidthStatus=$('lineWidthStatus'),colorModeStatus=$('colorModeStatus'),beepStatus=$('beepStatus'),padStatus=$('padStatus'),testStatus=$('testStatus');
@@ -202,7 +229,21 @@ let gamepadEmbeddedStlRestoreState=null;
 let gamepadEmbeddedStlPreviewLoaded=false;
 init();
 
-function init(){configureFileInputForDevice();populateEmbeddedStlSelect();updateColor();updateHiddenLineButton();updateSurfaceButton();resize();loadEmbeddedDefaultStl();updateFileStatus(model);runSelfTests();requestAnimationFrame(loop)}
+function init(){setupInfoToggle();configureFileInputForDevice();populateEmbeddedStlSelect();updateColor();updateHiddenLineButton();updateSurfaceButton();resize();loadEmbeddedDefaultStl();updateFileStatus(model);runSelfTests();requestAnimationFrame(loop)}
+function setupInfoToggle(){
+  updateInfoToggleLabel();
+  infoToggle.addEventListener('click',()=>{
+    document.body.classList.toggle('info-hidden');
+    updateInfoToggleLabel();
+    // 左パネルの開閉アニメーション後にCanvasサイズを取り直す。
+    setTimeout(()=>{resize();markRenderDirty();},240);
+    focusViewerForKeys();
+  });
+}
+function updateInfoToggleLabel(){
+  infoToggle.textContent=document.body.classList.contains('info-hidden')?'＞操作説明表示':'＜操作説明非表示';
+}
+
 function isIPadOrIPhone(){
   const ua=navigator.userAgent||'';
   const platform=navigator.platform||'';
@@ -1047,7 +1088,7 @@ function isSurfaceEdgeVisibleOnZBuffer(a,bp,pa,pb,basis,zState){
 
 function edgeFunction(ax,ay,bx,by,cx,cy){return (cx-ax)*(by-ay)-(cy-ay)*(bx-ax)}
 function labelBox(t,r,viewInverted=inverted){const rect=getLabelRect(t,r);const s=dpr();ctx.fillStyle=viewInverted?'rgba(0,0,0,.7)':'rgba(255,255,255,.85)';ctx.strokeStyle=viewInverted?'#555':'#bbb';ctx.font=`${14*s}px sans-serif`;ctx.beginPath();ctx.roundRect(rect.x,rect.y,rect.w,rect.h,8*s);ctx.fill();ctx.stroke();ctx.fillStyle=viewInverted?'#ccc':'#555';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(t,rect.x+rect.w/2,rect.y+rect.h/2)}
-function getLabelRect(t,r){const s=dpr();ctx.save();ctx.font=`${14*s}px sans-serif`;const w=ctx.measureText(t).width+20*s,h=28*s,x=r.x+10*s,y=(four&&t==='自由視点')?r.y+r.h-h-10*s:r.y+10*s;ctx.restore();return{x,y,w,h,label:t}}
+function getLabelRect(t,r){const s=dpr();ctx.save();ctx.font=`${14*s}px sans-serif`;const w=ctx.measureText(t).width+20*s,h=28*s,x=r.x+10*s,y=(four&&(t==='自由視点'||t==='平面図'))?r.y+r.h-h-10*s:r.y+10*s;ctx.restore();return{x,y,w,h,label:t}}
 function fourLabelRect(t,r){return getLabelRect(t,r)}
 function getFourLabelHit(clientX,clientY){if(!four)return null;const p=clientToCanvasPoint(clientX,clientY);for(const [label,view,x,y,w,h] of layout){const rect=fourLabelRect(label,{x:x*canvas.width,y:y*canvas.height,w:w*canvas.width,h:h*canvas.height});if(pointInRect(p,rect))return{label,view};}return null;}
 function activateFourLabelView(hit){
@@ -2646,6 +2687,18 @@ function readSelectedTextFileByReader(file){
 }
 saveGriButton.addEventListener('click',()=>{saveCurrentGri();});
 viewModeButton.addEventListener('click',toggleViewMode);
+document.querySelectorAll('.viewPresetButton').forEach(button=>{
+  button.addEventListener('click',e=>{
+    e.preventDefault();
+    e.stopPropagation();
+    const preset=button.dataset.viewPreset;
+    if(views[preset]){
+      moveTo(views[preset]);
+      click(performance.now());
+      focusViewerForKeys();
+    }
+  });
+});
 function showAppAbout(){aboutOverlay.style.display='flex';}
 function closeAppAbout(){aboutOverlay.style.display='none';}
 appTitle.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();showAppAbout();});
