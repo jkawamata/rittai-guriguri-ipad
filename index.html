@@ -104,7 +104,7 @@
         <div>OPTIONS：内蔵STL選択（方向キーで即読み込み／再度OPTIONSで決定）</div>
         <div>内蔵STL選択中：方向キーで選択</div>
         <div>SHARE：４面/１面モード切替</div>
-        <div>L1：クリック音ON/OFF</div>
+        <div>L1：操作説明表示/非表示</div>
       </div>
       <div id="dualshockDisconnectedHelp">
         <div class="helpTitle">ゲームコントローラー操作</div>
@@ -425,6 +425,11 @@ function getModelFileNameLabel(m){
   if(!m||!m.fileName)return '';
   const name=String(m.fileName).trim();
   if(!name)return '';
+  const normalizedName=name.toLowerCase();
+  // 起動時に自動で読み込まれるデフォルト内蔵STLだけは、
+  // 右上のファイル名表示を出さない。
+  // demo.stl / demo01.stl のどちらの名前でも非表示にする。
+  if(m.isEmbeddedStl&&(normalizedName==='demo.stl'||normalizedName==='demo01.stl'))return '';
   if(m.isEmbeddedStl)return `内蔵STL：${name}`;
   if(m.sourceType==='stl')return `STL：${name}`;
   if(m.sourceType==='gri')return `GRI：${name}`;
@@ -2043,7 +2048,7 @@ function handleGamepadEmbeddedStlSelectMode(pad){
   if(press(pad,0)){moveTo(views.iso);showGamepadEmbeddedStlSelectStatus('等角図');return true;}     // ×：等角図
 
   // 内蔵STL選択中でも、R1/R2による表示切替は通常通り使えるようにする。
-  // L1は updateGamepad() の先頭側で、クリック音が鳴る処理より先に処理する。
+  // L1は updateGamepad() の先頭側で、操作説明表示/非表示として処理する。
   if(press(pad,5)){toggleHiddenLines();showGamepadEmbeddedStlSelectStatus(showHiddenLines?'かくれ線ON':'かくれ線OFF');return true;} // R1：かくれ線
   if(press(pad,7)){toggleStlSurface();showGamepadEmbeddedStlSelectStatus(showStlSurface?'面の色ON':'面の色OFF');return true;}       // R2：面表示
 
@@ -2076,11 +2081,11 @@ function updateGamepad(){
 
   padStatus.textContent=`ゲームパッド：${gamepadListSummary(pads,pad)}${gamepadEmbeddedStlSelectMode?' / 内蔵STL選択中':''}`;
 
-  // L1のクリック音ON/OFFは、回転・ズーム・STL選択などクリック音を出す処理より先に処理する。
-  // そうしないと、L1を押した同じフレームでスティックの微小入力などが先に click() を呼び、
-  // 表示はOFFなのにクリック音だけ鳴ることがある。
+  // L1は、操作説明の表示/非表示に使う。
+  // 以前のクリック音ON/OFF機能は外し、Bキーのみをクリック音切替に残す。
   if(press(pad,4)){
-    toggleBeep();
+    toggleInfoPanel();
+    click(performance.now());
     updatePrevButtons(pad);
     return;
   }
@@ -2128,7 +2133,7 @@ function updateGamepad(){
   if(press(pad,1))moveTo(views.right);
   if(press(pad,3))moveTo(views.top);
   if(press(pad,0))moveTo(views.iso);
-  // L1はこの関数の先頭側で処理済み。
+  // L1はこの関数の先頭側で操作説明表示/非表示として処理済み。
   if(press(pad,5))toggleHiddenLines();   // R1
   if(press(pad,7))toggleStlSurface();    // R2
   if(press(pad,9))enterGamepadEmbeddedStlSelectMode();
