@@ -18,9 +18,12 @@
   body.light-ui #info{background:#fff;color:#222;border-right-color:#ccc}
   body.light-ui #infoToggle{background:#fff;color:#222;border-color:#aaa}
   #viewModeButton{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:20;padding:8px 16px;border:1px solid #666;border-radius:999px;background:#2a2a2a;color:#eee;cursor:pointer}
-  #appTitle{position:absolute;right:14px;top:14px;z-index:80;padding:6px 10px;border:1px solid #555;border-radius:8px;background:rgba(0,0,0,.55);color:#ddd;font-size:13px;letter-spacing:.02em;pointer-events:auto;cursor:pointer}
+  #topRightInfo{position:absolute;right:14px;top:14px;z-index:80;display:flex;align-items:center;gap:10px;max-width:calc(100% - 28px);pointer-events:none}
+  #modelFileNameDisplay{max-width:42vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#ddd;font-size:13px;font-weight:700;letter-spacing:.02em;text-shadow:0 1px 3px rgba(0,0,0,.8);pointer-events:none}
+  #appTitle{padding:6px 10px;border:1px solid #555;border-radius:8px;background:rgba(0,0,0,.55);color:#ddd;font-size:13px;letter-spacing:.02em;pointer-events:auto;cursor:pointer;white-space:nowrap}
   #drawingModeLabel{display:none;position:absolute;left:18px;top:18px;z-index:21;color:#d00000;font-size:28px;font-weight:800;letter-spacing:.04em;pointer-events:none;text-shadow:0 1px 0 rgba(255,255,255,.85)}
   body.light-ui #viewModeButton{background:#fff;color:#222;border-color:#aaa}
+  body.light-ui #modelFileNameDisplay{color:#333;text-shadow:0 1px 3px rgba(255,255,255,.8)}
   body.light-ui #appTitle{background:rgba(255,255,255,.78);color:#333;border-color:#bbb}
   body.light-ui #drawingModeLabel{display:none}
   .small{color:#c4c4c4;font-size:12px} body.light-ui .small{color:#555}
@@ -163,14 +166,14 @@
     <div id="padStatus" class="small">ゲームパッド：未接続 または 未操作</div>
     <div id="testStatus" class="small">自己テスト：未実行</div>
   </div>
-  <div id="viewer" tabindex="-1"><canvas id="canvas"></canvas><button id="viewModeButton" type="button">４面モードにする</button><div id="drawingModeLabel">.gri描画モード</div><div id="appTitle">立体グリグリ Vibe-Coded V1.02</div><button id="hiddenLineToggleBottom" type="button">かくれ線を表示する</button><button id="surfaceToggleBottom" type="button">面の色を表示しない</button><button id="modeToggleBottom" type="button">.gri描画モードにする</button><div id="stepControl"><span id="stepLabel">ステップ：20mm</span><select id="stepSelect"><option value="20" selected>20mm</option><option value="10">10mm</option><option value="5">5mm</option><option value="1">1mm</option></select></div><div id="confirmOverlay"><div id="confirmBox"><div id="confirmMessage">本当に消しますか？</div><div class="buttons"><button id="confirmYes" type="button">はい</button><button id="confirmNo" type="button">いいえ</button></div></div></div><div id="aboutOverlay"><div id="aboutBox"><div id="aboutText"><p>「立体グリグリ」は、第三角法による正投影図の学習のために、1996年頃に川俣純がMS-DOS上で動作するアプリケーションとして開発しました。このバージョンは、バイブコーディングにて30年後の2026年5月にChatGPT5.5と共に制作したものです。CC BYとしますので、ユーザーの判断にて自由に改変してご活用いただいて問題ありません。</p><p>STLファイルを読み込めるようにしてみました。ただし、STLファイルを作成することはできません。TinkercadなどのツールでSTLファイルを作成し、そのファイルを読み込ませてみてください。隠れ線の表示などもほぼできます。</p></div><button id="aboutClose" type="button">閉じる</button></div></div><div id="stlTimeoutOverlay"><div id="stlTimeoutBox"><div id="stlTimeoutMessage">読み込みと表示に時間がかかりすぎるので、この立体は読み込めません。</div><button id="stlTimeoutBack" type="button">戻る</button></div></div></div>
+  <div id="viewer" tabindex="-1"><canvas id="canvas"></canvas><button id="viewModeButton" type="button">４面モードにする</button><div id="drawingModeLabel">.gri描画モード</div><div id="topRightInfo"><div id="modelFileNameDisplay">内蔵STL：demo01.stl</div><div id="appTitle">立体グリグリ Vibe-Coded V1.02</div></div><button id="hiddenLineToggleBottom" type="button">かくれ線を表示する</button><button id="surfaceToggleBottom" type="button">面の色を表示しない</button><button id="modeToggleBottom" type="button">.gri描画モードにする</button><div id="stepControl"><span id="stepLabel">ステップ：20mm</span><select id="stepSelect"><option value="20" selected>20mm</option><option value="10">10mm</option><option value="5">5mm</option><option value="1">1mm</option></select></div><div id="confirmOverlay"><div id="confirmBox"><div id="confirmMessage">本当に消しますか？</div><div class="buttons"><button id="confirmYes" type="button">はい</button><button id="confirmNo" type="button">いいえ</button></div></div></div><div id="aboutOverlay"><div id="aboutBox"><div id="aboutText"><p>「立体グリグリ」は、第三角法による正投影図の学習のために、1996年頃に川俣純がMS-DOS上で動作するアプリケーションとして開発しました。このバージョンは、バイブコーディングにて30年後の2026年5月にChatGPT5.5と共に制作したものです。CC BYとしますので、ユーザーの判断にて自由に改変してご活用いただいて問題ありません。</p><p>STLファイルを読み込めるようにしてみました。ただし、STLファイルを作成することはできません。TinkercadなどのツールでSTLファイルを作成し、そのファイルを読み込ませてみてください。隠れ線の表示などもほぼできます。</p></div><button id="aboutClose" type="button">閉じる</button></div></div><div id="stlTimeoutOverlay"><div id="stlTimeoutBox"><div id="stlTimeoutMessage">読み込みと表示に時間がかかりすぎるので、この立体は読み込めません。</div><button id="stlTimeoutBack" type="button">戻る</button></div></div></div>
 </div>
 <script>
 'use strict';
 const $=id=>document.getElementById(id);
 const infoToggle=$('infoToggle');
 const canvas=$('canvas'),ctx=canvas.getContext('2d'),viewer=$('viewer');
-const viewModeButton=$('viewModeButton'),griFileInput=$('griFileInput'),embeddedStlSelect=$('embeddedStlSelect'),saveGriControls=$('saveGriControls'),saveGriButton=$('saveGriButton'),saveFileNameInput=$('saveFileNameInput'),confirmOverlay=$('confirmOverlay'),confirmBox=$('confirmBox'),confirmYes=$('confirmYes'),confirmNo=$('confirmNo'),confirmMessage=$('confirmMessage'),aboutOverlay=$('aboutOverlay'),aboutClose=$('aboutClose'),stepControl=$('stepControl'),stepLabel=$('stepLabel'),stepSelect=$('stepSelect'),hiddenLineToggleBottom=$('hiddenLineToggleBottom'),surfaceToggleBottom=$('surfaceToggleBottom'),modeToggleBottom=$('modeToggleBottom'),hiddenLineKeyHelp=$('hiddenLineKeyHelp'),surfaceKeyHelp=$('surfaceKeyHelp'),modeKeyHelp=$('modeKeyHelp'),appTitle=$('appTitle');
+const viewModeButton=$('viewModeButton'),griFileInput=$('griFileInput'),embeddedStlSelect=$('embeddedStlSelect'),saveGriControls=$('saveGriControls'),saveGriButton=$('saveGriButton'),saveFileNameInput=$('saveFileNameInput'),confirmOverlay=$('confirmOverlay'),confirmBox=$('confirmBox'),confirmYes=$('confirmYes'),confirmNo=$('confirmNo'),confirmMessage=$('confirmMessage'),aboutOverlay=$('aboutOverlay'),aboutClose=$('aboutClose'),stepControl=$('stepControl'),stepLabel=$('stepLabel'),stepSelect=$('stepSelect'),hiddenLineToggleBottom=$('hiddenLineToggleBottom'),surfaceToggleBottom=$('surfaceToggleBottom'),modeToggleBottom=$('modeToggleBottom'),hiddenLineKeyHelp=$('hiddenLineKeyHelp'),surfaceKeyHelp=$('surfaceKeyHelp'),modeKeyHelp=$('modeKeyHelp'),appTitle=$('appTitle'),modelFileNameDisplay=$('modelFileNameDisplay');
 const viewName=$('viewName'),fileStatus=$('fileStatus'),zoomStatus=$('zoomStatus'),lineWidthStatus=$('lineWidthStatus'),colorModeStatus=$('colorModeStatus'),beepStatus=$('beepStatus'),padStatus=$('padStatus'),testStatus=$('testStatus');
 const dualshockConnectedHelp=$('dualshockConnectedHelp'),dualshockDisconnectedHelp=$('dualshockDisconnectedHelp'),iosGriHint=$('iosGriHint');
 let lon=Math.PI/4,lat=Math.atan(1/Math.sqrt(2));
@@ -232,13 +235,14 @@ init();
 function init(){setupInfoToggle();configureFileInputForDevice();populateEmbeddedStlSelect();updateColor();updateHiddenLineButton();updateSurfaceButton();resize();loadEmbeddedDefaultStl();updateFileStatus(model);runSelfTests();requestAnimationFrame(loop)}
 function setupInfoToggle(){
   updateInfoToggleLabel();
-  infoToggle.addEventListener('click',()=>{
-    document.body.classList.toggle('info-hidden');
-    updateInfoToggleLabel();
-    // 左パネルの開閉アニメーション後にCanvasサイズを取り直す。
-    setTimeout(()=>{resize();markRenderDirty();},240);
-    focusViewerForKeys();
-  });
+  infoToggle.addEventListener('click',()=>toggleInfoPanel());
+}
+function toggleInfoPanel(){
+  document.body.classList.toggle('info-hidden');
+  updateInfoToggleLabel();
+  // 左パネルの開閉アニメーション後にCanvasサイズを取り直す。
+  setTimeout(()=>{resize();markRenderDirty();},240);
+  focusViewerForKeys();
 }
 function updateInfoToggleLabel(){
   infoToggle.textContent=document.body.classList.contains('info-hidden')?'＞操作説明表示':'＜操作説明非表示';
@@ -408,7 +412,30 @@ function keepCurrentZoomStatus(note=''){
 function nums(s){return String(s).split(/\s+/).filter(Boolean).map(Number)}
 function v(x,y,z){return{x,y,z}} function sub(a,b){return v(a.x-b.x,a.y-b.y,a.z-b.z)} function mul(a,k){return v(a.x*k,a.y*k,a.z*k)}
 function expand(min,max,p){min.x=Math.min(min.x,p.x);min.y=Math.min(min.y,p.y);min.z=Math.min(min.z,p.z);max.x=Math.max(max.x,p.x);max.y=Math.max(max.y,p.y);max.z=Math.max(max.z,p.z)}
-function updateFileStatus(m){if(m&&m.sourceType==='stl'){fileStatus.textContent=`読み込み：${m.fileName} / STL ${m.triangles.length}三角形（サーフェス表示）`;return;}fileStatus.textContent=`読み込み：${m.fileName} / ${m.actualEdgeCount}辺`+(m.actualEdgeCount!==m.edgeCount?`（1行目の指定は${m.edgeCount}辺）`:'')}
+function updateFileStatus(m){
+  updateModelFileNameDisplay(m);
+  if(m&&m.sourceType==='stl'){
+    fileStatus.textContent=`読み込み：${m.fileName} / STL ${m.triangles.length}三角形（サーフェス表示）`;
+    return;
+  }
+  fileStatus.textContent=`読み込み：${m.fileName} / ${m.actualEdgeCount}辺`+(m.actualEdgeCount!==m.edgeCount?`（1行目の指定は${m.edgeCount}辺）`:'')
+}
+function getModelFileNameLabel(m){
+  if(!m||!m.fileName)return '';
+  const name=String(m.fileName).trim();
+  if(!name)return '';
+  if(m.isEmbeddedStl)return `内蔵STL：${name}`;
+  if(m.sourceType==='stl')return `STL：${name}`;
+  if(m.sourceType==='gri')return `GRI：${name}`;
+  return name;
+}
+function updateModelFileNameDisplay(mOrName){
+  if(!modelFileNameDisplay)return;
+  const displayName=typeof mOrName==='string'?String(mOrName||'').trim():getModelFileNameLabel(mOrName);
+  modelFileNameDisplay.textContent=displayName;
+  modelFileNameDisplay.title=displayName;
+  modelFileNameDisplay.style.display=displayName?'block':'none';
+}
 function loadGri(text,name){model=parseGri(text,name);currentModelType='gri';currentGriText=text;currentGriFileName=name;showHiddenLines=false;saveGriButton.disabled=false;saveGriButton.textContent='名前を指定して保存';saveFileNameInput.value=(name||'drawing.gri').replace(/\.[^.]*$/,'');undoStack.length=0;updateBottomModeButtons();fit(...views.iso.slice(1));updateFileStatus(model);moveTo(views.iso)}
 async function saveCurrentGri(){
   if(model&&model.sourceType==='stl'){fileStatus.textContent='STL表示中です。STLをGRIとしては保存しません。';return;}
@@ -435,6 +462,7 @@ async function saveCurrentGri(){
       await writable.write(safeText);
       await writable.close();
       currentGriFileName=name;
+      if(model){model.fileName=name;updateModelFileNameDisplay(model);}
       saveFileNameInput.value=safeBase;
       rememberStartupGri(safeText,name);
       fileStatus.textContent=`保存しました：${name}`;
@@ -455,6 +483,7 @@ async function saveCurrentGri(){
   a.click();
   setTimeout(()=>{a.remove();URL.revokeObjectURL(url);},0);
   currentGriFileName=name;
+  if(model){model.fileName=name;updateModelFileNameDisplay(model);}
   saveFileNameInput.value=safeBase;
   rememberStartupGri(safeText,name);
   fileStatus.textContent=`保存を開始しました：${name}`;
@@ -2306,6 +2335,11 @@ window.addEventListener('keydown',e=>{
   const k=e.key.toLowerCase();
   shift=e.shiftKey;
   if(isUiInteractionTarget(e.target)){return;}
+  if(k===' '||e.code==='Space'){
+    e.preventDefault();
+    toggleInfoPanel();
+    return;
+  }
   if(k==='n'){e.preventDefault();openClearConfirm();return;}
   if(k==='enter'){e.preventDefault();if(!inverted)handleEnterInDrawingMode();return;}
   if(k==='escape'){e.preventDefault();if(!inverted)cancelDrawingEdge();return;}
@@ -2399,6 +2433,7 @@ function loadEmbeddedDefaultStl(){
   try{
     const buffer=base64ToArrayBuffer(EMBEDDED_DEFAULT_STL_BASE64);
     loadStl(buffer,EMBEDDED_DEFAULT_STL_NAME,0);
+    if(model){model.isEmbeddedStl=true;updateModelFileNameDisplay(model);}
     currentEmbeddedStlLibraryIndex=-1;
     fileStatus.textContent='読み込み：demo01.stl / デフォルトSTL（内蔵）';
   }catch(err){
@@ -2429,6 +2464,7 @@ function loadEmbeddedStlFromLibrary(index){
     const buffer=base64ToArrayBuffer(item.base64);
     checkStlLoadDisplayDeadline(deadline);
     loadStl(buffer,item.name,deadline);
+    if(model){model.isEmbeddedStl=true;updateModelFileNameDisplay(model);}
     currentEmbeddedStlLibraryIndex=clampEmbeddedStlIndex(index);
     gamepadEmbeddedStlIndex=currentEmbeddedStlLibraryIndex;
     fileStatus.textContent=`読み込み：${item.name} / 内蔵STL`;
@@ -2535,7 +2571,7 @@ function parseStlSurface(buffer,name='STLファイル',deadline=0){
     triangles.push({a:mul(sub(t.a,center),scale),b:mul(sub(t.b,center),scale),c:mul(sub(t.c,center),scale)});
   }
   markVisibleSurfaceEdges(triangles,deadline);
-  return {edges:[],triangles,min:rawMin,max:rawMax,center,scale,edgeCount:0,actualEdgeCount:0,fileName:name,source:'',sourceType:'stl',rawTriangleCount:rawTriangles.length};
+  return {edges:[],triangles,min:rawMin,max:rawMax,center,scale,edgeCount:0,actualEdgeCount:0,fileName:name,source:'',sourceType:'stl',isEmbeddedStl:false,rawTriangleCount:rawTriangles.length};
 }
 
 function markVisibleSurfaceEdges(triangles,deadline=0){
