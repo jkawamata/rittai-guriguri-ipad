@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>立体グリグリ Vibe-Coded Edition</title>
+<title>立体グリグリ Vibe-Coded V1.03</title>
 <style>
   html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;font-family:system-ui,"Hiragino Sans","Yu Gothic",sans-serif}
   #app{display:flex;width:100vw;height:100vh;background:#000}
@@ -100,6 +100,7 @@
         <div>R1：かくれ線表示の切替</div>
         <div>R2：面の色表示の切替</div>
         <div>L2＋方向キー上下：線の太さ</div>
+        <div>タッチパッド押し込み：操作説明表示/非表示</div>
         <div>OPTIONS：内蔵STL選択（方向キーで即読み込み／再度OPTIONSで決定）</div>
         <div>内蔵STL選択中：方向キーで選択</div>
         <div>SHARE：４面/１面モード切替</div>
@@ -166,7 +167,7 @@
     <div id="padStatus" class="small">ゲームパッド：未接続 または 未操作</div>
     <div id="testStatus" class="small">自己テスト：未実行</div>
   </div>
-  <div id="viewer" tabindex="-1"><canvas id="canvas"></canvas><button id="viewModeButton" type="button">４面モードにする</button><div id="drawingModeLabel">.gri描画モード</div><div id="topRightInfo"><div id="modelFileNameDisplay">内蔵STL：demo01.stl</div><div id="appTitle">立体グリグリ Vibe-Coded V1.02</div></div><button id="hiddenLineToggleBottom" type="button">かくれ線を表示する</button><button id="surfaceToggleBottom" type="button">面の色を表示しない</button><button id="modeToggleBottom" type="button">.gri描画モードにする</button><div id="stepControl"><span id="stepLabel">ステップ：20mm</span><select id="stepSelect"><option value="20" selected>20mm</option><option value="10">10mm</option><option value="5">5mm</option><option value="1">1mm</option></select></div><div id="confirmOverlay"><div id="confirmBox"><div id="confirmMessage">本当に消しますか？</div><div class="buttons"><button id="confirmYes" type="button">はい</button><button id="confirmNo" type="button">いいえ</button></div></div></div><div id="aboutOverlay"><div id="aboutBox"><div id="aboutText"><p>「立体グリグリ」は、第三角法による正投影図の学習のために、1996年頃に川俣純がMS-DOS上で動作するアプリケーションとして開発しました。このバージョンは、バイブコーディングにて30年後の2026年5月にChatGPT5.5と共に制作したものです。CC BYとしますので、ユーザーの判断にて自由に改変してご活用いただいて問題ありません。</p><p>STLファイルを読み込めるようにしてみました。ただし、STLファイルを作成することはできません。TinkercadなどのツールでSTLファイルを作成し、そのファイルを読み込ませてみてください。隠れ線の表示などもほぼできます。</p></div><button id="aboutClose" type="button">閉じる</button></div></div><div id="stlTimeoutOverlay"><div id="stlTimeoutBox"><div id="stlTimeoutMessage">読み込みと表示に時間がかかりすぎるので、この立体は読み込めません。</div><button id="stlTimeoutBack" type="button">戻る</button></div></div></div>
+  <div id="viewer" tabindex="-1"><canvas id="canvas"></canvas><button id="viewModeButton" type="button">４面モードにする</button><div id="drawingModeLabel">.gri描画モード</div><div id="topRightInfo"><div id="modelFileNameDisplay" style="display:none"></div><div id="appTitle">立体グリグリ Vibe-Coded V1.03</div></div><button id="hiddenLineToggleBottom" type="button">かくれ線を表示する</button><button id="surfaceToggleBottom" type="button">面の色を表示しない</button><button id="modeToggleBottom" type="button">.gri描画モードにする</button><div id="stepControl"><span id="stepLabel">ステップ：20mm</span><select id="stepSelect"><option value="20" selected>20mm</option><option value="10">10mm</option><option value="5">5mm</option><option value="1">1mm</option></select></div><div id="confirmOverlay"><div id="confirmBox"><div id="confirmMessage">本当に消しますか？</div><div class="buttons"><button id="confirmYes" type="button">はい</button><button id="confirmNo" type="button">いいえ</button></div></div></div><div id="aboutOverlay"><div id="aboutBox"><div id="aboutText"><p>「立体グリグリ」は、第三角法による正投影図の学習のために、1996年頃に川俣純がMS-DOS上で動作するアプリケーションとして開発しました。このバージョンは、バイブコーディングにて30年後の2026年5月にChatGPT5.5と共に制作したものです。CC BYとしますので、ユーザーの判断にて自由に改変してご活用いただいて問題ありません。</p><p>STLファイルを読み込めるようにしてみました。ただし、STLファイルを作成することはできません。TinkercadなどのツールでSTLファイルを作成し、そのファイルを読み込ませてみてください。隠れ線の表示などもほぼできます。</p></div><button id="aboutClose" type="button">閉じる</button></div></div><div id="stlTimeoutOverlay"><div id="stlTimeoutBox"><div id="stlTimeoutMessage">読み込みと表示に時間がかかりすぎるので、この立体は読み込めません。</div><button id="stlTimeoutBack" type="button">戻る</button></div></div></div>
 </div>
 <script>
 'use strict';
@@ -1972,6 +1973,16 @@ function loadGamepadEmbeddedStlPreview(index){
   }
   showGamepadEmbeddedStlSelectStatus('読み込み済み');
 }
+function handleGamepadTouchpadInfoToggle(pad){
+  // DualShock 4 のタッチパッド押し込みは、多くのブラウザで button 17 として取得される。
+  // button 16 はPSボタンとして扱われる環境があるため、誤動作を避けてここでは使わない。
+  if(!pad || (pad.buttons?.length||0)<=17)return false;
+  if(!press(pad,17))return false;
+  toggleInfoPanel();
+  click(performance.now());
+  return true;
+}
+
 function handleGamepadL2LineWidth(pad){
   // L2を押している間だけ、方向キー上下をキーボードの + / - と同じ「線の太さ」変更に使う。
   // 標準配置では L2 = button 6、方向キー上 = 12、下 = 13。
@@ -2070,6 +2081,13 @@ function updateGamepad(){
   // 表示はOFFなのにクリック音だけ鳴ることがある。
   if(press(pad,4)){
     toggleBeep();
+    updatePrevButtons(pad);
+    return;
+  }
+
+  // DualShock 4 のタッチパッド押し込みで、左側の操作説明を開閉する。
+  // 内蔵STL選択中でも使えるように、選択モード処理より前で受け取る。
+  if(handleGamepadTouchpadInfoToggle(pad)){
     updatePrevButtons(pad);
     return;
   }
@@ -2433,7 +2451,12 @@ function loadEmbeddedDefaultStl(){
   try{
     const buffer=base64ToArrayBuffer(EMBEDDED_DEFAULT_STL_BASE64);
     loadStl(buffer,EMBEDDED_DEFAULT_STL_NAME,0);
-    if(model){model.isEmbeddedStl=true;updateModelFileNameDisplay(model);}
+    if(model){
+      model.isEmbeddedStl=true;
+      // 起動時に自動で読み込むデフォルトSTLは、右上にファイル名を出さない。
+      // ユーザーが内蔵STLを選択して読み込んだ場合だけ「内蔵STL：xxx.stl」と表示する。
+      updateModelFileNameDisplay('');
+    }
     currentEmbeddedStlLibraryIndex=-1;
     fileStatus.textContent='読み込み：demo01.stl / デフォルトSTL（内蔵）';
   }catch(err){
