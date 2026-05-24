@@ -19,7 +19,7 @@
   body.light-ui #infoToggle{background:#fff;color:#222;border-color:#aaa}
   #viewModeButton{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:20;padding:8px 16px;border:1px solid #666;border-radius:999px;background:#2a2a2a;color:#eee;cursor:pointer}
   #topRightInfo{position:absolute;right:14px;top:14px;z-index:80;display:flex;align-items:center;gap:10px;max-width:calc(100% - 28px);pointer-events:none}
-  #modelFileNameDisplay{max-width:42vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#ddd;font-size:13px;font-weight:700;letter-spacing:.02em;text-shadow:0 1px 3px rgba(0,0,0,.8);pointer-events:none}
+  #modelFileNameDisplay{position:absolute;right:14px;bottom:14px;z-index:80;max-width:min(56vw,620px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#ddd;font-size:13px;font-weight:700;letter-spacing:.02em;text-align:right;text-shadow:0 1px 3px rgba(0,0,0,.8);pointer-events:none}
   #appTitle{padding:6px 10px;border:1px solid #555;border-radius:8px;background:rgba(0,0,0,.55);color:#ddd;font-size:13px;letter-spacing:.02em;pointer-events:auto;cursor:pointer;white-space:nowrap}
   #drawingModeLabel{display:none;position:absolute;left:18px;top:18px;z-index:21;color:#d00000;font-size:28px;font-weight:800;letter-spacing:.04em;pointer-events:none;text-shadow:0 1px 0 rgba(255,255,255,.85)}
   body.light-ui #viewModeButton{background:#fff;color:#222;border-color:#aaa}
@@ -167,7 +167,7 @@
     <div id="padStatus" class="small">ゲームパッド：未接続 または 未操作</div>
     <div id="testStatus" class="small">自己テスト：未実行</div>
   </div>
-  <div id="viewer" tabindex="-1"><canvas id="canvas"></canvas><button id="viewModeButton" type="button">４面モードにする</button><div id="drawingModeLabel">.gri描画モード</div><div id="topRightInfo"><div id="modelFileNameDisplay" style="display:none"></div><div id="appTitle">立体グリグリ Vibe-Coded V1.03</div></div><button id="hiddenLineToggleBottom" type="button">かくれ線を表示する</button><button id="surfaceToggleBottom" type="button">面の色を表示しない</button><button id="modeToggleBottom" type="button">.gri描画モードにする</button><div id="stepControl"><span id="stepLabel">ステップ：20mm</span><select id="stepSelect"><option value="20" selected>20mm</option><option value="10">10mm</option><option value="5">5mm</option><option value="1">1mm</option></select></div><div id="confirmOverlay"><div id="confirmBox"><div id="confirmMessage">本当に消しますか？</div><div class="buttons"><button id="confirmYes" type="button">はい</button><button id="confirmNo" type="button">いいえ</button></div></div></div><div id="aboutOverlay"><div id="aboutBox"><div id="aboutText"><p>「立体グリグリ」は、第三角法による正投影図の学習のために、1996年頃に川俣純がMS-DOS上で動作するアプリケーションとして開発しました。このバージョンは、バイブコーディングにて30年後の2026年5月にChatGPT5.5と共に制作したものです。CC BYとしますので、ユーザーの判断にて自由に改変してご活用いただいて問題ありません。</p><p>STLファイルを読み込めるようにしてみました。ただし、STLファイルを作成することはできません。TinkercadなどのツールでSTLファイルを作成し、そのファイルを読み込ませてみてください。隠れ線の表示などもほぼできます。</p></div><button id="aboutClose" type="button">閉じる</button></div></div><div id="stlTimeoutOverlay"><div id="stlTimeoutBox"><div id="stlTimeoutMessage">読み込みと表示に時間がかかりすぎるので、この立体は読み込めません。</div><button id="stlTimeoutBack" type="button">戻る</button></div></div></div>
+  <div id="viewer" tabindex="-1"><canvas id="canvas"></canvas><button id="viewModeButton" type="button">４面モードにする</button><div id="drawingModeLabel">.gri描画モード</div><div id="topRightInfo"><div id="appTitle">立体グリグリ Vibe-Coded V1.03</div></div><div id="modelFileNameDisplay" style="display:none"></div><button id="hiddenLineToggleBottom" type="button">かくれ線を表示する</button><button id="surfaceToggleBottom" type="button">面の色を表示しない</button><button id="modeToggleBottom" type="button">.gri描画モードにする</button><div id="stepControl"><span id="stepLabel">ステップ：20mm</span><select id="stepSelect"><option value="20" selected>20mm</option><option value="10">10mm</option><option value="5">5mm</option><option value="1">1mm</option></select></div><div id="confirmOverlay"><div id="confirmBox"><div id="confirmMessage">本当に消しますか？</div><div class="buttons"><button id="confirmYes" type="button">はい</button><button id="confirmNo" type="button">いいえ</button></div></div></div><div id="aboutOverlay"><div id="aboutBox"><div id="aboutText"><p>「立体グリグリ」は、第三角法による正投影図の学習のために、1996年頃に川俣純がMS-DOS上で動作するアプリケーションとして開発しました。このバージョンは、バイブコーディングにて30年後の2026年5月にChatGPT5.5と共に制作したものです。CC BYとしますので、ユーザーの判断にて自由に改変してご活用いただいて問題ありません。</p><p>STLファイルを読み込めるようにしてみました。ただし、STLファイルを作成することはできません。TinkercadなどのツールでSTLファイルを作成し、そのファイルを読み込ませてみてください。隠れ線の表示などもほぼできます。</p></div><button id="aboutClose" type="button">閉じる</button></div></div><div id="stlTimeoutOverlay"><div id="stlTimeoutBox"><div id="stlTimeoutMessage">読み込みと表示に時間がかかりすぎるので、この立体は読み込めません。</div><button id="stlTimeoutBack" type="button">戻る</button></div></div></div>
 </div>
 <script>
 'use strict';
@@ -233,7 +233,7 @@ let gamepadEmbeddedStlRestoreState=null;
 let gamepadEmbeddedStlPreviewLoaded=false;
 init();
 
-function init(){setupInfoToggle();configureFileInputForDevice();populateEmbeddedStlSelect();updateColor();updateHiddenLineButton();updateSurfaceButton();resize();loadEmbeddedDefaultStl();updateFileStatus(model);runSelfTests();requestAnimationFrame(loop)}
+function init(){setupInfoToggle();syncViewModeClass();configureFileInputForDevice();populateEmbeddedStlSelect();updateColor();updateHiddenLineButton();updateSurfaceButton();resize();loadEmbeddedDefaultStl();updateFileStatus(model);runSelfTests();requestAnimationFrame(loop)}
 function setupInfoToggle(){
   updateInfoToggleLabel();
   infoToggle.addEventListener('click',()=>toggleInfoPanel());
@@ -247,6 +247,9 @@ function toggleInfoPanel(){
 }
 function updateInfoToggleLabel(){
   infoToggle.textContent=document.body.classList.contains('info-hidden')?'＞操作説明表示':'＜操作説明非表示';
+}
+function syncViewModeClass(){
+  document.body.classList.toggle('four-view',!!four);
 }
 
 function isIPadOrIPhone(){
@@ -315,6 +318,7 @@ function restoreModelStateAfterStlTimeout(state){
   eLat=state.eLat;
   zoom=state.zoom;
   four=state.four;
+  syncViewModeClass();
   moving=false;
   saveGriButton.disabled=currentModelType==='stl';
   saveGriButton.textContent=currentModelType==='stl'?'STL表示中（GRI保存不可）':'名前を指定して保存';
@@ -1145,6 +1149,7 @@ function activateFourLabelView(hit){
   }
 
   four=false;
+  syncViewModeClass();
   viewModeButton.textContent='４面モードにする';
   clearHoveredEdge();
   stopTouchInertia();
@@ -1167,7 +1172,11 @@ function activateFourLabelView(hit){
 function clearPreservedFourFreeView(){preservedFourFreeView=null;}
 function handleCanvasClickForViewLabels(e){const hit=getFourLabelHit(e.clientX,e.clientY);if(!hit)return;e.preventDefault();e.stopPropagation();activateFourLabelView(hit);}
 function axes(b,r,viewInverted=inverted){
-  const s=dpr(),base={x:r.x+r.w-92*s,y:r.y+r.h-72*s},len=38*s;
+  const s=dpr(),len=38*s;
+  // １面モードでは右下のファイル名表示を最下部に置くため、
+  // XYZガイドだけを上へ逃がす。４面モードでは従来通り各ビュー内の右下に置く。
+  const axisYOffset=four?72*s:90*s;
+  const base={x:r.x+r.w-92*s,y:r.y+r.h-axisYOffset};
   const axisRect=getAxisGuideBounds(b,base,len,s);
   // 画面が狭い時やモデルが右下に寄っている時、自由視点のXYZガイドが立体に重なって読みにくくなる。
   // 重なりそうな場合は、ガイドを無理に描かず非表示にする。
@@ -1846,7 +1855,7 @@ function restoreGamepadEmbeddedStlOriginal(){
   showStlSurface=state.showStlSurface;
   stlHiddenLinesPreference=state.stlHiddenLinesPreference;
   stlSurfacePreference=state.stlSurfacePreference;
-  lon=state.lon;lat=state.lat;eLon=state.eLon;eLat=state.eLat;zoom=state.zoom;four=state.four;
+  lon=state.lon;lat=state.lat;eLon=state.eLon;eLat=state.eLat;zoom=state.zoom;four=state.four;syncViewModeClass();
   inverted=state.inverted;
   lineWidth=state.lineWidth;
   moving=false;
@@ -2789,6 +2798,7 @@ function toggleViewMode(){
   const enteringFour=!four;
   const preserved=preservedFourFreeView;
   four=enteringFour;
+  syncViewModeClass();
   viewModeButton.textContent=four?'１面モードにする':'４面モードにする';
   viewName.textContent=four?'４面モード':'自由視点';
 
