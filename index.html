@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>立体グリグリ Vibe-Coded V1.03</title>
+<title>立体グリグリ Vibe-Coded V1.04</title>
 <style>
   html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;font-family:system-ui,"Hiragino Sans","Yu Gothic",sans-serif}
   #app{display:flex;width:100vw;height:100vh;background:#000}
@@ -119,6 +119,7 @@
       <div id="hiddenLineKeyHelp" style="display:none"><kbd>K</kbd>：かくれ線表示の切替</div>
       <div id="surfaceKeyHelp" style="display:none"><kbd>S</kbd>：面の色表示の切替</div>
       <div><kbd>P</kbd>：保存先とファイル名を選んでPNG保存</div>
+      <div>マウス：立体上で左ドラッグして回転／ホイールで拡大縮小</div>
       <div>タブレット：ピンチで拡大縮小／自由視点上でスワイプ回転</div>
       <div>タブレット：三本指で上下すると線の太さを変更</div>
       <div>４面モードの各ラベル：クリック/タップで１面表示</div>
@@ -167,7 +168,7 @@
     <div id="padStatus" class="small">ゲームパッド：未接続 または 未操作</div>
     <div id="testStatus" class="small">自己テスト：未実行</div>
   </div>
-  <div id="viewer" tabindex="-1"><canvas id="canvas"></canvas><button id="viewModeButton" type="button">４面モードにする</button><div id="drawingModeLabel">.gri描画モード</div><div id="topRightInfo"><div id="appTitle">立体グリグリ Vibe-Coded V1.03</div></div><div id="modelFileNameDisplay" style="display:none"></div><button id="hiddenLineToggleBottom" type="button">かくれ線を表示する</button><button id="surfaceToggleBottom" type="button">面の色を表示しない</button><button id="modeToggleBottom" type="button">.gri描画モードにする</button><div id="stepControl"><span id="stepLabel">ステップ：20mm</span><select id="stepSelect"><option value="20" selected>20mm</option><option value="10">10mm</option><option value="5">5mm</option><option value="1">1mm</option></select></div><div id="confirmOverlay"><div id="confirmBox"><div id="confirmMessage">本当に消しますか？</div><div class="buttons"><button id="confirmYes" type="button">はい</button><button id="confirmNo" type="button">いいえ</button></div></div></div><div id="aboutOverlay"><div id="aboutBox"><div id="aboutText"><p>「立体グリグリ」は、第三角法による正投影図の学習のために、1996年頃に川俣純がMS-DOS上で動作するアプリケーションとして開発しました。このバージョンは、バイブコーディングにて30年後の2026年5月にChatGPT5.5と共に制作したものです。CC BYとしますので、ユーザーの判断にて自由に改変してご活用いただいて問題ありません。</p><p>STLファイルを読み込めるようにしてみました。ただし、STLファイルを作成することはできません。TinkercadなどのツールでSTLファイルを作成し、そのファイルを読み込ませてみてください。隠れ線の表示などもほぼできます。</p></div><button id="aboutClose" type="button">閉じる</button></div></div><div id="stlTimeoutOverlay"><div id="stlTimeoutBox"><div id="stlTimeoutMessage">読み込みと表示に時間がかかりすぎるので、この立体は読み込めません。</div><button id="stlTimeoutBack" type="button">戻る</button></div></div></div>
+  <div id="viewer" tabindex="-1"><canvas id="canvas"></canvas><button id="viewModeButton" type="button">４面モードにする</button><div id="drawingModeLabel">.gri描画モード</div><div id="topRightInfo"><div id="appTitle">立体グリグリ Vibe-Coded V1.04</div></div><div id="modelFileNameDisplay" style="display:none"></div><button id="hiddenLineToggleBottom" type="button">かくれ線を表示する</button><button id="surfaceToggleBottom" type="button">面の色を表示しない</button><button id="modeToggleBottom" type="button">.gri描画モードにする</button><div id="stepControl"><span id="stepLabel">ステップ：20mm</span><select id="stepSelect"><option value="20" selected>20mm</option><option value="10">10mm</option><option value="5">5mm</option><option value="1">1mm</option></select></div><div id="confirmOverlay"><div id="confirmBox"><div id="confirmMessage">本当に消しますか？</div><div class="buttons"><button id="confirmYes" type="button">はい</button><button id="confirmNo" type="button">いいえ</button></div></div></div><div id="aboutOverlay"><div id="aboutBox"><div id="aboutText"><p>「立体グリグリ」は、第三角法による正投影図の学習のために、1996年頃に川俣純がMS-DOS上で動作するアプリケーションとして開発しました。このバージョンは、バイブコーディングにて30年後の2026年5月にChatGPT5.5と共に制作したものです。CC BYとしますので、ユーザーの判断にて自由に改変してご活用いただいて問題ありません。</p><p>STLファイルを読み込めるようにしてみました。ただし、STLファイルを作成することはできません。TinkercadなどのツールでSTLファイルを作成し、そのファイルを読み込ませてみてください。隠れ線の表示などもほぼできます。</p><p style="text-align:right;margin-top:1.2em">2026年5月　川俣　純</p></div><button id="aboutClose" type="button">閉じる</button></div></div><div id="stlTimeoutOverlay"><div id="stlTimeoutBox"><div id="stlTimeoutMessage">読み込みと表示に時間がかかりすぎるので、この立体は読み込めません。</div><button id="stlTimeoutBack" type="button">戻る</button></div></div></div>
 </div>
 <script>
 'use strict';
@@ -203,6 +204,7 @@ let selfTesting=false;
 const keys=new Set(),prevButtons=[];let shift=false,activeGamepadSignature='';
 const touchPointers=new Map();
 let touchGesture=null,lastTouchMoveTime=0,touchLonVelocity=0,touchLatVelocity=0,inertiaLastTime=0;
+let mouseRotateGesture=null;
 let threeFingerLineWidthGesture=null;
 const views={front:['正面図',0,0],right:['右側面図',Math.PI/2,0],top:['平面図',0,TOP_LAT],iso:['等角図',Math.PI/4,ISO_LAT]};
 const layout=[['平面図',views.top,0,0,.5,.5],['自由視点',null,.5,0,.5,.5],['正面図',views.front,0,.5,.5,.5],['右側面図',views.right,.5,.5,.5,.5]];
@@ -281,6 +283,7 @@ function markRenderDirty(){
 }
 function isInteractiveRenderActive(){
   if(moving||inertiaLastTime)return true;
+  if(mouseRotateGesture)return true;
   if(touchGesture&&(touchGesture.type==='rotate'||touchGesture.type==='pinch'))return true;
   return keys.has('arrowleft')||keys.has('arrowright')||keys.has('arrowup')||keys.has('arrowdown');
 }
@@ -1156,12 +1159,13 @@ function activateFourLabelView(hit){
   moving=false;
 
   // ４面モード内のラベル操作は、アニメーション移動やクリック音を使わず、即座に１画面表示へ切り替える。
-  // 選んだ正面図・平面図・右側面図の１画面は見やすいように自動調整する。
+  // 正面図・平面図・右側面図へ移る時は、４面モード内で見えていた縮尺の割合を保つ。
+  // ここでfit()を呼ぶと１面表示に合わせて自動拡大され、４面モード時の見え方より大きくなってしまう。
   if(hit.view){
     lon=normalizeAngle(hit.view[1]);
     lat=hit.view[2];
     viewName.textContent=hit.view[0];
-    fit(lon,lat);
+    zoomStatus.textContent=`表示倍率：${Math.round(zoom*100)}%（保持）`;
   }else{
     viewName.textContent='自由視点';
     fit();
@@ -1356,6 +1360,37 @@ function getFreeViewRect(){return four?{x:canvas.width/2,y:0,w:canvas.width/2,h:
 function clientToCanvasPoint(clientX,clientY){const r=canvas.getBoundingClientRect(),s=dpr();return{x:(clientX-r.left)*s,y:(clientY-r.top)*s}}
 function pointInRect(p,r){return p.x>=r.x&&p.x<=r.x+r.w&&p.y>=r.y&&p.y<=r.y+r.h}
 function distancePointToSegment2D(p,a,b){const vx=b.x-a.x,vy=b.y-a.y,wx=p.x-a.x,wy=p.y-a.y,den=vx*vx+vy*vy;if(den<1e-9)return Math.hypot(p.x-a.x,p.y-a.y);const t=clamp((wx*vx+wy*vy)/den,0,1);const qx=a.x+vx*t,qy=a.y+vy*t;return Math.hypot(p.x-qx,p.y-qy)}
+function pointInTriangle2D(p,a,b,c,tol=0){
+  const area=edgeFunction(a.x,a.y,b.x,b.y,c.x,c.y);
+  if(Math.abs(area)<1e-9)return false;
+  const invArea=1/area;
+  const w0=edgeFunction(b.x,b.y,c.x,c.y,p.x,p.y)*invArea;
+  const w1=edgeFunction(c.x,c.y,a.x,a.y,p.x,p.y)*invArea;
+  const w2=edgeFunction(a.x,a.y,b.x,b.y,p.x,p.y)*invArea;
+  return w0>=-tol&&w1>=-tol&&w2>=-tol;
+}
+function isPointerOnModelInFreeView(clientX,clientY){
+  if(!isFreeViewTouchPoint(clientX,clientY))return false;
+  const p=clientToCanvasPoint(clientX,clientY),r=getFreeViewRect();
+  if(!pointInRect(p,r))return false;
+  const basis=viewBasis(lon,lat),viewScale=(r.h/5.2)*zoom,cx=r.x+r.w/2,cy=r.y+r.h/2;
+  const threshold=Math.max(10*dpr(),lineWidth*dpr()+8*dpr());
+
+  // STLなど面を持つ立体では、投影された三角形の内側を「立体上」とみなす。
+  // 面色を非表示にしていても、読み込んだSTLの形状上にポインタがあれば操作できる。
+  for(const tri of (model.triangles||[])){
+    const a=proj(tri.a,basis,viewScale,cx,cy),b=proj(tri.b,basis,viewScale,cx,cy),c=proj(tri.c,basis,viewScale,cx,cy);
+    if(pointInTriangle2D(p,a,b,c,0.015))return true;
+    if(distancePointToSegment2D(p,a,b)<=threshold||distancePointToSegment2D(p,b,c)<=threshold||distancePointToSegment2D(p,c,a)<=threshold)return true;
+  }
+
+  // GRIのような線だけの立体では、線分の近くを「立体上」とみなす。
+  for(const edge of (model.edges||[])){
+    const a=proj(edge.a,basis,viewScale,cx,cy),b=proj(edge.b,basis,viewScale,cx,cy);
+    if(distancePointToSegment2D(p,a,b)<=threshold)return true;
+  }
+  return false;
+}
 function findEdgeNearFreeView(clientX,clientY){
   if(inverted)return -1;
   const p=clientToCanvasPoint(clientX,clientY),r=getFreeViewRect();
@@ -1502,7 +1537,73 @@ function updateThreeFingerLineWidthGesture(now){
   }
   if(changed)click(now);
 }
+function handleCanvasMouseRotateDown(e){
+  if(e.button!==0)return false;
+  if(getFourLabelHit(e.clientX,e.clientY))return false;
+  if(!isPointerOnModelInFreeView(e.clientX,e.clientY))return false;
+  e.preventDefault();
+  soundReady();
+  canvas.setPointerCapture?.(e.pointerId);
+  clearPreservedFourFreeView();
+  clearOrthographicSnapLocks();
+  moving=false;
+  stopTouchInertia();
+  mouseRotateGesture={pointerId:e.pointerId,lastX:e.clientX,lastY:e.clientY,totalDx:0,totalDy:0,axisLock:null};
+  viewName.textContent='自由視点';
+  focusViewerForKeys();
+  return true;
+}
+function handleCanvasMouseRotateMove(e){
+  if(!mouseRotateGesture||mouseRotateGesture.pointerId!==e.pointerId)return false;
+  e.preventDefault();
+  const dx=e.clientX-mouseRotateGesture.lastX,dy=e.clientY-mouseRotateGesture.lastY;
+  mouseRotateGesture.totalDx=(mouseRotateGesture.totalDx||0)+dx;
+  mouseRotateGesture.totalDy=(mouseRotateGesture.totalDy||0)+dy;
+  const absTotalX=Math.abs(mouseRotateGesture.totalDx),absTotalY=Math.abs(mouseRotateGesture.totalDy);
+  if(!mouseRotateGesture.axisLock&&Math.hypot(mouseRotateGesture.totalDx,mouseRotateGesture.totalDy)>10){
+    if(absTotalX>absTotalY*1.35)mouseRotateGesture.axisLock='horizontal';
+  }
+  const horizontalOnly=mouseRotateGesture.axisLock==='horizontal'||Math.abs(dx)>Math.abs(dy)*1.6;
+  const appliedDy=horizontalOnly?0:dy;
+  const rotateScale=0.008;
+  // マウスで立体をつかんで動かす感覚に合わせる。横ドラッグ中心の時は緯度方向を拾わない。
+  lon=normalizeAngle(lon-dx*rotateScale);
+  lat=clamp(lat+appliedDy*rotateScale,-LAT_LIMIT,LAT_LIMIT);
+  mouseRotateGesture.lastX=e.clientX;
+  mouseRotateGesture.lastY=e.clientY;
+  viewName.textContent='自由視点';
+  markRenderDirty();
+  return true;
+}
+function handleCanvasMouseRotateEnd(e){
+  if(!mouseRotateGesture||mouseRotateGesture.pointerId!==e.pointerId)return false;
+  canvas.releasePointerCapture?.(e.pointerId);
+  mouseRotateGesture=null;
+  markRenderDirty();
+  return true;
+}
+
+function handleCanvasWheel(e){
+  if(!isPointerOnModelInFreeView(e.clientX,e.clientY))return;
+  e.preventDefault();
+  clearPreservedFourFreeView();
+  stopTouchInertia();
+  moving=false;
+  viewName.textContent='自由視点';
+  const deltaModeScale=e.deltaMode===1?16:(e.deltaMode===2?window.innerHeight:1);
+  const wheelDelta=e.deltaY*deltaModeScale;
+  const factor=Math.exp(-wheelDelta*0.0012);
+  zoom=clamp(zoom*factor,.05,12);
+  zoomStatus.textContent=`表示倍率：${Math.round(zoom*100)}%`;
+  markRenderDirty();
+  focusViewerForKeys();
+}
+
 function handleCanvasPointerDown(e){
+  if(e.pointerType==='mouse'){
+    handleCanvasMouseRotateDown(e);
+    return;
+  }
   if(e.pointerType!=='touch'&&e.pointerType!=='pen')return;
   const labelHit=getFourLabelHit(e.clientX,e.clientY);
   if(labelHit){e.preventDefault();e.stopPropagation();activateFourLabelView(labelHit);return;}
@@ -1524,6 +1625,10 @@ function handleCanvasPointerDown(e){
   }
 }
 function handleCanvasPointerMove(e){
+  if(e.pointerType==='mouse'){
+    handleCanvasMouseRotateMove(e);
+    return;
+  }
   if(e.pointerType!=='touch'&&e.pointerType!=='pen')return;
   if(!touchPointers.has(e.pointerId))return;
   e.preventDefault();
@@ -1569,6 +1674,10 @@ function handleCanvasPointerMove(e){
   click(now);
 }
 function handleCanvasPointerEnd(e){
+  if(e.pointerType==='mouse'){
+    handleCanvasMouseRotateEnd(e);
+    return;
+  }
   if(e.pointerType!=='touch'&&e.pointerType!=='pen')return;
   if(touchPointers.has(e.pointerId))touchPointers.delete(e.pointerId);
   canvas.releasePointerCapture?.(e.pointerId);
@@ -2794,6 +2903,7 @@ canvas.addEventListener('mouseleave',handleCanvasMouseLeave);
 canvas.addEventListener('contextmenu',handleCanvasContextMenu);
 canvas.addEventListener('mouseup',handleCanvasRightClickFallback);
 canvas.addEventListener('auxclick',handleCanvasRightClickFallback);
+canvas.addEventListener('wheel',handleCanvasWheel,{passive:false});
 function toggleViewMode(){
   const enteringFour=!four;
   const preserved=preservedFourFreeView;
