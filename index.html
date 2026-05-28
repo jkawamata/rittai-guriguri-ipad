@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>立体グリグリ Vibe-Coded V1.04</title>
+<title>立体グリグリ Vibe-Coded V1.05</title>
 <style>
   html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;font-family:system-ui,"Hiragino Sans","Yu Gothic",sans-serif}
   #app{display:flex;width:100vw;height:100vh;background:#000}
@@ -19,11 +19,30 @@
   body.light-ui #infoToggle{background:#fff;color:#222;border-color:#aaa}
   #viewModeButton{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:20;padding:8px 16px;border:1px solid #666;border-radius:999px;background:#2a2a2a;color:#eee;cursor:pointer}
   #topRightInfo{position:absolute;right:14px;top:14px;z-index:80;display:flex;align-items:center;gap:10px;max-width:calc(100% - 28px);pointer-events:none}
-  #modelFileNameDisplay{position:absolute;right:14px;bottom:14px;z-index:80;max-width:min(56vw,620px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#ddd;font-size:13px;font-weight:700;letter-spacing:.02em;text-align:right;text-shadow:0 1px 3px rgba(0,0,0,.8);pointer-events:none}
+  #bottomRightControls{position:absolute;right:14px;bottom:14px;z-index:82;display:flex;align-items:center;justify-content:flex-end;gap:8px;max-width:calc(100% - 28px);pointer-events:auto}
+  #modelFileNameDisplay{max-width:min(50vw,560px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#ddd;font-size:13px;font-weight:700;letter-spacing:.02em;text-align:right;text-shadow:0 1px 3px rgba(0,0,0,.8);pointer-events:none}
+  #embeddedStlButton{padding:6px 10px;border:1px solid #666;border-radius:999px;background:rgba(42,42,42,.92);color:#eee;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+  #embeddedStlButton:hover{background:rgba(64,64,64,.96)}
+  #embeddedStlPopup{display:none;position:absolute;right:14px;bottom:52px;z-index:110;width:min(280px,calc(100vw - 28px));max-height:min(58vh,430px);box-sizing:border-box;padding:10px;background:rgba(34,34,34,.97);color:#eee;border:1px solid #666;border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.45);pointer-events:auto}
+  #embeddedStlPopup.open{display:block}
+  #embeddedStlPopupHeader{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;font-weight:800;font-size:13px}
+  #embeddedStlPopupClose{border:1px solid #666;border-radius:999px;background:#333;color:#eee;cursor:pointer;width:28px;height:28px;font-size:18px;line-height:24px}
+  #embeddedStlPopupList{display:grid;gap:6px;max-height:calc(min(58vh,430px) - 58px);overflow-y:auto;padding-right:2px}
+  .embeddedStlPopupItem{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;box-sizing:border-box;padding:7px 9px;border:1px solid #666;border-radius:8px;background:#2f2f2f;color:#eee;font-size:13px;text-align:left;cursor:pointer}
+  .embeddedStlPopupItem:hover{background:#454545}
+  .embeddedStlPopupItem .embeddedStlPopupName{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .embeddedStlPopupItem .embeddedStlPopupExt{flex:0 0 auto;color:#aaa;font-size:11px}
   #appTitle{padding:6px 10px;border:1px solid #555;border-radius:8px;background:rgba(0,0,0,.55);color:#ddd;font-size:13px;letter-spacing:.02em;pointer-events:auto;cursor:pointer;white-space:nowrap}
   #drawingModeLabel{display:none;position:absolute;left:18px;top:18px;z-index:21;color:#d00000;font-size:28px;font-weight:800;letter-spacing:.04em;pointer-events:none;text-shadow:0 1px 0 rgba(255,255,255,.85)}
   body.light-ui #viewModeButton{background:#fff;color:#222;border-color:#aaa}
   body.light-ui #modelFileNameDisplay{color:#333;text-shadow:0 1px 3px rgba(255,255,255,.8)}
+  body.light-ui #embeddedStlButton{background:rgba(255,255,255,.92);color:#222;border-color:#aaa}
+  body.light-ui #embeddedStlButton:hover{background:#eee}
+  body.light-ui #embeddedStlPopup{background:rgba(255,255,255,.98);color:#222;border-color:#bbb}
+  body.light-ui #embeddedStlPopupClose{background:#f5f5f5;color:#222;border-color:#aaa}
+  body.light-ui .embeddedStlPopupItem{background:#fff;color:#222;border-color:#aaa}
+  body.light-ui .embeddedStlPopupItem:hover{background:#eee}
+  body.light-ui .embeddedStlPopupItem .embeddedStlPopupExt{color:#666}
   body.light-ui #appTitle{background:rgba(255,255,255,.78);color:#333;border-color:#bbb}
   body.light-ui #drawingModeLabel{display:none}
   .small{color:#c4c4c4;font-size:12px} body.light-ui .small{color:#555}
@@ -119,7 +138,8 @@
       <div id="hiddenLineKeyHelp" style="display:none"><kbd>K</kbd>：かくれ線表示の切替</div>
       <div id="surfaceKeyHelp" style="display:none"><kbd>S</kbd>：面の色表示の切替</div>
       <div><kbd>P</kbd>：保存先とファイル名を選んでPNG保存</div>
-      <div>マウス：立体上で左ドラッグして回転／ホイールで拡大縮小</div>
+      <div>マウス：立体上で左ドラッグして回転／画面上でホイール拡大縮小</div>
+      <div>画面右下の「内蔵STL」：内蔵STLを選択して読み込み</div>
       <div>タブレット：ピンチで拡大縮小／自由視点上でスワイプ回転</div>
       <div>タブレット：三本指で上下すると線の太さを変更</div>
       <div>４面モードの各ラベル：クリック/タップで１面表示</div>
@@ -151,8 +171,8 @@
       <div><kbd>N</kbd>：立体データを消去</div>
     </div>
     <div class="small" style="margin-top:6px"><label>読み込む立体を選択：（GRI、STLのみ）<input id="griFileInput" type="file" accept=".gri,.txt,.stl" /></label></div>
-    <div class="small" style="margin-top:8px">内蔵STLを読み込む：</div>
-    <select id="embeddedStlSelect" style="box-sizing:border-box;width:100%;padding:6px 8px;border-radius:6px;border:1px solid #666;background:#1f1f1f;color:#eee">
+    <div class="small" style="display:none;margin-top:8px">内蔵STLを読み込む：</div>
+    <select id="embeddedStlSelect" style="display:none;box-sizing:border-box;width:100%;padding:6px 8px;border-radius:6px;border:1px solid #666;background:#1f1f1f;color:#eee">
       <option value="">選択してください</option>
     </select>
     <div id="saveGriControls">
@@ -168,14 +188,14 @@
     <div id="padStatus" class="small">ゲームパッド：未接続 または 未操作</div>
     <div id="testStatus" class="small">自己テスト：未実行</div>
   </div>
-  <div id="viewer" tabindex="-1"><canvas id="canvas"></canvas><button id="viewModeButton" type="button">４面モードにする</button><div id="drawingModeLabel">.gri描画モード</div><div id="topRightInfo"><div id="appTitle">立体グリグリ Vibe-Coded V1.04</div></div><div id="modelFileNameDisplay" style="display:none"></div><button id="hiddenLineToggleBottom" type="button">かくれ線を表示する</button><button id="surfaceToggleBottom" type="button">面の色を表示しない</button><button id="modeToggleBottom" type="button">.gri描画モードにする</button><div id="stepControl"><span id="stepLabel">ステップ：20mm</span><select id="stepSelect"><option value="20" selected>20mm</option><option value="10">10mm</option><option value="5">5mm</option><option value="1">1mm</option></select></div><div id="confirmOverlay"><div id="confirmBox"><div id="confirmMessage">本当に消しますか？</div><div class="buttons"><button id="confirmYes" type="button">はい</button><button id="confirmNo" type="button">いいえ</button></div></div></div><div id="aboutOverlay"><div id="aboutBox"><div id="aboutText"><p>「立体グリグリ」は、第三角法による正投影図の学習のために、1996年頃に川俣純がMS-DOS上で動作するアプリケーションとして開発しました。このバージョンは、バイブコーディングにて30年後の2026年5月にChatGPT5.5と共に制作したものです。CC BYとしますので、ユーザーの判断にて自由に改変してご活用いただいて問題ありません。</p><p>STLファイルを読み込めるようにしてみました。ただし、STLファイルを作成することはできません。TinkercadなどのツールでSTLファイルを作成し、そのファイルを読み込ませてみてください。隠れ線の表示などもほぼできます。</p><p style="text-align:right;margin-top:1.2em">2026年5月　川俣　純</p></div><button id="aboutClose" type="button">閉じる</button></div></div><div id="stlTimeoutOverlay"><div id="stlTimeoutBox"><div id="stlTimeoutMessage">読み込みと表示に時間がかかりすぎるので、この立体は読み込めません。</div><button id="stlTimeoutBack" type="button">戻る</button></div></div></div>
+  <div id="viewer" tabindex="-1"><canvas id="canvas"></canvas><button id="viewModeButton" type="button">４面モードにする</button><div id="drawingModeLabel">.gri描画モード</div><div id="topRightInfo"><div id="appTitle">立体グリグリ Vibe-Coded V1.05</div></div><div id="bottomRightControls"><div id="modelFileNameDisplay" style="display:none"></div><button id="embeddedStlButton" type="button">内蔵STL</button></div><div id="embeddedStlPopup"><div id="embeddedStlPopupHeader"><span>内蔵STLを読み込む</span><button id="embeddedStlPopupClose" type="button" aria-label="閉じる">×</button></div><div id="embeddedStlPopupList"></div></div><button id="hiddenLineToggleBottom" type="button">かくれ線を表示する</button><button id="surfaceToggleBottom" type="button">面の色を表示しない</button><button id="modeToggleBottom" type="button">.gri描画モードにする</button><div id="stepControl"><span id="stepLabel">ステップ：20mm</span><select id="stepSelect"><option value="20" selected>20mm</option><option value="10">10mm</option><option value="5">5mm</option><option value="1">1mm</option></select></div><div id="confirmOverlay"><div id="confirmBox"><div id="confirmMessage">本当に消しますか？</div><div class="buttons"><button id="confirmYes" type="button">はい</button><button id="confirmNo" type="button">いいえ</button></div></div></div><div id="aboutOverlay"><div id="aboutBox"><div id="aboutText"><p>「立体グリグリ」は、第三角法による正投影図の学習のために、1996年頃に川俣純がMS-DOS上で動作するアプリケーションとして開発しました。このバージョンは、バイブコーディングにて30年後の2026年5月にChatGPT5.5と共に制作したものです。CC BYとしますので、ユーザーの判断にて自由に改変してご活用いただいて問題ありません。</p><p>STLファイルを読み込めるようにしてみました。ただし、STLファイルを作成することはできません。TinkercadなどのツールでSTLファイルを作成し、そのファイルを読み込ませてみてください。隠れ線の表示などもほぼできます。</p><p style="text-align:right;margin-top:1.2em">2026年5月　川俣　純</p></div><button id="aboutClose" type="button">閉じる</button></div></div><div id="stlTimeoutOverlay"><div id="stlTimeoutBox"><div id="stlTimeoutMessage">読み込みと表示に時間がかかりすぎるので、この立体は読み込めません。</div><button id="stlTimeoutBack" type="button">戻る</button></div></div></div>
 </div>
 <script>
 'use strict';
 const $=id=>document.getElementById(id);
 const infoToggle=$('infoToggle');
 const canvas=$('canvas'),ctx=canvas.getContext('2d'),viewer=$('viewer');
-const viewModeButton=$('viewModeButton'),griFileInput=$('griFileInput'),embeddedStlSelect=$('embeddedStlSelect'),saveGriControls=$('saveGriControls'),saveGriButton=$('saveGriButton'),saveFileNameInput=$('saveFileNameInput'),confirmOverlay=$('confirmOverlay'),confirmBox=$('confirmBox'),confirmYes=$('confirmYes'),confirmNo=$('confirmNo'),confirmMessage=$('confirmMessage'),aboutOverlay=$('aboutOverlay'),aboutClose=$('aboutClose'),stepControl=$('stepControl'),stepLabel=$('stepLabel'),stepSelect=$('stepSelect'),hiddenLineToggleBottom=$('hiddenLineToggleBottom'),surfaceToggleBottom=$('surfaceToggleBottom'),modeToggleBottom=$('modeToggleBottom'),hiddenLineKeyHelp=$('hiddenLineKeyHelp'),surfaceKeyHelp=$('surfaceKeyHelp'),modeKeyHelp=$('modeKeyHelp'),appTitle=$('appTitle'),modelFileNameDisplay=$('modelFileNameDisplay');
+const viewModeButton=$('viewModeButton'),griFileInput=$('griFileInput'),embeddedStlSelect=$('embeddedStlSelect'),embeddedStlButton=$('embeddedStlButton'),embeddedStlPopup=$('embeddedStlPopup'),embeddedStlPopupList=$('embeddedStlPopupList'),embeddedStlPopupClose=$('embeddedStlPopupClose'),saveGriControls=$('saveGriControls'),saveGriButton=$('saveGriButton'),saveFileNameInput=$('saveFileNameInput'),confirmOverlay=$('confirmOverlay'),confirmBox=$('confirmBox'),confirmYes=$('confirmYes'),confirmNo=$('confirmNo'),confirmMessage=$('confirmMessage'),aboutOverlay=$('aboutOverlay'),aboutClose=$('aboutClose'),stepControl=$('stepControl'),stepLabel=$('stepLabel'),stepSelect=$('stepSelect'),hiddenLineToggleBottom=$('hiddenLineToggleBottom'),surfaceToggleBottom=$('surfaceToggleBottom'),modeToggleBottom=$('modeToggleBottom'),hiddenLineKeyHelp=$('hiddenLineKeyHelp'),surfaceKeyHelp=$('surfaceKeyHelp'),modeKeyHelp=$('modeKeyHelp'),appTitle=$('appTitle'),modelFileNameDisplay=$('modelFileNameDisplay');
 const viewName=$('viewName'),fileStatus=$('fileStatus'),zoomStatus=$('zoomStatus'),lineWidthStatus=$('lineWidthStatus'),colorModeStatus=$('colorModeStatus'),beepStatus=$('beepStatus'),padStatus=$('padStatus'),testStatus=$('testStatus');
 const dualshockConnectedHelp=$('dualshockConnectedHelp'),dualshockDisconnectedHelp=$('dualshockDisconnectedHelp'),iosGriHint=$('iosGriHint');
 let lon=Math.PI/4,lat=Math.atan(1/Math.sqrt(2));
@@ -198,6 +218,8 @@ let drawingStep=20;
 let hoveredEdgeIndex=-1;
 let confirmEdgeIndex=-1;
 let confirmAction=null;
+let confirmCancelAction=null;
+let loadingConfirmationAcceptedOnce=false;
 let moving=false,t0=0,duration=700,sLon=lon,sLat=lat,eLon=lon,eLat=lat;
 let audio=null,beep=true,lastBeep=0;
 let selfTesting=false;
@@ -235,7 +257,7 @@ let gamepadEmbeddedStlRestoreState=null;
 let gamepadEmbeddedStlPreviewLoaded=false;
 init();
 
-function init(){setupInfoToggle();syncViewModeClass();configureFileInputForDevice();populateEmbeddedStlSelect();updateColor();updateHiddenLineButton();updateSurfaceButton();resize();loadEmbeddedDefaultStl();updateFileStatus(model);runSelfTests();requestAnimationFrame(loop)}
+function init(){setupInfoToggle();syncViewModeClass();configureFileInputForDevice();populateEmbeddedStlSelect();setupEmbeddedStlPopup();updateColor();updateHiddenLineButton();updateSurfaceButton();resize();loadEmbeddedDefaultStl();updateFileStatus(model);runSelfTests();requestAnimationFrame(loop)}
 function setupInfoToggle(){
   updateInfoToggleLabel();
   infoToggle.addEventListener('click',()=>toggleInfoPanel());
@@ -437,7 +459,7 @@ function getModelFileNameLabel(m){
   // 右上のファイル名表示を出さない。
   // demo.stl / demo01.stl のどちらの名前でも非表示にする。
   if(m.isEmbeddedStl&&(normalizedName==='demo.stl'||normalizedName==='demo01.stl'))return '';
-  if(m.isEmbeddedStl)return `内蔵STL：${name}`;
+  if(m.isEmbeddedStl)return name;
   if(m.sourceType==='stl')return `STL：${name}`;
   if(m.sourceType==='gri')return `GRI：${name}`;
   return name;
@@ -448,6 +470,70 @@ function updateModelFileNameDisplay(mOrName){
   modelFileNameDisplay.textContent=displayName;
   modelFileNameDisplay.title=displayName;
   modelFileNameDisplay.style.display=displayName?'block':'none';
+}
+function setupEmbeddedStlPopup(){
+  if(embeddedStlButton){
+    embeddedStlButton.addEventListener('click',(event)=>{
+      event.preventDefault();
+      event.stopPropagation();
+      toggleEmbeddedStlPopup();
+    });
+  }
+  if(embeddedStlPopupClose){
+    embeddedStlPopupClose.addEventListener('click',(event)=>{
+      event.preventDefault();
+      event.stopPropagation();
+      closeEmbeddedStlPopup();
+    });
+  }
+  if(embeddedStlPopup){
+    embeddedStlPopup.addEventListener('pointerdown',(event)=>event.stopPropagation());
+    embeddedStlPopup.addEventListener('click',(event)=>event.stopPropagation());
+  }
+  document.addEventListener('pointerdown',(event)=>{
+    if(!embeddedStlPopup||!embeddedStlPopup.classList.contains('open'))return;
+    if((embeddedStlButton&&embeddedStlButton.contains(event.target))||embeddedStlPopup.contains(event.target))return;
+    closeEmbeddedStlPopup(false);
+  });
+}
+function toggleEmbeddedStlPopup(force){
+  if(!embeddedStlPopup)return;
+  const next=typeof force==='boolean'?force:!embeddedStlPopup.classList.contains('open');
+  embeddedStlPopup.classList.toggle('open',next);
+  if(embeddedStlButton)embeddedStlButton.setAttribute('aria-expanded',next?'true':'false');
+  if(next)populateEmbeddedStlPopupList();
+}
+function closeEmbeddedStlPopup(restoreFocus=true){
+  if(!embeddedStlPopup)return;
+  embeddedStlPopup.classList.remove('open');
+  if(embeddedStlButton)embeddedStlButton.setAttribute('aria-expanded','false');
+  if(restoreFocus)focusViewerForKeys();
+}
+function populateEmbeddedStlPopupList(){
+  if(!embeddedStlPopupList)return;
+  embeddedStlPopupList.innerHTML='';
+  for(let i=0;i<EMBEDDED_STL_LIBRARY.length;i++){
+    const item=EMBEDDED_STL_LIBRARY[i];
+    const button=document.createElement('button');
+    button.type='button';
+    button.className='embeddedStlPopupItem';
+    button.dataset.index=String(i);
+    const label=document.createElement('span');
+    label.className='embeddedStlPopupName';
+    label.textContent=item.label||item.name||`No.${i+1}`;
+    const ext=document.createElement('span');
+    ext.className='embeddedStlPopupExt';
+    ext.textContent='STL';
+    button.appendChild(label);
+    button.appendChild(ext);
+    button.addEventListener('click',(event)=>{
+      event.preventDefault();
+      event.stopPropagation();
+      requestLoadEmbeddedStlFromLibrary(i);
+      closeEmbeddedStlPopup();
+    });
+    embeddedStlPopupList.appendChild(button);
+  }
 }
 function loadGri(text,name){model=parseGri(text,name);currentModelType='gri';currentGriText=text;currentGriFileName=name;showHiddenLines=false;saveGriButton.disabled=false;saveGriButton.textContent='名前を指定して保存';saveFileNameInput.value=(name||'drawing.gri').replace(/\.[^.]*$/,'');undoStack.length=0;updateBottomModeButtons();fit(...views.iso.slice(1));updateFileStatus(model);moveTo(views.iso)}
 async function saveCurrentGri(){
@@ -580,13 +666,37 @@ function openEdgeDeleteConfirm(edgeIndex){
   confirmOverlay.style.display='block';
   placeEdgeConfirmBox(edgeIndex);
 }
-function closeClearConfirm(){confirmOverlay.style.display='none';confirmOverlay.className='';confirmAction=null;confirmEdgeIndex=-1;}
+function closeClearConfirm(){confirmOverlay.style.display='none';confirmOverlay.className='';confirmAction=null;confirmCancelAction=null;confirmEdgeIndex=-1;}
+function shouldConfirmBeforeLoadingNewModel(){
+  // .gri描画モードで現在の立体を描いている最中に別の立体を読み込む場合だけ、
+  // いきなり上書きせず確認する。空の描画データなら確認は出さない。
+  if(loadingConfirmationAcceptedOnce){loadingConfirmationAcceptedOnce=false;return false;}
+  return isDrawingMode() && !!model && ((model.edges&&model.edges.length>0)||(model.triangles&&model.triangles.length>0));
+}
+function confirmBeforeLoadingNewModel(loadAction,cancelAction){
+  if(!shouldConfirmBeforeLoadingNewModel()){
+    if(typeof loadAction==='function')loadAction();
+    return true;
+  }
+  confirmEdgeIndex=-1;
+  confirmMessage.textContent='現在の立体を削除して、新しい立体を読み込みますか？';
+  confirmAction=()=>{loadingConfirmationAcceptedOnce=true;if(typeof loadAction==='function')loadAction();};
+  confirmCancelAction=()=>{
+    if(typeof cancelAction==='function')cancelAction();
+    else focusViewerForKeys();
+  };
+  confirmOverlay.className='center';
+  confirmBox.removeAttribute('style');
+  confirmOverlay.style.display='flex';
+  return false;
+}
+
 function clearAllEdges(){
   undoStack.push(currentGriText);
   const nl=String.fromCharCode(10),c=v(0,0,0);
   drawingPointer=v(0,0,0);drawingStartPoint=null;
   currentGriText=`0 0 0 0${nl}`;
-  currentGriFileName='empty.gri';
+  currentGriFileName='';
   currentModelType='gri';
   // 空GRI状態に戻すが、STL用の隠れ線・面色設定は次回STL読み込み用に保持する。
   showHiddenLines=false;
@@ -1583,8 +1693,12 @@ function handleCanvasMouseRotateEnd(e){
   return true;
 }
 
+function isPointerOnGuriguriScreen(clientX,clientY){
+  const r=canvas.getBoundingClientRect();
+  return clientX>=r.left&&clientX<=r.right&&clientY>=r.top&&clientY<=r.bottom;
+}
 function handleCanvasWheel(e){
-  if(!isPointerOnModelInFreeView(e.clientX,e.clientY))return;
+  if(!isPointerOnGuriguriScreen(e.clientX,e.clientY))return;
   e.preventDefault();
   clearPreservedFourFreeView();
   stopTouchInertia();
@@ -2005,6 +2119,13 @@ function showGamepadEmbeddedStlSelectStatus(extra=''){
 function enterGamepadEmbeddedStlSelectMode(){
   const count=embeddedStlLibraryCount();
   if(count<=0){fileStatus.textContent='内蔵STLが登録されていません。';return;}
+  if(shouldConfirmBeforeLoadingNewModel()){
+    confirmBeforeLoadingNewModel(
+      ()=>{enterGamepadEmbeddedStlSelectMode();},
+      ()=>{fileStatus.textContent='内蔵STL選択を中止しました。';focusViewerForKeys();}
+    );
+    return;
+  }
 
   // select.value が空文字のとき Number('') は 0 になる。
   // そのまま Number.isInteger(0) で判定すると、現在の立体ではなく常に最初の内蔵STLから始まってしまう。
@@ -2527,6 +2648,17 @@ griFileInput.addEventListener('click',()=>{griFileInput.value='';});
 griFileInput.addEventListener('change',async e=>{
   const f=e.target.files&&e.target.files[0];
   if(!f){focusViewerForKeys();return;}
+  confirmBeforeLoadingNewModel(
+    ()=>handleSelectedModelFile(f),
+    ()=>{
+      griFileInput.value='';
+      fileStatus.textContent='読み込みを中止しました。';
+      focusViewerForKeys();
+    }
+  );
+});
+
+async function handleSelectedModelFile(f){
   const isStl=/\.stl$/i.test(f.name||'');
   const stlDeadline=isStl?performance.now()+STL_LOAD_DISPLAY_TIMEOUT_MS:0;
   const previousState={model,currentModelType,currentGriText,currentGriFileName,showHiddenLines,showStlSurface,lon,lat,eLon,eLat,zoom,four};
@@ -2557,11 +2689,11 @@ griFileInput.addEventListener('change',async e=>{
   }finally{
     activeRenderDeadline=0;
   }
-});
+}
 
 embeddedStlSelect.addEventListener('change',()=>{
   const index=Number(embeddedStlSelect.value);
-  if(Number.isInteger(index))loadEmbeddedStlFromLibrary(index);
+  if(Number.isInteger(index))requestLoadEmbeddedStlFromLibrary(index);
 });
 
 function base64ToArrayBuffer(base64){
@@ -2590,15 +2722,27 @@ function loadEmbeddedDefaultStl(){
 }
 
 function populateEmbeddedStlSelect(){
-  if(!embeddedStlSelect)return;
-  embeddedStlSelect.innerHTML='<option value="">選択してください</option>';
-  for(let i=0;i<EMBEDDED_STL_LIBRARY.length;i++){
-    const item=EMBEDDED_STL_LIBRARY[i];
-    const option=document.createElement('option');
-    option.value=String(i);
-    option.textContent=item.label;
-    embeddedStlSelect.appendChild(option);
+  if(embeddedStlSelect){
+    embeddedStlSelect.innerHTML='<option value="">選択してください</option>';
+    for(let i=0;i<EMBEDDED_STL_LIBRARY.length;i++){
+      const item=EMBEDDED_STL_LIBRARY[i];
+      const option=document.createElement('option');
+      option.value=String(i);
+      option.textContent=item.label;
+      embeddedStlSelect.appendChild(option);
+    }
   }
+  populateEmbeddedStlPopupList();
+}
+function requestLoadEmbeddedStlFromLibrary(index){
+  confirmBeforeLoadingNewModel(
+    ()=>loadEmbeddedStlFromLibrary(index),
+    ()=>{
+      if(embeddedStlSelect)embeddedStlSelect.value='';
+      fileStatus.textContent='読み込みを中止しました。';
+      focusViewerForKeys();
+    }
+  );
 }
 function loadEmbeddedStlFromLibrary(index){
   const item=EMBEDDED_STL_LIBRARY[index];
@@ -2893,7 +3037,7 @@ hiddenLineToggleBottom.addEventListener('click',()=>{toggleHiddenLines();focusVi
 surfaceToggleBottom.addEventListener('click',()=>{toggleStlSurface();focusViewerForKeys();});
 modeToggleBottom.addEventListener('click',()=>{toggleDrawingMode();focusViewerForKeys();});
 confirmYes.addEventListener('click',()=>{const action=confirmAction;closeClearConfirm();if(typeof action==='function')action();});
-confirmNo.addEventListener('click',closeClearConfirm);
+confirmNo.addEventListener('click',()=>{const action=confirmCancelAction;closeClearConfirm();if(typeof action==='function')action();});
 confirmOverlay.addEventListener('click',e=>{if(e.target===confirmOverlay)closeClearConfirm();});
 stepLabel.addEventListener('click',()=>{stepControl.classList.toggle('open')});
 stepSelect.addEventListener('change',()=>{drawingStep=Number(stepSelect.value);stepLabel.textContent=`ステップ：${drawingStep}mm`;stepControl.classList.remove('open')});
