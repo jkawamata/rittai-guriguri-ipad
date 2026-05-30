@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>立体グリグリ Vibe-Coded V1.05</title>
+<title>立体グリグリ Vibe-Coded V1.06</title>
 <style>
   html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;font-family:system-ui,"Hiragino Sans","Yu Gothic",sans-serif}
   #app{display:flex;width:100vw;height:100vh;background:#000}
@@ -100,6 +100,56 @@
   body.light-ui #stepControl{display:block}
   #stepLabel{cursor:pointer;user-select:none}
   #stepSelect{display:none;margin-left:8px;font-size:15px;padding:3px 6px}
+
+  #griButtonPanel{
+    display:none;
+    position:absolute;
+    right:14px;
+    top:72px;
+    z-index:75;
+    width:206px;
+    padding:8px;
+    border:2px solid #9a6a24;
+    border-radius:10px;
+    background:rgba(246,238,218,.94);
+    color:#222;
+    box-shadow:0 4px 16px rgba(0,0,0,.35);
+    user-select:none;
+  }
+  body.light-ui #griButtonPanel{display:block}
+  #griButtonPanel .griPanelTitle{
+    font-size:13px;
+    font-weight:800;
+    color:#6b4211;
+    text-align:center;
+    margin-bottom:6px;
+  }
+  #griButtonPanel .griButtonGrid{
+    display:grid;
+    grid-template-columns:30px 1fr 1fr 30px;
+    gap:5px;
+  }
+  #griButtonPanel button{
+    min-height:34px;
+    border:1px solid #9b9b9b;
+    border-radius:6px;
+    background:#f7f4ea;
+    color:#222;
+    font-size:17px;
+    font-weight:900;
+    cursor:pointer;
+    box-shadow:inset 0 -2px 0 rgba(0,0,0,.12);
+  }
+  #griButtonPanel button:hover{background:#fff}
+  #griButtonPanel button:active{transform:translateY(1px);box-shadow:inset 0 1px 2px rgba(0,0,0,.18)}
+  #griButtonPanel .axisX{color:#00a9bd}
+  #griButtonPanel .axisY{color:#b8a600}
+  #griButtonPanel .axisZ{color:#11a322}
+  #griButtonPanel .jumpBtn{font-size:15px;color:#666;padding:0}
+  #griButtonPanel .wide{grid-column:1 / 5}
+  #griButtonPanel .originBtn{font-size:16px;color:#555}
+  #griButtonPanel .eraserBtn{font-size:17px;color:#333}
+  #griButtonPanel .okBtn{font-size:22px;color:#d00000}
   #stepControl.open #stepSelect{display:inline-block}
 </style>
 </head>
@@ -138,7 +188,7 @@
       <div id="hiddenLineKeyHelp" style="display:none"><kbd>K</kbd>：かくれ線表示の切替</div>
       <div id="surfaceKeyHelp" style="display:none"><kbd>S</kbd>：面の色表示の切替</div>
       <div><kbd>P</kbd>：保存先とファイル名を選んでPNG保存</div>
-      <div>マウス：立体上で左ドラッグして回転／画面上でホイール拡大縮小</div>
+      <div>マウス：GRIは自由視点内で左ドラッグ回転／STLは立体上で左ドラッグ回転／画面上でホイール拡大縮小</div>
       <div>画面右下の「内蔵STL」：内蔵STLを選択して読み込み</div>
       <div>タブレット：ピンチで拡大縮小／自由視点上でスワイプ回転</div>
       <div>タブレット：三本指で上下すると線の太さを変更</div>
@@ -163,6 +213,7 @@
       <div><kbd>X</kbd>/<kbd>Y</kbd>/<kbd>Z</kbd>：ポインタを各軸の正方向へ移動</div>
       <div><kbd>Shift</kbd>+<kbd>X</kbd>/<kbd>Y</kbd>/<kbd>Z</kbd>：ポインタを各軸の負方向へ移動</div>
       <div><kbd>O</kbd>：ポインタを原点へ戻す</div>
+      <div>画面右上の作図ボタン：＜ X -X ＞、＜ Y -Y ＞、＜ Z -Z ＞、原点、消しゴム、OKで操作／ポインタ横に座標表示</div>
       <div><kbd>Enter</kbd>：始点を記録／終点として辺を追加</div>
       <div><kbd>Delete</kbd>：始点と終点で指定した範囲と重なる辺を削除／分割</div>
       <div>自由視点で線分にマウスを近づける：赤く強調表示</div>
@@ -188,7 +239,28 @@
     <div id="padStatus" class="small">ゲームパッド：未接続 または 未操作</div>
     <div id="testStatus" class="small">自己テスト：未実行</div>
   </div>
-  <div id="viewer" tabindex="-1"><canvas id="canvas"></canvas><button id="viewModeButton" type="button">４面モードにする</button><div id="drawingModeLabel">.gri描画モード</div><div id="topRightInfo"><div id="appTitle">立体グリグリ Vibe-Coded V1.05</div></div><div id="bottomRightControls"><div id="modelFileNameDisplay" style="display:none"></div><button id="embeddedStlButton" type="button">内蔵STL</button></div><div id="embeddedStlPopup"><div id="embeddedStlPopupHeader"><span>内蔵STLを読み込む</span><button id="embeddedStlPopupClose" type="button" aria-label="閉じる">×</button></div><div id="embeddedStlPopupList"></div></div><button id="hiddenLineToggleBottom" type="button">かくれ線を表示する</button><button id="surfaceToggleBottom" type="button">面の色を表示しない</button><button id="modeToggleBottom" type="button">.gri描画モードにする</button><div id="stepControl"><span id="stepLabel">ステップ：20mm</span><select id="stepSelect"><option value="20" selected>20mm</option><option value="10">10mm</option><option value="5">5mm</option><option value="1">1mm</option></select></div><div id="confirmOverlay"><div id="confirmBox"><div id="confirmMessage">本当に消しますか？</div><div class="buttons"><button id="confirmYes" type="button">はい</button><button id="confirmNo" type="button">いいえ</button></div></div></div><div id="aboutOverlay"><div id="aboutBox"><div id="aboutText"><p>「立体グリグリ」は、第三角法による正投影図の学習のために、1996年頃に川俣純がMS-DOS上で動作するアプリケーションとして開発しました。このバージョンは、バイブコーディングにて30年後の2026年5月にChatGPT5.5と共に制作したものです。CC BYとしますので、ユーザーの判断にて自由に改変してご活用いただいて問題ありません。</p><p>STLファイルを読み込めるようにしてみました。ただし、STLファイルを作成することはできません。TinkercadなどのツールでSTLファイルを作成し、そのファイルを読み込ませてみてください。隠れ線の表示などもほぼできます。</p><p style="text-align:right;margin-top:1.2em">2026年5月　川俣　純</p></div><button id="aboutClose" type="button">閉じる</button></div></div><div id="stlTimeoutOverlay"><div id="stlTimeoutBox"><div id="stlTimeoutMessage">読み込みと表示に時間がかかりすぎるので、この立体は読み込めません。</div><button id="stlTimeoutBack" type="button">戻る</button></div></div></div>
+  <div id="viewer" tabindex="-1"><canvas id="canvas"></canvas><button id="viewModeButton" type="button">４面モードにする</button><div id="drawingModeLabel">.gri描画モード</div><div id="topRightInfo"><div id="appTitle">立体グリグリ Vibe-Coded V1.06</div></div><div id="bottomRightControls"><div id="modelFileNameDisplay" style="display:none"></div><button id="embeddedStlButton" type="button">内蔵STL</button></div><div id="embeddedStlPopup"><div id="embeddedStlPopupHeader"><span>内蔵STLを読み込む</span><button id="embeddedStlPopupClose" type="button" aria-label="閉じる">×</button></div><div id="embeddedStlPopupList"></div></div><button id="hiddenLineToggleBottom" type="button">かくれ線を表示する</button><button id="surfaceToggleBottom" type="button">面の色を表示しない</button><button id="modeToggleBottom" type="button">.gri描画モードにする</button><div id="stepControl"><span id="stepLabel">ステップ：20mm</span><select id="stepSelect"><option value="20" selected>20mm</option><option value="10">10mm</option><option value="5">5mm</option><option value="1">1mm</option></select></div><div id="griButtonPanel" aria-label="GRI描画ボタン操作">
+  <div class="griPanelTitle">.gri作図</div>
+  <div class="griButtonGrid">
+    <button type="button" class="jumpBtn" data-gri-action="x10minus">＜</button>
+    <button type="button" class="axisX" data-gri-action="x">X</button>
+    <button type="button" class="axisX" data-gri-action="-x">-X</button>
+    <button type="button" class="jumpBtn" data-gri-action="x10plus">＞</button>
+
+    <button type="button" class="jumpBtn" data-gri-action="y10minus">＜</button>
+    <button type="button" class="axisY" data-gri-action="y">Y</button>
+    <button type="button" class="axisY" data-gri-action="-y">-Y</button>
+    <button type="button" class="jumpBtn" data-gri-action="y10plus">＞</button>
+
+    <button type="button" class="jumpBtn" data-gri-action="z10minus">＜</button>
+    <button type="button" class="axisZ" data-gri-action="z">Z</button>
+    <button type="button" class="axisZ" data-gri-action="-z">-Z</button>
+    <button type="button" class="jumpBtn" data-gri-action="z10plus">＞</button>
+    <button type="button" class="wide originBtn" data-gri-action="origin">原点</button>
+    <button type="button" class="wide eraserBtn" data-gri-action="eraser">消しゴム</button>
+    <button type="button" class="wide okBtn" data-gri-action="ok">OK</button>
+  </div>
+</div><div id="confirmOverlay"><div id="confirmBox"><div id="confirmMessage">本当に消しますか？</div><div class="buttons"><button id="confirmYes" type="button">はい</button><button id="confirmNo" type="button">いいえ</button></div></div></div><div id="aboutOverlay"><div id="aboutBox"><div id="aboutText"><p>「立体グリグリ」は、第三角法による正投影図の学習のために、1996年頃に川俣純がMS-DOS上で動作するアプリケーションとして開発しました。このバージョンは、バイブコーディングにて30年後の2026年5月にChatGPT5.5と共に制作したものです。CC BYとしますので、ユーザーの判断にて自由に改変してご活用いただいて問題ありません。</p><p>STLファイルを読み込めるようにしてみました。ただし、STLファイルを作成することはできません。TinkercadなどのツールでSTLファイルを作成し、そのファイルを読み込ませてみてください。隠れ線の表示などもほぼできます。</p><p style="text-align:right;margin-top:1.2em">2026年5月　川俣　純</p></div><button id="aboutClose" type="button">閉じる</button></div></div><div id="stlTimeoutOverlay"><div id="stlTimeoutBox"><div id="stlTimeoutMessage">読み込みと表示に時間がかかりすぎるので、この立体は読み込めません。</div><button id="stlTimeoutBack" type="button">戻る</button></div></div></div>
 </div>
 <script>
 'use strict';
@@ -198,6 +270,7 @@ const canvas=$('canvas'),ctx=canvas.getContext('2d'),viewer=$('viewer');
 const viewModeButton=$('viewModeButton'),griFileInput=$('griFileInput'),embeddedStlSelect=$('embeddedStlSelect'),embeddedStlButton=$('embeddedStlButton'),embeddedStlPopup=$('embeddedStlPopup'),embeddedStlPopupList=$('embeddedStlPopupList'),embeddedStlPopupClose=$('embeddedStlPopupClose'),saveGriControls=$('saveGriControls'),saveGriButton=$('saveGriButton'),saveFileNameInput=$('saveFileNameInput'),confirmOverlay=$('confirmOverlay'),confirmBox=$('confirmBox'),confirmYes=$('confirmYes'),confirmNo=$('confirmNo'),confirmMessage=$('confirmMessage'),aboutOverlay=$('aboutOverlay'),aboutClose=$('aboutClose'),stepControl=$('stepControl'),stepLabel=$('stepLabel'),stepSelect=$('stepSelect'),hiddenLineToggleBottom=$('hiddenLineToggleBottom'),surfaceToggleBottom=$('surfaceToggleBottom'),modeToggleBottom=$('modeToggleBottom'),hiddenLineKeyHelp=$('hiddenLineKeyHelp'),surfaceKeyHelp=$('surfaceKeyHelp'),modeKeyHelp=$('modeKeyHelp'),appTitle=$('appTitle'),modelFileNameDisplay=$('modelFileNameDisplay');
 const viewName=$('viewName'),fileStatus=$('fileStatus'),zoomStatus=$('zoomStatus'),lineWidthStatus=$('lineWidthStatus'),colorModeStatus=$('colorModeStatus'),beepStatus=$('beepStatus'),padStatus=$('padStatus'),testStatus=$('testStatus');
 const dualshockConnectedHelp=$('dualshockConnectedHelp'),dualshockDisconnectedHelp=$('dualshockDisconnectedHelp'),iosGriHint=$('iosGriHint');
+const griButtonPanel=$('griButtonPanel');
 let lon=Math.PI/4,lat=Math.atan(1/Math.sqrt(2));
 const LAT_LIMIT=Math.PI/2;
 const TOP_LAT=Math.PI/2;
@@ -214,8 +287,10 @@ let zoom=1,lineWidth=1,inverted=true,four=false;
 let preservedFourFreeView=null;
 let drawingPointer=v(0,0,0);
 let drawingStartPoint=null;
+let drawingPointerMovedAfterStart=false;
 let drawingStep=20;
 let hoveredEdgeIndex=-1;
+let selectedEdgeIndex=-1;
 let confirmEdgeIndex=-1;
 let confirmAction=null;
 let confirmCancelAction=null;
@@ -247,6 +322,7 @@ const EMBEDDED_STL_LIBRARY = [{"name":"Step1_m1.stl","label":"Step1_m1","base64"
 let activeRenderDeadline=0;
 let renderDirty=true;
 let lastInteractiveRendering=false;
+let activeViewClipRect=null;
 const undoStack=[];
 let gamepadEmbeddedStlSelectMode=false;
 let gamepadEmbeddedStlIndex=0;
@@ -257,7 +333,82 @@ let gamepadEmbeddedStlRestoreState=null;
 let gamepadEmbeddedStlPreviewLoaded=false;
 init();
 
-function init(){setupInfoToggle();syncViewModeClass();configureFileInputForDevice();populateEmbeddedStlSelect();setupEmbeddedStlPopup();updateColor();updateHiddenLineButton();updateSurfaceButton();resize();loadEmbeddedDefaultStl();updateFileStatus(model);runSelfTests();requestAnimationFrame(loop)}
+function init(){setupInfoToggle();setupGriButtonPanel();syncViewModeClass();configureFileInputForDevice();populateEmbeddedStlSelect();setupEmbeddedStlPopup();updateColor();updateHiddenLineButton();updateSurfaceButton();resize();loadEmbeddedDefaultStl();updateFileStatus(model);runSelfTests();requestAnimationFrame(loop)}
+
+
+function useDrawingEraser(){
+  if(inverted)return false;
+
+  // 左クリック／右クリックで選択済みの線分、またはマウス接近で赤くなっている線分を消す。
+  // 優先順位：確認中の線分 → クリック選択された線分 → ホバー中の線分
+  const activeEdgeIndex=confirmEdgeIndex>=0?confirmEdgeIndex:(selectedEdgeIndex>=0?selectedEdgeIndex:hoveredEdgeIndex);
+  if(activeEdgeIndex>=0&&activeEdgeIndex<model.edges.length){
+    deleteEdgeByModelIndex(activeEdgeIndex);
+    selectedEdgeIndex=-1;
+    hoveredEdgeIndex=-1;
+    confirmEdgeIndex=-1;
+    closeClearConfirm();
+    markRenderDirty();
+    click(performance.now());
+    return true;
+  }
+
+  // 選択されている辺がない場合は、DELキーと同じ処理にする。
+  return deleteEdgeFromStartToPointer();
+}
+
+
+function moveDrawingPointerMany(axis,reverse=false,count=10){
+  if(inverted)return;
+  const before={...drawingPointer};
+  const delta=(reverse?-1:1)*drawingStep*count;
+  if(axis==='x')drawingPointer.x=Math.max(0,drawingPointer.x+delta);
+  if(axis==='y')drawingPointer.y=Math.max(0,drawingPointer.y+delta);
+  if(axis==='z')drawingPointer.z=Math.max(0,drawingPointer.z+delta);
+  if(drawingStartPoint&&!samePoint(before,drawingPointer))drawingPointerMovedAfterStart=true;
+  click(performance.now());
+  markRenderDirty();
+}
+
+function setupGriButtonPanel(){
+  if(!griButtonPanel)return;
+  griButtonPanel.addEventListener('pointerdown',e=>{
+    e.stopPropagation();
+  });
+  griButtonPanel.addEventListener('click',e=>{
+    const button=e.target.closest('button[data-gri-action]');
+    if(!button)return;
+    e.preventDefault();
+    e.stopPropagation();
+    if(inverted)return;
+    const action=button.dataset.griAction;
+    if(action==='x')moveDrawingPointer('x',false);
+    else if(action==='-x')moveDrawingPointer('x',true);
+    else if(action==='y')moveDrawingPointer('y',false);
+    else if(action==='-y')moveDrawingPointer('y',true);
+    else if(action==='z')moveDrawingPointer('z',false);
+    else if(action==='-z')moveDrawingPointer('z',true);
+
+    // Windows版と同じように、各行の＜＞は10回分まとめて動かす。
+    // ＜は正方向へ10ステップ、＞は負方向へ10ステップ。
+    else if(action==='x10minus')moveDrawingPointerMany('x',false,10);
+    else if(action==='x10plus')moveDrawingPointerMany('x',true,10);
+    else if(action==='y10minus')moveDrawingPointerMany('y',false,10);
+    else if(action==='y10plus')moveDrawingPointerMany('y',true,10);
+    else if(action==='z10minus')moveDrawingPointerMany('z',false,10);
+    else if(action==='z10plus')moveDrawingPointerMany('z',true,10);
+
+    else if(action==='origin')resetDrawingPointerToOrigin();
+    else if(action==='eraser')useDrawingEraser();
+    else if(action==='ok')handleEnterInDrawingMode();
+    focusViewerForKeys();
+  });
+}
+function updateGriButtonPanelVisibility(){
+  if(!griButtonPanel)return;
+  griButtonPanel.style.display=!inverted?'block':'none';
+}
+
 function setupInfoToggle(){
   updateInfoToggleLabel();
   infoToggle.addEventListener('click',()=>toggleInfoPanel());
@@ -435,6 +586,36 @@ function parseGriKeepingViewTransform(text,name='GRIファイル',baseModel=mode
   const edges=raw.map(e=>({a:mul(sub(e.a,keepCenter),keepScale),b:mul(sub(e.b,keepCenter),keepScale)}));
   return{edges,triangles:[],min,max,center:keepCenter,scale:keepScale,edgeCount:Math.round(h[0]),actualEdgeCount:raw.length,fileName:name,source:text,sourceType:'gri'};
 }
+
+function recenterGriModelKeepingScale(text,name='GRIファイル',baseModel=model){
+  // .gri描画モードでは、ユーザーが拡大縮小しない限り表示倍率は固定したい。
+  // ただし回転中心は、STLと同じようにXYZそれぞれの最大値・最小値の中間へ更新する。
+  const lines=String(text||'').replace(/\r/g,'\n').split('\n').map(s=>s.trim()).filter(Boolean);
+  if(lines.length<1)return parseGriKeepingViewTransform(text,name,baseModel);
+  const h=nums(lines[0]);
+  if(h.length<4||h.some(Number.isNaN))return parseGriKeepingViewTransform(text,name,baseModel);
+
+  const raw=[];
+  for(let i=1;i<lines.length;i++){
+    const a=nums(lines[i]);
+    if(a.length>=6&&!a.some(Number.isNaN)){
+      raw.push({a:v(a[0],a[1],a[2]),b:v(a[3],a[4],a[5])});
+    }
+  }
+
+  const keepScale=baseModel&&Number.isFinite(baseModel.scale)?baseModel.scale:1;
+  if(!raw.length){
+    const c=v(h[1]||0,h[2]||0,h[3]||0);
+    return {edges:[],triangles:[],min:c,max:c,center:c,scale:keepScale,edgeCount:0,actualEdgeCount:0,fileName:name,source:text,sourceType:'gri'};
+  }
+
+  const min=v(Infinity,Infinity,Infinity),max=v(-Infinity,-Infinity,-Infinity);
+  raw.forEach(e=>{expand(min,max,e.a);expand(min,max,e.b)});
+  const c=v((min.x+max.x)/2,(min.y+max.y)/2,(min.z+max.z)/2);
+  const edges=raw.map(e=>({a:mul(sub(e.a,c),keepScale),b:mul(sub(e.b,c),keepScale)}));
+  return {edges,triangles:[],min,max,center:c,scale:keepScale,edgeCount:Math.round(h[0]),actualEdgeCount:raw.length,fileName:name,source:text,sourceType:'gri'};
+}
+
 function keepCurrentZoomStatus(note=''){
   zoomStatus.textContent=`表示倍率：${Math.round(zoom*100)}%${note}`;
 }
@@ -593,29 +774,58 @@ function removeLastEdge(){
   if(lines.length<1)return;
   const h=nums(lines[0]);
   if(h.length<4||h.some(Number.isNaN))return;
+
   for(let i=lines.length-1;i>=1;i--){
     const a=nums(lines[i]);
     if(a.length>=6&&!a.some(Number.isNaN)){
       undoStack.push(currentGriText);
       lines.splice(i,1);
       h[0]=Math.max(0,Math.round(h[0])-1);
-      if(h[0]===0){h[1]=0;h[2]=0;h[3]=0;drawingPointer=v(0,0,0);}
+
+      // BSで線分を削除した後は、残っている一つ前の線分の終点へポインターを戻す。
+      // 残っている線分がなければ原点へ戻す。
+      let previousEnd=null;
+      for(let j=lines.length-1;j>=1;j--){
+        const b=nums(lines[j]);
+        if(b.length>=6&&!b.some(Number.isNaN)){
+          previousEnd=v(Math.round(b[3]),Math.round(b[4]),Math.round(b[5]));
+          break;
+        }
+      }
+
+      if(previousEnd){
+        drawingPointer=previousEnd;
+      }else{
+        h[0]=0;
+        h[1]=0;h[2]=0;h[3]=0;
+        drawingPointer=v(0,0,0);
+      }
+
+      drawingStartPoint=null;
+      drawingPointerMovedAfterStart=false;
+      selectedEdgeIndex=-1;
       lines[0]=`${h[0]} ${h[1]} ${h[2]} ${h[3]}`;
       currentGriText=lines.join(nl)+nl;
-      model=parseGriKeepingViewTransform(currentGriText,currentGriFileName,model);
+      model=recenterGriModelKeepingScale(currentGriText,currentGriFileName,model);
       updateFileStatus(model);
       keepCurrentZoomStatus();
       click(performance.now());
+      markRenderDirty();
       return;
     }
   }
+
   if(Math.round(h[0])!==0){
     undoStack.push(currentGriText);
     drawingPointer=v(0,0,0);
+    drawingStartPoint=null;
+    drawingPointerMovedAfterStart=false;
+    selectedEdgeIndex=-1;
     currentGriText=`0 0 0 0${nl}`;
-    model=parseGriKeepingViewTransform(currentGriText,currentGriFileName,model);
+    model=recenterGriModelKeepingScale(currentGriText,currentGriFileName,model);
     updateFileStatus(model);
     keepCurrentZoomStatus();
+    markRenderDirty();
   }
 }
 function restoreLastEdge(){
@@ -623,27 +833,68 @@ function restoreLastEdge(){
   const previousText=undoStack.pop();
   if(typeof previousText!=='string'||previousText.trim().length===0)return;
   try{
-    const restoredModel=parseGri(previousText,currentGriFileName);
+    const restoredModel=isDrawingMode()
+      ? recenterGriModelKeepingScale(previousText,currentGriFileName,model)
+      : parseGri(previousText,currentGriFileName);
     currentGriText=previousText;
     model=restoredModel;
     updateFileStatus(model);
-    fit();
+    if(isDrawingMode()){
+      keepCurrentZoomStatus();
+      markRenderDirty();
+    }else{
+      fit();
+    }
     click(performance.now());
   }catch(error){console.error('復元できない履歴を無視しました。',error);}
 }
 function isDrawingMode(){return !inverted}
 function isStlModel(){return currentModelType==='stl'||!!(model&&model.sourceType==='stl')}
 function canUseDrawingMode(){return !isStlModel()}
+function hasNoDrawableModel(){
+  return !(model&&((model.edges&&model.edges.length)||(model.triangles&&model.triangles.length)));
+}
+function fitAxesWhenEmptyDrawingMode(){
+  // 辺がない状態で.gri描画モードに入った時だけ、自動で倍率を調整する。
+  // 作図後やユーザーの拡大縮小操作中には呼ばない。
+  // Y軸が必ず画面内に収まるように、XYZ軸の投影範囲から直接倍率を計算する。
+  if(!inverted&&hasNoDrawableModel()){
+    const b=viewBasis(lon,lat);
+    const r=four?{w:canvas.width/2,h:canvas.height/2}:{w:canvas.width,h:canvas.height};
+    const base=r.h/5.2;
+    let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+    const addPoint=p=>{
+      const x=dot(p,b.right),y=dot(p,b.up);
+      minX=Math.min(minX,x);maxX=Math.max(maxX,x);
+      minY=Math.min(minY,y);maxY=Math.max(maxY,y);
+    };
+    getAxisModelPoints().forEach(addPoint);
+    if(!Number.isFinite(minX)){
+      zoom=1;
+      zoomStatus.textContent='表示倍率：100%（空）';
+      markRenderDirty();
+      return;
+    }
+    const spanX=Math.max(Math.abs(minX),Math.abs(maxX))*2||1;
+    const spanY=Math.max(Math.abs(minY),Math.abs(maxY))*2||1;
+    // 0.70は、Y軸ラベルも含めて画面端で切れにくく、かつ小さすぎない余白。
+    zoom=clamp(Math.min(r.w*.70/(spanX*base),r.h*.70/(spanY*base)),getMinimumZoom(),12);
+    zoomStatus.textContent=`表示倍率：${Math.round(zoom*100)}%（空の描画モード自動調整）`;
+    markRenderDirty();
+  }
+}
 function toggleDrawingMode(){
   // STL表示中は描画モードへ入らない。
   // GRI読み込み後や、STLをNキーで消して空GRIになった後は、再びDキーを有効にする。
   if(!canUseDrawingMode()){
     if(!inverted){inverted=true;updateColor(true);}
     updateBottomModeButtons();
+    updateGriButtonPanelVisibility();
     return false;
   }
   inverted=!inverted;
   updateColor(true);
+  fitAxesWhenEmptyDrawingMode();
   return true;
 }
 function openClearConfirm(){
@@ -656,9 +907,20 @@ function openClearConfirm(){
   confirmBox.removeAttribute('style');
   confirmOverlay.style.display='flex';
 }
+
+function selectEdgeByIndex(edgeIndex){
+  if(!isDrawingMode()||edgeIndex<0||edgeIndex>=model.edges.length)return false;
+  selectedEdgeIndex=edgeIndex;
+  hoveredEdgeIndex=edgeIndex;
+  markRenderDirty();
+  click(performance.now());
+  return true;
+}
+
 function openEdgeDeleteConfirm(edgeIndex){
   if(!isDrawingMode()||edgeIndex<0)return;
   hoveredEdgeIndex=edgeIndex;
+  selectedEdgeIndex=edgeIndex;
   confirmEdgeIndex=edgeIndex;
   confirmMessage.textContent='この線分を削除しますか？';
   confirmAction=()=>deleteEdgeByModelIndex(edgeIndex);
@@ -694,7 +956,7 @@ function confirmBeforeLoadingNewModel(loadAction,cancelAction){
 function clearAllEdges(){
   undoStack.push(currentGriText);
   const nl=String.fromCharCode(10),c=v(0,0,0);
-  drawingPointer=v(0,0,0);drawingStartPoint=null;
+  drawingPointer=v(0,0,0);drawingStartPoint=null;drawingPointerMovedAfterStart=false;
   currentGriText=`0 0 0 0${nl}`;
   currentGriFileName='';
   currentModelType='gri';
@@ -705,6 +967,7 @@ function clearAllEdges(){
   moving=false;
   activeRenderDeadline=0;
   hoveredEdgeIndex=-1;
+  selectedEdgeIndex=-1;
   confirmEdgeIndex=-1;
   saveGriButton.disabled=false;
   saveGriButton.textContent='名前を指定して保存';
@@ -721,7 +984,40 @@ function clearAllEdges(){
 
 function draw(){ctx.fillStyle=inverted?'#000':'#f4f4f4';ctx.fillRect(0,0,canvas.width,canvas.height);four?drawFour():drawView(lon,lat,{x:0,y:0,w:canvas.width,h:canvas.height},null,true,inverted)}
 function drawFour(){layout.forEach(([label,view,x,y,w,h])=>{const viewInverted=inverted||!!view;drawView(view?view[1]:lon,view?view[2]:lat,{x:x*canvas.width,y:y*canvas.height,w:w*canvas.width,h:h*canvas.height},label,!view,viewInverted)});ctx.strokeStyle=inverted?'#555':'#bbb';ctx.lineWidth=dpr();ctx.beginPath();ctx.moveTo(canvas.width/2,0);ctx.lineTo(canvas.width/2,canvas.height);ctx.moveTo(0,canvas.height/2);ctx.lineTo(canvas.width,canvas.height/2);ctx.stroke()}
-function drawView(lo,la,r,label,axis,viewInverted=inverted){const basis=viewBasis(lo,la),scale=(r.h/5.2)*zoom,cx=r.x+r.w/2,cy=r.y+r.h/2;ctx.save();ctx.fillStyle=viewInverted?'#000':'#f4f4f4';ctx.fillRect(r.x,r.y,r.w,r.h);ctx.beginPath();ctx.rect(r.x,r.y,r.w,r.h);ctx.clip();if(!viewInverted)originAxes(basis,scale,cx,cy);if(model.triangles&&model.triangles.length)drawSurfaceTriangles(basis,scale,cx,cy,viewInverted);if(model.edges&&model.edges.length){ctx.strokeStyle=viewInverted?'#fff':'#111';ctx.lineWidth=lineWidth*dpr();ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();for(const e of model.edges){const a=proj(e.a,basis,scale,cx,cy),b=proj(e.b,basis,scale,cx,cy);ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y)}ctx.stroke();}if(!viewInverted&&axis)drawHoveredEdge(basis,scale,cx,cy);if(!viewInverted&&(!model.triangles||!model.triangles.length))drawPreviewEdge(basis,scale,cx,cy);if(!viewInverted&&(!model.triangles||!model.triangles.length))drawPointer(basis,scale,cx,cy,r);if(label)labelBox(label,r,viewInverted);if(axis)axes(basis,r,viewInverted);ctx.restore()}
+function drawView(lo,la,r,label,axis,viewInverted=inverted){
+  const basis=viewBasis(lo,la),scale=(r.h/5.2)*zoom,cx=r.x+r.w/2,cy=r.y+r.h/2;
+  const previousViewClipRect=activeViewClipRect;
+  activeViewClipRect=r;
+  ctx.save();
+  ctx.fillStyle=viewInverted?'#000':'#f4f4f4';
+  ctx.fillRect(r.x,r.y,r.w,r.h);
+  ctx.beginPath();
+  ctx.rect(r.x,r.y,r.w,r.h);
+  ctx.clip();
+
+  if(!viewInverted)originAxes(basis,scale,cx,cy);
+  if(model.triangles&&model.triangles.length)drawSurfaceTriangles(basis,scale,cx,cy,viewInverted);
+  if(model.edges&&model.edges.length){
+    ctx.strokeStyle=viewInverted?'#fff':'#111';
+    ctx.lineWidth=lineWidth*dpr();
+    ctx.lineCap='round';
+    ctx.lineJoin='round';
+    ctx.beginPath();
+    for(const e of model.edges){
+      const a=proj(e.a,basis,scale,cx,cy),b=proj(e.b,basis,scale,cx,cy);
+      ctx.moveTo(a.x,a.y);
+      ctx.lineTo(b.x,b.y);
+    }
+    ctx.stroke();
+  }
+  if(!viewInverted&&axis)drawHoveredEdge(basis,scale,cx,cy);
+  if(!viewInverted&&(!model.triangles||!model.triangles.length))drawPreviewEdge(basis,scale,cx,cy);
+  if(!viewInverted&&(!model.triangles||!model.triangles.length))drawPointer(basis,scale,cx,cy,r);
+  if(label)labelBox(label,r,viewInverted);
+  if(axis)axes(basis,r,viewInverted);
+  ctx.restore();
+  activeViewClipRect=previousViewClipRect;
+}
 
 function drawSurfaceTriangles(b,viewScale,cx,cy,viewInverted=inverted){
   const tris=model.triangles||[];
@@ -786,10 +1082,17 @@ function renderSurfaceTrianglesWithZBuffer(b,viewScale,cx,cy,viewInverted=invert
     maxX=Math.max(maxX,pa.x,pb.x,pc.x); maxY=Math.max(maxY,pa.y,pb.y,pc.y);
   }
   if(!Number.isFinite(minX))return null;
-  const x0=clamp(Math.floor(minX-pad),0,canvas.width-1);
-  const y0=clamp(Math.floor(minY-pad),0,canvas.height-1);
-  const x1=clamp(Math.ceil(maxX+pad),0,canvas.width);
-  const y1=clamp(Math.ceil(maxY+pad),0,canvas.height);
+  let clipX0=0,clipY0=0,clipX1=canvas.width,clipY1=canvas.height;
+  if(activeViewClipRect){
+    clipX0=clamp(Math.floor(activeViewClipRect.x),0,canvas.width-1);
+    clipY0=clamp(Math.floor(activeViewClipRect.y),0,canvas.height-1);
+    clipX1=clamp(Math.ceil(activeViewClipRect.x+activeViewClipRect.w),0,canvas.width);
+    clipY1=clamp(Math.ceil(activeViewClipRect.y+activeViewClipRect.h),0,canvas.height);
+  }
+  const x0=clamp(Math.floor(minX-pad),clipX0,Math.max(clipX0,clipX1-1));
+  const y0=clamp(Math.floor(minY-pad),clipY0,Math.max(clipY0,clipY1-1));
+  const x1=clamp(Math.ceil(maxX+pad),clipX0,clipX1);
+  const y1=clamp(Math.ceil(maxY+pad),clipY0,clipY1);
   const w=Math.max(1,x1-x0),h=Math.max(1,y1-y0);
   const image=ctx.getImageData(x0,y0,w,h);
   const data=image.data;
@@ -1341,8 +1644,84 @@ function getAxisRawLength(){return 100;}
 function getAxisModelPoints(){const axisLen=getAxisRawLength();return [modelPoint(v(0,0,0)),modelPoint(v(axisLen,0,0)),modelPoint(v(0,axisLen,0)),modelPoint(v(0,0,axisLen))];}
 function getModelMaxCornerPoints(){if(!model||!model.max)return [];const x=model.max.x,y=model.max.y,z=model.max.z;return [modelPoint(v(0,0,0)),modelPoint(v(x,0,0)),modelPoint(v(0,y,0)),modelPoint(v(0,0,z)),modelPoint(v(x,y,0)),modelPoint(v(x,0,z)),modelPoint(v(0,y,z)),modelPoint(v(x,y,z))];}
 function modelPoint(p){return mul(sub(p,model.center),model.scale||1)}
-function drawPointer(b,viewScale,cx,cy,r){const p=proj(modelPoint(drawingPointer),b,viewScale,cx,cy);const diameter=Math.max(2,Math.min(r.w,r.h)/100)*(four?2:1);ctx.save();const pointerColor=drawingStartPoint?'#000000':'#d00000';ctx.fillStyle=pointerColor;ctx.strokeStyle=pointerColor;ctx.beginPath();ctx.arc(p.x,p.y,diameter/2,0,Math.PI*2);ctx.fill();ctx.restore();}
-function drawPreviewEdge(b,viewScale,cx,cy){if(!drawingStartPoint)return;const a=proj(modelPoint(drawingStartPoint),b,viewScale,cx,cy);const p=proj(modelPoint(drawingPointer),b,viewScale,cx,cy);ctx.save();ctx.strokeStyle='#000000';ctx.lineWidth=Math.max(1.5,lineWidth*dpr());ctx.setLineDash([6*dpr(),4*dpr()]);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(p.x,p.y);ctx.stroke();ctx.setLineDash([]);ctx.restore();}
+
+function formatGriPointLabel(p){
+  return `X=${Math.round(p.x)},Y=${Math.round(p.y)},Z=${Math.round(p.z)}`;
+}
+function drawGriPointLabel(screenPoint,modelPointValue,fillColor='#d00000'){
+  if(inverted)return;
+  const s=dpr();
+  const text=formatGriPointLabel(modelPointValue);
+  ctx.save();
+  ctx.font=`${13*s}px sans-serif`;
+  ctx.textAlign='left';
+  ctx.textBaseline='middle';
+  const padX=5*s,padY=3*s;
+  const metrics=ctx.measureText(text);
+  const w=metrics.width+padX*2;
+  const h=18*s;
+  let x=screenPoint.x+9*s;
+  let y=screenPoint.y-h/2;
+  if(x+w>canvas.width-4*s)x=screenPoint.x-w-9*s;
+  if(y<4*s)y=4*s;
+  if(y+h>canvas.height-4*s)y=canvas.height-h-4*s;
+  ctx.fillStyle='rgba(255,255,255,.86)';
+  ctx.strokeStyle='rgba(0,0,0,.28)';
+  ctx.lineWidth=1*s;
+  ctx.beginPath();
+  ctx.roundRect(x,y,w,h,5*s);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle=fillColor;
+  ctx.fillText(text,x+padX,y+h/2);
+  ctx.restore();
+}
+
+function drawPointer(b,viewScale,cx,cy,r){
+  const p=proj(modelPoint(drawingPointer),b,viewScale,cx,cy);
+  const diameter=Math.max(2,Math.min(r.w,r.h)/100)*(four?2:1);
+  ctx.save();
+  const pointerColor=(drawingStartPoint&&!drawingPointerMovedAfterStart)?'#000000':'#d00000';
+  ctx.fillStyle=pointerColor;
+  ctx.strokeStyle=pointerColor;
+  ctx.beginPath();
+  ctx.arc(p.x,p.y,diameter/2,0,Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+
+  // .gri描画モードでは、現在ポインターの座標をWindows版のように表示する。
+  if(!inverted)drawGriPointLabel(p,drawingPointer,pointerColor);
+}
+function drawPreviewEdge(b,viewScale,cx,cy){
+  if(!drawingStartPoint)return;
+  const a=proj(modelPoint(drawingStartPoint),b,viewScale,cx,cy);
+  const p=proj(modelPoint(drawingPointer),b,viewScale,cx,cy);
+  const diameter=Math.max(6*dpr(),Math.min(canvas.width,canvas.height)/100);
+  ctx.save();
+
+  // 始点確定後、終点確定までの仮線は赤で表示する。
+  ctx.strokeStyle='#d00000';
+  ctx.lineWidth=Math.max(1.5,lineWidth*dpr());
+  ctx.lineCap='round';
+  ctx.lineJoin='round';
+  ctx.beginPath();
+  ctx.moveTo(a.x,a.y);
+  ctx.lineTo(p.x,p.y);
+  ctx.stroke();
+
+  // Enterで確定した始点位置を、現在ポインターと同じ黒い●で表示する。
+  // 終点を確定して線分が追加されると drawingStartPoint が null になり、この●も消える。
+  ctx.fillStyle='#000000';
+  ctx.strokeStyle='#000000';
+  ctx.beginPath();
+  ctx.arc(a.x,a.y,diameter/2,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.restore();
+
+  // Enterで確定した始点にも座標を表示する。
+  drawGriPointLabel(a,drawingStartPoint,'#000000');
+}
 function drawHoveredEdge(b,viewScale,cx,cy){
   const activeEdgeIndex=confirmEdgeIndex>=0?confirmEdgeIndex:hoveredEdgeIndex;
   if(activeEdgeIndex<0||activeEdgeIndex>=model.edges.length)return;
@@ -1359,11 +1738,46 @@ function drawHoveredEdge(b,viewScale,cx,cy){
   ctx.stroke();
   ctx.restore();
 }
-function moveDrawingPointer(axis,reverse=false){if(inverted)return;const delta=(reverse?-1:1)*drawingStep;if(axis==='x')drawingPointer.x=Math.max(0,drawingPointer.x+delta);if(axis==='y')drawingPointer.y=Math.max(0,drawingPointer.y+delta);if(axis==='z')drawingPointer.z=Math.max(0,drawingPointer.z+delta);click(performance.now());}
-function resetDrawingPointerToOrigin(){if(inverted)return;drawingPointer=v(0,0,0);click(performance.now());}
-function handleEnterInDrawingMode(){if(inverted)return;if(!drawingStartPoint){drawingStartPoint={...drawingPointer};click(performance.now());return;}addEdgeFromStartToPointer();drawingStartPoint=null;click(performance.now());}
-function cancelDrawingEdge(){drawingStartPoint=null;click(performance.now());}
-function addEdgeFromStartToPointer(){if(!drawingStartPoint)return;const edge=[drawingStartPoint.x,drawingStartPoint.y,drawingStartPoint.z,drawingPointer.x,drawingPointer.y,drawingPointer.z];undoStack.push(currentGriText);currentGriText=appendEdgeToGriText(currentGriText,edge);model=parseGri(currentGriText,currentGriFileName);updateFileStatus(model);fit();}
+function moveDrawingPointer(axis,reverse=false){
+  if(inverted)return;
+  const before={...drawingPointer};
+  const delta=(reverse?-1:1)*drawingStep;
+  if(axis==='x')drawingPointer.x=Math.max(0,drawingPointer.x+delta);
+  if(axis==='y')drawingPointer.y=Math.max(0,drawingPointer.y+delta);
+  if(axis==='z')drawingPointer.z=Math.max(0,drawingPointer.z+delta);
+  if(drawingStartPoint&&!samePoint(before,drawingPointer))drawingPointerMovedAfterStart=true;
+  click(performance.now());
+  markRenderDirty();
+}
+function resetDrawingPointerToOrigin(){if(inverted)return;drawingPointer=v(0,0,0);if(drawingStartPoint&&!samePoint(drawingStartPoint,drawingPointer))drawingPointerMovedAfterStart=true;click(performance.now());markRenderDirty();}
+function handleEnterInDrawingMode(){
+  if(inverted)return;
+  if(!drawingStartPoint){
+    drawingStartPoint={...drawingPointer};
+    drawingPointerMovedAfterStart=false;
+    click(performance.now());
+    markRenderDirty();
+    return;
+  }
+  addEdgeFromStartToPointer();
+  drawingStartPoint=null;
+  drawingPointerMovedAfterStart=false;
+  click(performance.now());
+  markRenderDirty();
+}
+function cancelDrawingEdge(){drawingStartPoint=null;drawingPointerMovedAfterStart=false;click(performance.now());markRenderDirty();}
+function addEdgeFromStartToPointer(){
+  if(!drawingStartPoint)return;
+  const edge=[drawingStartPoint.x,drawingStartPoint.y,drawingStartPoint.z,drawingPointer.x,drawingPointer.y,drawingPointer.z];
+  undoStack.push(currentGriText);
+  currentGriText=appendEdgeToGriText(currentGriText,edge);
+  // .gri描画モードで辺を追加するたびに自動fit()すると、作図中に表示倍率が変わってしまう。
+  // ユーザーが拡大縮小操作をした時以外は、現在の中心・スケール・倍率を保つ。
+  model=recenterGriModelKeepingScale(currentGriText,currentGriFileName,model);
+  updateFileStatus(model);
+  keepCurrentZoomStatus();
+  markRenderDirty();
+}
 function pointKey(p){return `${Math.round(p.x)},${Math.round(p.y)},${Math.round(p.z)}`}
 function edgeKey(a,b){return [pointKey(a),pointKey(b)].sort().join('|')}
 function nearlyZero(n){return Math.abs(n)<1e-9}
@@ -1433,8 +1847,9 @@ function deleteEdgeFromStartToPointer(){
   }
   undoStack.push(currentGriText);
   currentGriText=rebuildGriHeader(rebuilt);
-  model=parseGriKeepingViewTransform(currentGriText,currentGriFileName,model);
+  model=recenterGriModelKeepingScale(currentGriText,currentGriFileName,model);
   drawingStartPoint=null;
+  drawingPointerMovedAfterStart=false;
   updateFileStatus(model);
   const detail=[];
   if(deletedCount)detail.push(`${deletedCount}本削除`);
@@ -1446,6 +1861,48 @@ function deleteEdgeFromStartToPointer(){
 }
 function appendEdgeToGriText(text,edge){const nl=String.fromCharCode(10),cr=String.fromCharCode(13);const lines=String(text||'0 0 0 0').split(cr).join(nl).split(nl).map(s=>s.trim()).filter(Boolean);if(lines.length<1)lines.push('0 0 0 0');lines.push(edge.map(n=>Math.round(n)).join(' '));return rebuildGriHeader(lines);}
 function rebuildGriHeader(lines){const nl=String.fromCharCode(10),edgeLines=[],values=[];for(let i=1;i<lines.length;i++){const a=nums(lines[i]);if(a.length>=6&&!a.some(Number.isNaN)){edgeLines.push(a.slice(0,6).map(n=>Math.round(n)).join(' '));values.push(a[0],a[1],a[2],a[3],a[4],a[5]);}}let cx=0,cy=0,cz=0;if(values.length){const xs=[],ys=[],zs=[];for(let i=0;i<values.length;i+=3){xs.push(values[i]);ys.push(values[i+1]);zs.push(values[i+2]);}cx=Math.round((Math.min(...xs)+Math.max(...xs))/2);cy=Math.round((Math.min(...ys)+Math.max(...ys))/2);cz=Math.round((Math.min(...zs)+Math.max(...zs))/2);}return [`${edgeLines.length} ${cx} ${cy} ${cz}`,...edgeLines].join(nl)+nl;}
+
+function angleDelta(a,b){
+  return Math.atan2(Math.sin(a-b),Math.cos(a-b));
+}
+function nearestKeyboardSnapView(currentLon,currentLat){
+  const candidates=[
+    {name:'正面図',lon:views.front[1],lat:views.front[2]},
+    {name:'右側面図',lon:views.right[1],lat:views.right[2]},
+    {name:'平面図',lon:views.top[1],lat:views.top[2]},
+    {name:'等角図',lon:views.iso[1],lat:views.iso[2]}
+  ];
+  const lonTol=0.06; // 約3.4度
+  const latTol=0.06;
+  for(const c of candidates){
+    const dLon=Math.abs(angleDelta(currentLon,c.lon));
+    const dLat=Math.abs(currentLat-c.lat);
+    if(dLon<=lonTol&&dLat<=latTol)return c;
+  }
+  return null;
+}
+function applyKeyboardViewSnap(previousLon=null,previousLat=null){
+  const snap=nearestKeyboardSnapView(lon,lat);
+  if(!snap)return false;
+
+  // スナップ角度からキーを押し続けて抜け出そうとしている時に、
+  // 毎フレーム同じ角度へ吸い戻されるのを防ぐ。
+  // 「スナップ範囲の外から中に入った瞬間」だけ吸着させる。
+  if(previousLon!==null&&previousLat!==null){
+    const previousSnap=nearestKeyboardSnapView(previousLon,previousLat);
+    if(previousSnap&&previousSnap.name===snap.name)return false;
+  }
+
+  lon=normalizeAngle(snap.lon);
+  lat=snap.lat;
+  eLon=lon;
+  eLat=lat;
+  moving=false;
+  viewName.textContent=snap.name;
+  markRenderDirty();
+  return true;
+}
+
 function viewBasis(lo,la){
   if(Math.abs(Math.abs(la)-Math.PI/2)<1e-6){
     // 北緯90度・南緯90度では forward が真上/真下になり、
@@ -1566,13 +2023,17 @@ function deleteEdgeByModelIndex(edgeIndex){
   if(!changed)return false;
   undoStack.push(currentGriText);
   currentGriText=rebuildGriHeader(rebuilt);
-  model=parseGriKeepingViewTransform(currentGriText,currentGriFileName,model);
+  model=recenterGriModelKeepingScale(currentGriText,currentGriFileName,model);
   drawingStartPoint=null;
+  drawingPointerMovedAfterStart=false;
   hoveredEdgeIndex=-1;
+  selectedEdgeIndex=-1;
+  confirmEdgeIndex=-1;
   updateFileStatus(model);
-  fileStatus.textContent+=' / 右クリック：1本削除';
+  fileStatus.textContent+=' / 消しゴム：1本削除';
   keepCurrentZoomStatus();
   click(performance.now());
+  markRenderDirty();
   return true;
 }
 function handleCanvasMouseMove(e){updateHoveredEdgeFromMouse(e)}
@@ -1650,7 +2111,31 @@ function updateThreeFingerLineWidthGesture(now){
 function handleCanvasMouseRotateDown(e){
   if(e.button!==0)return false;
   if(getFourLabelHit(e.clientX,e.clientY))return false;
-  if(!isPointerOnModelInFreeView(e.clientX,e.clientY))return false;
+
+  // .gri描画モードでは、線分上を左クリックした時にその線分を選択する。
+  // その後「消しゴム」ボタンを押すと、選択された線分を削除できる。
+  if(!inverted){
+    const edgeIndex=findEdgeNearFreeView(e.clientX,e.clientY);
+    if(edgeIndex>=0){
+      e.preventDefault();
+      e.stopPropagation();
+      selectEdgeByIndex(edgeIndex);
+      focusViewerForKeys();
+      return true;
+    }
+  }
+
+  // GRIのワイヤーフレーム表示は、立体上ではなく自由視点の画面内ならドラッグ回転を有効にする。
+  // STLは面があり判定しやすいので、従来通り立体上だけで回転する。
+  const p=clientToCanvasPoint(e.clientX,e.clientY);
+  const freeRect=getFreeViewRect();
+  const isInFreeView=pointInRect(p,freeRect);
+  if(isStlModel()){
+    if(!isPointerOnModelInFreeView(e.clientX,e.clientY))return false;
+  }else{
+    if(!isInFreeView)return false;
+  }
+
   e.preventDefault();
   soundReady();
   canvas.setPointerCapture?.(e.pointerId);
@@ -1707,7 +2192,7 @@ function handleCanvasWheel(e){
   const deltaModeScale=e.deltaMode===1?16:(e.deltaMode===2?window.innerHeight:1);
   const wheelDelta=e.deltaY*deltaModeScale;
   const factor=Math.exp(-wheelDelta*0.0012);
-  zoom=clamp(zoom*factor,.05,12);
+  zoom=clamp(zoom*factor,getMinimumZoom(),12);
   zoomStatus.textContent=`表示倍率：${Math.round(zoom*100)}%`;
   markRenderDirty();
   focusViewerForKeys();
@@ -1759,7 +2244,7 @@ function handleCanvasPointerMove(e){
     const points=[...touchPointers.values()];
     const d=Math.max(1,touchDistance(points[0],points[1]));
     if(touchGesture&&touchGesture.type==='pinch'){
-      zoom=clamp(touchGesture.startZoom*(d/touchGesture.startDistance),.05,12);
+      zoom=clamp(touchGesture.startZoom*(d/touchGesture.startDistance),getMinimumZoom(),12);
       zoomStatus.textContent=`表示倍率：${Math.round(zoom*100)}%`;
       click(now);
     }
@@ -1974,7 +2459,7 @@ function updateMove(now){
     markRenderDirty();
   }
 }
-function fit(lo=lon,la=lat){const b=viewBasis(lo,la),r=four?{w:canvas.width/2,h:canvas.height/2}:{w:canvas.width,h:canvas.height};let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;const addPoint=p=>{const x=dot(p,b.right),y=dot(p,b.up);minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y)};for(const e of (model.edges||[])){addPoint(e.a);addPoint(e.b)}for(const tri of (model.triangles||[])){addPoint(tri.a);addPoint(tri.b);addPoint(tri.c)}if(!inverted){getAxisModelPoints().forEach(addPoint);getModelMaxCornerPoints().forEach(addPoint);}if(!Number.isFinite(minX)){zoom=1;zoomStatus.textContent='表示倍率：100%（空）';return;}const base=r.h/5.2;const spanX=Math.max(Math.abs(minX),Math.abs(maxX))*2||1;const spanY=Math.max(Math.abs(minY),Math.abs(maxY))*2||1;zoom=clamp(Math.min(r.w*.82/(spanX*base),r.h*.82/(spanY*base)),.05,12);zoomStatus.textContent=`表示倍率：${Math.round(zoom*100)}%（自動調整）`;}
+function fit(lo=lon,la=lat){const b=viewBasis(lo,la),r=four?{w:canvas.width/2,h:canvas.height/2}:{w:canvas.width,h:canvas.height};let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;const addPoint=p=>{const x=dot(p,b.right),y=dot(p,b.up);minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y)};for(const e of (model.edges||[])){addPoint(e.a);addPoint(e.b)}for(const tri of (model.triangles||[])){addPoint(tri.a);addPoint(tri.b);addPoint(tri.c)}if(!inverted){getAxisModelPoints().forEach(addPoint);getModelMaxCornerPoints().forEach(addPoint);}if(!Number.isFinite(minX)){zoom=1;zoomStatus.textContent='表示倍率：100%（空）';return;}const base=r.h/5.2;const spanX=Math.max(Math.abs(minX),Math.abs(maxX))*2||1;const spanY=Math.max(Math.abs(minY),Math.abs(maxY))*2||1;zoom=clamp(Math.min(r.w*.82/(spanX*base),r.h*.82/(spanY*base)),getMinimumZoom(),12);zoomStatus.textContent=`表示倍率：${Math.round(zoom*100)}%（自動調整）`;}
 
 function setDualshockHelpConnected(isConnected){
   if(dualshockConnectedHelp)dualshockConnectedHelp.style.display=isConnected?'block':'none';
@@ -2395,15 +2880,27 @@ function updateKeys(){
     clearPreservedFourFreeView();
     lat=clamp(lat,-LAT_LIMIT,LAT_LIMIT);
     snapToOrthographicDirection(previousLon,previousLat);
-    viewName.textContent='自由視点';
+
+    // カーソルキー回転では、主要な図法の角度に近づいたらスナップする。
+    // 対象：正面図・平面図・右側面図・等角図
+    const snapped=applyKeyboardViewSnap(previousLon,previousLat);
+    if(!snapped)viewName.textContent='自由視点';
+
     markRenderDirty();
     click(performance.now());
   }else if(other)click(performance.now())
 }
 
-function changeZoom(d){clearPreservedFourFreeView();zoom=clamp(zoom*(1+d),.05,12);zoomStatus.textContent=`表示倍率：${Math.round(zoom*100)}%`;markRenderDirty()}
+function getMinimumZoom(){
+  // .gri描画モードでは、座標値がmm単位のまま大きくなるため、
+  // STL表示時と同じ最小倍率では十分に小さくできない。
+  // 描画モードだけ最小倍率を小さくして、ホイール・Shift+矢印・ゲームパッドで滑らかに縮小できるようにする。
+  return !inverted ? 0.002 : 0.05;
+}
+function changeZoom(d){clearPreservedFourFreeView();zoom=clamp(zoom*(1+d),getMinimumZoom(),12);zoomStatus.textContent=`表示倍率：${Math.round(zoom*100)}%`;markRenderDirty()}
 function changeLine(d){lineWidth=clamp(lineWidth+d,1,8);lineWidthStatus.textContent=`線の太さ：${lineWidth.toFixed(1)}`;markRenderDirty()}
-function updateColor(keepZoom=false){markRenderDirty();document.body.classList.toggle('light-ui',!inverted);colorModeStatus.textContent=inverted?'表示モード：通常モード（黒背景・白線）':'表示モード：.gri描画モード（白背景・黒線）';modeToggleBottom.textContent=inverted?'.gri描画モードにする':'通常モードにする';if(!inverted){drawingPointer=v(0,0,0);drawingStartPoint=null;}updateBottomModeButtons();if(!keepZoom)fit()}
+function updateColor(keepZoom=false){markRenderDirty();document.body.classList.toggle('light-ui',!inverted);colorModeStatus.textContent=inverted?'表示モード：通常モード（黒背景・白線）':'表示モード：.gri描画モード（白背景・黒線）';modeToggleBottom.textContent=inverted?'.gri描画モードにする':'通常モードにする';if(!inverted){drawingPointer=v(0,0,0);drawingStartPoint=null;}updateBottomModeButtons();if(!keepZoom)fit();updateGriButtonPanelVisibility();
+}
 function updateHiddenLineButton(){if(hiddenLineToggleBottom)hiddenLineToggleBottom.textContent=showHiddenLines?'かくれ線を表示しない':'かくれ線を表示する'}
 function updateSurfaceButton(){if(surfaceToggleBottom)surfaceToggleBottom.textContent=showStlSurface?'面の色を表示しない':'面の色を表示'}
 function updateBottomModeButtons(){
@@ -2594,15 +3091,32 @@ function focusViewerForKeys(){
 }
 
 window.addEventListener('keydown',e=>{
-  const k=e.key.toLowerCase();
+  const k=String(e.key||'').toLowerCase();
+  const code=String(e.code||'').toLowerCase();
   shift=e.shiftKey;
-  if(isUiInteractionTarget(e.target)){return;}
+
+  // 入力欄・プルダウン操作中は、Nキーやスペースキーを通常のUI操作として扱う。
+  if(e.isComposing||isTextEntryTarget(e.target))return;
+
+  // ブラウザ標準のショートカットは邪魔しない。
+  if(e.metaKey||e.ctrlKey||e.altKey)return;
+
+  // Nキーは、操作説明パネル側にフォーカスがあっても必ず「立体データを消去」にする。
+  // ここで伝播も止め、ブラウザやボタン側の既定動作に流れないようにする。
+  if(k==='n'||code==='keyn'){
+    e.preventDefault();
+    e.stopPropagation();
+    if(typeof e.stopImmediatePropagation==='function')e.stopImmediatePropagation();
+    openClearConfirm();
+    return;
+  }
+
   if(k===' '||e.code==='Space'){
     e.preventDefault();
     toggleInfoPanel();
     return;
   }
-  if(k==='n'){e.preventDefault();openClearConfirm();return;}
+  if(isUiInteractionTarget(e.target)){return;}
   if(k==='enter'){e.preventDefault();if(!inverted)handleEnterInDrawingMode();return;}
   if(k==='escape'){e.preventDefault();if(!inverted)cancelDrawingEdge();return;}
   if(['x','y','z'].includes(k)){if(!inverted){e.preventDefault();moveDrawingPointer(k,shift);return;}}
@@ -2616,7 +3130,6 @@ window.addEventListener('keydown',e=>{
   // 線の太さは、物理キーボードの + / - キーを押した瞬間だけ変更する。
   // iPadの外部キーボード付きタッチパッドのピンチ操作が + / - 相当として残り、
   // フレームごとに線が太くなり続ける症状を避けるため、keys Setには入れない。
-  const code=(e.code||'').toLowerCase();
   const plusKey=(k==='+'||k==='='||code==='numpadadd');
   const minusKey=(k==='-'||k==='_'||code==='numpadsubtract'||code==='minus');
   if(plusKey){
@@ -3076,13 +3589,17 @@ function toggleViewMode(){
   markRenderDirty();
 }
 
-function isUiInteractionTarget(target){
+function isTextEntryTarget(target){
   if(!target)return false;
   const tag=(target.tagName||'').toLowerCase();
-
-  // 文字入力欄やプルダウンでは、BSやカーソルキーを通常のUI操作として使う。
   if(['input','textarea','select'].includes(tag))return true;
   if(target.isContentEditable)return true;
+  return false;
+}
+
+function isUiInteractionTarget(target){
+  if(!target)return false;
+  if(isTextEntryTarget(target))return true;
 
   // 左側の操作説明欄・保存欄ではショートカットを効かせない。
   // ただし、右側の表示画面上にある「描画モード」「４面モード」ボタン等は、
