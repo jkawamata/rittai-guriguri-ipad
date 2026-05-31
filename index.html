@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>立体グリグリ Vibe-Coded V1.06</title>
+<title>立体グリグリ Vibe-Coded V1.7</title>
 <style>
   html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;font-family:system-ui,"Hiragino Sans","Yu Gothic",sans-serif}
   #app{display:flex;width:100vw;height:100vh;background:#000}
@@ -12,6 +12,8 @@
   #infoToggle{position:absolute;left:320px;top:10px;z-index:120;padding:7px 10px;border:1px solid #666;border-radius:0 8px 8px 0;background:#2a2a2a;color:#eee;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.25);transition:left .22s ease;white-space:nowrap}
   body.info-hidden #infoToggle{left:0}
   #viewer{position:relative;flex:1;height:100vh;background:#000;min-width:0;touch-action:none}
+  body.drag-model-over #viewer::after{content:'GRI / STL ファイルをドロップして読み込み';position:absolute;inset:18px;z-index:130;display:flex;align-items:center;justify-content:center;border:3px dashed #90caf9;border-radius:18px;background:rgba(25,118,210,.18);color:#e3f2fd;font-size:24px;font-weight:800;text-shadow:0 2px 6px rgba(0,0,0,.65);pointer-events:none}
+  body.light-ui.drag-model-over #viewer::after{background:rgba(25,118,210,.12);color:#0d47a1;text-shadow:0 1px 3px rgba(255,255,255,.8)}
   #viewer:focus,#viewer:focus-visible,canvas:focus,canvas:focus-visible{outline:none}
   canvas{display:block;width:100%;height:100%;background:#000;touch-action:none}
   body.light-ui,body.light-ui #app,body.light-ui #viewer,body.light-ui canvas{background:#f4f4f4}
@@ -91,21 +93,20 @@
   #stlTimeoutBox{box-sizing:border-box;max-width:520px;margin:24px;padding:22px 26px;background:#fff;color:#222;border:2px solid #555;border-radius:14px;box-shadow:0 10px 36px rgba(0,0,0,.45);text-align:center;font-size:17px;line-height:1.7}
   #stlTimeoutMessage{margin-bottom:18px}
   #stlTimeoutBack{padding:8px 28px;border-radius:9px;border:1px solid #777;background:#f5f5f5;color:#222;cursor:pointer;font-size:16px;font-weight:700}
-  #modeToggleBottom{position:absolute;left:14px;bottom:14px;z-index:22;min-width:142px;padding:8px 12px;border:1px solid #777;border-radius:10px;background:#222;color:#eee;font-size:15px;font-weight:700;box-shadow:none;cursor:pointer}
+  #modeToggleBottom{display:none!important;position:absolute;left:14px;bottom:14px;z-index:22;min-width:142px;padding:8px 12px;border:1px solid #777;border-radius:10px;background:#222;color:#eee;font-size:15px;font-weight:700;box-shadow:none;cursor:pointer}
   body.light-ui #modeToggleBottom{background:#fff;color:#222;border-color:#777}
   #hiddenLineToggleBottom{display:none;position:absolute;left:14px;bottom:14px;z-index:22;min-width:168px;padding:8px 12px;border:1px solid #777;border-radius:10px;background:#222;color:#eee;font-size:15px;font-weight:700;box-shadow:none;cursor:pointer}
   #surfaceToggleBottom{display:none;position:absolute;left:196px;bottom:14px;z-index:22;min-width:168px;padding:8px 12px;border:1px solid #777;border-radius:10px;background:#222;color:#eee;font-size:15px;font-weight:700;box-shadow:none;cursor:pointer}
   body.light-ui #hiddenLineToggleBottom,body.light-ui #surfaceToggleBottom{background:#fff;color:#222;border-color:#777}
-  #stepControl{display:none;position:absolute;left:170px;bottom:14px;z-index:22;padding:8px 10px;border:2px solid #1976d2;border-radius:10px;background:#eaf4ff;color:#0d47a1;font-size:15px;font-weight:800;box-shadow:0 2px 10px rgba(0,0,0,.18)}
+  #stepControl{display:none;position:static;margin-top:10px;box-sizing:border-box;width:100%;padding:8px 10px;border:1px solid #9b9b9b;border-radius:6px;background:#f7f4ea;color:#222;font-size:15px;font-weight:700;text-align:center;box-shadow:inset 0 -2px 0 rgba(0,0,0,.12);cursor:pointer}
   body.light-ui #stepControl{display:block}
   #stepLabel{cursor:pointer;user-select:none}
   #stepSelect{display:none;margin-left:8px;font-size:15px;padding:3px 6px}
-
   #griButtonPanel{
     display:none;
     position:absolute;
     right:14px;
-    top:72px;
+    top:58px;
     z-index:75;
     width:206px;
     padding:8px;
@@ -115,15 +116,26 @@
     color:#222;
     box-shadow:0 4px 16px rgba(0,0,0,.35);
     user-select:none;
+    touch-action:none;
   }
   body.light-ui #griButtonPanel{display:block}
-  #griButtonPanel .griPanelTitle{
+  #griPanelTitleBar{
+    margin:-2px -2px 8px -2px;
+    padding:6px 8px;
+    border:1px solid #9a6a24;
+    border-radius:7px 7px 5px 5px;
+    background:#9a6a24;
+    color:#fff;
     font-size:13px;
     font-weight:800;
-    color:#6b4211;
     text-align:center;
-    margin-bottom:6px;
+    cursor:move;
+    touch-action:none;
+    user-select:none;
   }
+  #griPanelTitleBar:active{cursor:grabbing}
+  #griButtonPanel.dragging{box-shadow:0 8px 26px rgba(0,0,0,.45)}
+  #griButtonPanel .griPanelTitle{display:none}
   #griButtonPanel .griButtonGrid{
     display:grid;
     grid-template-columns:30px 1fr 1fr 30px;
@@ -151,13 +163,59 @@
   #griButtonPanel .eraserBtn{font-size:17px;color:#333}
   #griButtonPanel .okBtn{font-size:22px;color:#d00000}
   #stepControl.open #stepSelect{display:inline-block}
+  #drawingModeExitRow{display:flex;justify-content:flex-end;margin-top:12px}
+  #griButtonPanel #drawingModeExitButton{min-height:32px;width:136px;padding:6px 8px;border-color:#9b9b9b;background:#f7f4ea;color:#222;font-size:14px;font-weight:900}
+  #griButtonPanel #drawingModeExitButton:hover{background:#fff}
+
+
+  .infoSectionDivider{border:0;border-top:1px solid #666;margin:12px 0 10px 0}
+  body.light-ui .infoSectionDivider{border-top-color:#ccc}
+  .infoActionPanel{margin:0 0 10px 0;padding:8px;border:1px solid #555;border-radius:8px;background:rgba(255,255,255,.04);display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .infoActionButton{display:flex;align-items:center;justify-content:flex-start;gap:6px;padding:6px 8px 6px 10px;border:1px solid #666;border-radius:8px;background:#383838;color:#eee;font-size:13px;font-weight:700;cursor:pointer;text-align:left;min-width:0}
+  .infoActionButton:hover{background:#454545}
+  .infoActionButton:disabled{opacity:.55;cursor:not-allowed}
+  .infoActionButton:disabled:hover{background:#383838}
+  .infoActionButton.wide{grid-column:1 / 3}
+  .infoActionButton .infoKey{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 5px;box-sizing:border-box;border:1px solid #777;border-radius:6px;background:#444;color:#eee;font-size:14px;font-weight:700;line-height:1;box-shadow:inset 0 -1px 0 rgba(255,255,255,.08)}
+  .infoActionButton .infoLabel{white-space:normal;line-height:1.25;min-width:0;overflow-wrap:anywhere}
+  .infoActionButton.specialDrawing{background:#fff;color:#111;border-color:#111;box-shadow:0 0 0 1px rgba(255,255,255,.55) inset}
+  .infoActionButton.specialDrawing .infoKey{background:#eee;color:#111;border-color:#999}
+  .infoActionButton.specialDrawing:hover{background:#f2f2f2;color:#000}
+  body.light-ui .infoActionPanel{background:#f7f7f7;border-color:#ccc}
+  body.light-ui .infoActionButton{background:#fff;color:#222;border-color:#aaa}
+  body.light-ui .infoActionButton:hover{background:#eee}
+  body.light-ui .infoActionButton:disabled:hover{background:#fff}
+  body.light-ui .infoActionButton .infoKey{background:#eee;color:#222;border-color:#aaa}
+  body.light-ui .infoActionButton.specialDrawing{background:#fff;color:#111;border-color:#111;box-shadow:0 0 0 1px rgba(0,0,0,.10) inset}
+  body.light-ui .infoActionButton.specialDrawing .infoKey{background:#eee;color:#111;border-color:#999}
+  body.light-ui .infoActionButton.specialDrawing:hover{background:#f2f2f2}
 </style>
 </head>
 <body class="info-hidden">
 <button id="infoToggle" type="button">＞操作説明表示</button>
 <div id="app">
   <div id="info">
-    <div id="viewName" style="font-weight:700;font-size:16px;margin-bottom:6px">等角図</div>
+    <div id="infoActionPanel" class="infoActionPanel" aria-label="主要操作ボタン">
+      <button class="infoActionButton" type="button" data-info-action="top"><span class="infoKey">3</span><span class="infoLabel">：平面図</span></button>
+      <button id="infoDrawingModeButton" class="infoActionButton specialDrawing" type="button" data-info-action="drawing-mode"><span class="infoKey">D</span><span class="infoLabel">：.gri描画</span></button>
+      <button class="infoActionButton" type="button" data-info-action="front"><span class="infoKey">1</span><span class="infoLabel">：正面図</span></button>
+      <button class="infoActionButton" type="button" data-info-action="right"><span class="infoKey">2</span><span class="infoLabel">：右側面図</span></button>
+      <button class="infoActionButton wide" type="button" data-info-action="iso"><span class="infoKey">4</span><span class="infoLabel">：等角図</span></button>
+      <button class="infoActionButton" type="button" data-info-action="line-thicker"><span class="infoKey">＋</span><span class="infoLabel">：線太く</span></button>
+      <button class="infoActionButton" type="button" data-info-action="line-thinner"><span class="infoKey">－</span><span class="infoLabel">：線細く</span></button>
+      <button class="infoActionButton" type="button" data-info-action="toggle-beep"><span class="infoKey">B</span><span class="infoLabel">：消音</span></button>
+      <button class="infoActionButton" type="button" data-info-action="clear-model"><span class="infoKey">N</span><span class="infoLabel">：立体データを消去</span></button>
+      <button class="infoActionButton wide" type="button" data-info-action="png-output"><span class="infoKey">P</span><span class="infoLabel">：図PNG出力</span></button>
+      <button class="infoActionButton wide" type="button" data-info-action="load-model"><span class="infoKey">F</span><span class="infoLabel">：立体を読み込む（GRI、STL）</span></button>
+      <button id="saveGriButton" class="infoActionButton wide" type="button"><span class="infoKey">H</span><span class="infoLabel">：立体を保存する（GRI）</span></button>
+      <button id="exportStlFromGriButton" class="infoActionButton wide" type="button" data-info-action="export-gri-stl"><span class="infoKey">M</span><span class="infoLabel">：ワイヤーフレームにする</span></button>
+    </div>
+    <div id="saveGriControls" style="display:none">
+      <input id="saveFileNameInput" type="hidden" value="" />
+    </div>
+    <hr class="infoSectionDivider" />
+    <div id="infoTitle" style="font-weight:700;font-size:16px;margin-top:0;margin-bottom:6px">操作説明</div>
+    <div id="viewName" style="display:none">等角図</div>
     <div id="dualshockHelp">
       <div id="dualshockConnectedHelp" style="display:none">
         <div class="helpTitle">DUALSHOCK 4 操作</div>
@@ -184,53 +242,34 @@
       <div><kbd>←</kbd>/<kbd>→</kbd>：経度方向</div>
       <div><kbd>↑</kbd>/<kbd>↓</kbd>：緯度方向</div>
       <div><kbd>Shift</kbd>+<kbd>↑</kbd>/<kbd>↓</kbd>：拡大縮小</div>
-      <div><kbd>+</kbd>/<kbd>-</kbd>：線の太さ</div>
       <div id="hiddenLineKeyHelp" style="display:none"><kbd>K</kbd>：かくれ線表示の切替</div>
       <div id="surfaceKeyHelp" style="display:none"><kbd>S</kbd>：面の色表示の切替</div>
-      <div><kbd>P</kbd>：保存先とファイル名を選んでPNG保存</div>
       <div>マウス：GRIは自由視点内で左ドラッグ回転／STLは立体上で左ドラッグ回転／画面上でホイール拡大縮小</div>
       <div>画面右下の「内蔵STL」：内蔵STLを選択して読み込み</div>
       <div>タブレット：ピンチで拡大縮小／自由視点上でスワイプ回転</div>
       <div>タブレット：三本指で上下すると線の太さを変更</div>
       <div>４面モードの各ラベル：クリック/タップで１面表示</div>
-      <div class="viewPresetControls">
-        <div class="viewPresetTitle">視点切替（キーボード割り当て）</div>
-        <div class="viewPresetGrid">
-          <button class="viewPresetButton" type="button" data-view-preset="top"><span>平面図</span><kbd>3</kbd></button>
-          <button class="viewPresetButton" type="button" data-view-preset="iso"><span>等角図</span><kbd>4</kbd></button>
-          <button class="viewPresetButton" type="button" data-view-preset="front"><span>正面図</span><kbd>1</kbd></button>
-          <button class="viewPresetButton" type="button" data-view-preset="right"><span>右側面図</span><kbd>2</kbd></button>
-        </div>
-      </div>
-      <div><kbd>B</kbd>：クリック音</div>
-      <div><kbd>N</kbd>：立体データを消去</div>
-      <div id="modeKeyHelp"><kbd>D</kbd>：通常モード/描画モード</div>
     </div>
     <div id="drawingModeHelp">
-      <div class="helpTitle">.gri描画モード専用操作</div>
+      <div class="helpTitle">.gri描画専用操作</div>
       <div><kbd>BS</kbd>：最後に書かれた辺を削除</div>
       <div><kbd>Shift</kbd>+<kbd>BS</kbd>：直前に消した辺を戻す</div>
       <div><kbd>X</kbd>/<kbd>Y</kbd>/<kbd>Z</kbd>：ポインタを各軸の正方向へ移動</div>
       <div><kbd>Shift</kbd>+<kbd>X</kbd>/<kbd>Y</kbd>/<kbd>Z</kbd>：ポインタを各軸の負方向へ移動</div>
       <div><kbd>O</kbd>：ポインタを原点へ戻す</div>
-      <div>画面右上の作図ボタン：＜ X -X ＞、＜ Y -Y ＞、＜ Z -Z ＞、原点、消しゴム、OKで操作／ポインタ横に座標表示</div>
+      <div>画面右上の作図ボタン：＜ X -X ＞、＜ Y -Y ＞、＜ Z -Z ＞、原点、消しゴム、OK、ステップ変更で操作／ポインタ横に座標表示</div>
       <div><kbd>Enter</kbd>：始点を記録／終点として辺を追加</div>
       <div><kbd>Delete</kbd>：始点と終点で指定した範囲と重なる辺を削除／分割</div>
       <div>自由視点で線分にマウスを近づける：赤く強調表示</div>
       <div>強調表示された線分を右クリック：確認して削除</div>
       <div><kbd>Esc</kbd>：始点・終点の記録をキャンセル</div>
-      <div><kbd>N</kbd>：立体データを消去</div>
     </div>
-    <div class="small" style="margin-top:6px"><label>読み込む立体を選択：（GRI、STLのみ）<input id="griFileInput" type="file" accept=".gri,.txt,.stl" /></label></div>
+    <input id="griFileInput" type="file" accept=".gri,.txt,.stl" style="display:none" />
     <div class="small" style="display:none;margin-top:8px">内蔵STLを読み込む：</div>
     <select id="embeddedStlSelect" style="display:none;box-sizing:border-box;width:100%;padding:6px 8px;border-radius:6px;border:1px solid #666;background:#1f1f1f;color:#eee">
       <option value="">選択してください</option>
     </select>
-    <div id="saveGriControls">
-      <div class="small" style="margin-top:8px">保存ファイル名：入力してください（GRI用）</div>
-      <input id="saveFileNameInput" type="text" value="" placeholder="例：my_model（.griは自動で付きます）" style="box-sizing:border-box;width:100%;padding:6px 8px;border-radius:6px;border:1px solid #666;background:#1f1f1f;color:#eee" />
-      <button id="saveGriButton" type="button" style="margin-top:6px;padding:6px 10px;border-radius:8px;border:1px solid #666;background:#383838;color:#eee;cursor:pointer">名前を指定して保存</button>
-    </div>
+    <hr class="infoSectionDivider" />
     <div id="zoomStatus" class="small">表示倍率：100%</div>
     <div id="lineWidthStatus" class="small">線の太さ：1.0</div>
     <div id="colorModeStatus" class="small">表示モード：反転（黒背景・白線）</div>
@@ -239,8 +278,8 @@
     <div id="padStatus" class="small">ゲームパッド：未接続 または 未操作</div>
     <div id="testStatus" class="small">自己テスト：未実行</div>
   </div>
-  <div id="viewer" tabindex="-1"><canvas id="canvas"></canvas><button id="viewModeButton" type="button">４面モードにする</button><div id="drawingModeLabel">.gri描画モード</div><div id="topRightInfo"><div id="appTitle">立体グリグリ Vibe-Coded V1.06</div></div><div id="bottomRightControls"><div id="modelFileNameDisplay" style="display:none"></div><button id="embeddedStlButton" type="button">内蔵STL</button></div><div id="embeddedStlPopup"><div id="embeddedStlPopupHeader"><span>内蔵STLを読み込む</span><button id="embeddedStlPopupClose" type="button" aria-label="閉じる">×</button></div><div id="embeddedStlPopupList"></div></div><button id="hiddenLineToggleBottom" type="button">かくれ線を表示する</button><button id="surfaceToggleBottom" type="button">面の色を表示しない</button><button id="modeToggleBottom" type="button">.gri描画モードにする</button><div id="stepControl"><span id="stepLabel">ステップ：20mm</span><select id="stepSelect"><option value="20" selected>20mm</option><option value="10">10mm</option><option value="5">5mm</option><option value="1">1mm</option></select></div><div id="griButtonPanel" aria-label="GRI描画ボタン操作">
-  <div class="griPanelTitle">.gri作図</div>
+  <div id="viewer" tabindex="-1"><canvas id="canvas"></canvas><button id="viewModeButton" type="button">４面モードにする</button><div id="drawingModeLabel">.gri描画</div><div id="topRightInfo"><div id="appTitle">立体グリグリ Vibe-Coded V1.7</div></div><div id="bottomRightControls"><div id="modelFileNameDisplay" style="display:none"></div><button id="embeddedStlButton" type="button">内蔵STL</button></div><div id="embeddedStlPopup"><div id="embeddedStlPopupHeader"><span>内蔵STLを読み込む</span><button id="embeddedStlPopupClose" type="button" aria-label="閉じる">×</button></div><div id="embeddedStlPopupList"></div></div><button id="hiddenLineToggleBottom" type="button">かくれ線を表示する</button><button id="surfaceToggleBottom" type="button">面の色を表示しない</button><button id="modeToggleBottom" type="button">.gri描画にする</button><div id="griButtonPanel" aria-label="GRI描画ボタン操作">
+  <div id="griPanelTitleBar">作図ツール</div>
   <div class="griButtonGrid">
     <button type="button" class="jumpBtn" data-gri-action="x10minus">＜</button>
     <button type="button" class="axisX" data-gri-action="x">X</button>
@@ -260,6 +299,8 @@
     <button type="button" class="wide eraserBtn" data-gri-action="eraser">消しゴム</button>
     <button type="button" class="wide okBtn" data-gri-action="ok">OK</button>
   </div>
+  <div id="stepControl"><span id="stepLabel">ステップ：20mm</span><select id="stepSelect"><option value="20" selected>20mm</option><option value="10">10mm</option><option value="5">5mm</option><option value="1">1mm</option></select></div>
+  <div id="drawingModeExitRow"><button id="drawingModeExitButton" type="button">.gri描画をやめる</button></div>
 </div><div id="confirmOverlay"><div id="confirmBox"><div id="confirmMessage">本当に消しますか？</div><div class="buttons"><button id="confirmYes" type="button">はい</button><button id="confirmNo" type="button">いいえ</button></div></div></div><div id="aboutOverlay"><div id="aboutBox"><div id="aboutText"><p>「立体グリグリ」は、第三角法による正投影図の学習のために、1996年頃に川俣純がMS-DOS上で動作するアプリケーションとして開発しました。このバージョンは、バイブコーディングにて30年後の2026年5月にChatGPT5.5と共に制作したものです。CC BYとしますので、ユーザーの判断にて自由に改変してご活用いただいて問題ありません。</p><p>STLファイルを読み込めるようにしてみました。ただし、STLファイルを作成することはできません。TinkercadなどのツールでSTLファイルを作成し、そのファイルを読み込ませてみてください。隠れ線の表示などもほぼできます。</p><p style="text-align:right;margin-top:1.2em">2026年5月　川俣　純</p></div><button id="aboutClose" type="button">閉じる</button></div></div><div id="stlTimeoutOverlay"><div id="stlTimeoutBox"><div id="stlTimeoutMessage">読み込みと表示に時間がかかりすぎるので、この立体は読み込めません。</div><button id="stlTimeoutBack" type="button">戻る</button></div></div></div>
 </div>
 <script>
@@ -267,10 +308,10 @@
 const $=id=>document.getElementById(id);
 const infoToggle=$('infoToggle');
 const canvas=$('canvas'),ctx=canvas.getContext('2d'),viewer=$('viewer');
-const viewModeButton=$('viewModeButton'),griFileInput=$('griFileInput'),embeddedStlSelect=$('embeddedStlSelect'),embeddedStlButton=$('embeddedStlButton'),embeddedStlPopup=$('embeddedStlPopup'),embeddedStlPopupList=$('embeddedStlPopupList'),embeddedStlPopupClose=$('embeddedStlPopupClose'),saveGriControls=$('saveGriControls'),saveGriButton=$('saveGriButton'),saveFileNameInput=$('saveFileNameInput'),confirmOverlay=$('confirmOverlay'),confirmBox=$('confirmBox'),confirmYes=$('confirmYes'),confirmNo=$('confirmNo'),confirmMessage=$('confirmMessage'),aboutOverlay=$('aboutOverlay'),aboutClose=$('aboutClose'),stepControl=$('stepControl'),stepLabel=$('stepLabel'),stepSelect=$('stepSelect'),hiddenLineToggleBottom=$('hiddenLineToggleBottom'),surfaceToggleBottom=$('surfaceToggleBottom'),modeToggleBottom=$('modeToggleBottom'),hiddenLineKeyHelp=$('hiddenLineKeyHelp'),surfaceKeyHelp=$('surfaceKeyHelp'),modeKeyHelp=$('modeKeyHelp'),appTitle=$('appTitle'),modelFileNameDisplay=$('modelFileNameDisplay');
+const viewModeButton=$('viewModeButton'),griFileInput=$('griFileInput'),embeddedStlSelect=$('embeddedStlSelect'),embeddedStlButton=$('embeddedStlButton'),embeddedStlPopup=$('embeddedStlPopup'),embeddedStlPopupList=$('embeddedStlPopupList'),embeddedStlPopupClose=$('embeddedStlPopupClose'),saveGriControls=$('saveGriControls'),saveGriButton=$('saveGriButton'),exportStlFromGriButton=$('exportStlFromGriButton'),saveFileNameInput=$('saveFileNameInput'),confirmOverlay=$('confirmOverlay'),confirmBox=$('confirmBox'),confirmYes=$('confirmYes'),confirmNo=$('confirmNo'),confirmMessage=$('confirmMessage'),aboutOverlay=$('aboutOverlay'),aboutClose=$('aboutClose'),stepControl=$('stepControl'),stepLabel=$('stepLabel'),stepSelect=$('stepSelect'),drawingModeExitButton=$('drawingModeExitButton'),hiddenLineToggleBottom=$('hiddenLineToggleBottom'),surfaceToggleBottom=$('surfaceToggleBottom'),modeToggleBottom=$('modeToggleBottom'),hiddenLineKeyHelp=$('hiddenLineKeyHelp'),surfaceKeyHelp=$('surfaceKeyHelp'),modeKeyHelp=$('modeKeyHelp'),appTitle=$('appTitle'),modelFileNameDisplay=$('modelFileNameDisplay');
 const viewName=$('viewName'),fileStatus=$('fileStatus'),zoomStatus=$('zoomStatus'),lineWidthStatus=$('lineWidthStatus'),colorModeStatus=$('colorModeStatus'),beepStatus=$('beepStatus'),padStatus=$('padStatus'),testStatus=$('testStatus');
 const dualshockConnectedHelp=$('dualshockConnectedHelp'),dualshockDisconnectedHelp=$('dualshockDisconnectedHelp'),iosGriHint=$('iosGriHint');
-const griButtonPanel=$('griButtonPanel');
+const griButtonPanel=$('griButtonPanel'),griPanelTitleBar=$('griPanelTitleBar');
 let lon=Math.PI/4,lat=Math.atan(1/Math.sqrt(2));
 const LAT_LIMIT=Math.PI/2;
 const TOP_LAT=Math.PI/2;
@@ -326,6 +367,9 @@ let activeViewClipRect=null;
 const undoStack=[];
 let gamepadEmbeddedStlSelectMode=false;
 let gamepadEmbeddedStlIndex=0;
+let griUnsavedLineData=false;
+// STLからGRIを生成した直後に、元のSTL表示へ戻すための退避状態。
+let stlReturnState=null;
 // 現在表示中の立体が、内蔵STLリストの何番かを覚えておく。
 // OPTIONSで内蔵STL選択に入った時、ここから次/前の立体をすぐ選べるようにする。
 let currentEmbeddedStlLibraryIndex=-1;
@@ -333,7 +377,7 @@ let gamepadEmbeddedStlRestoreState=null;
 let gamepadEmbeddedStlPreviewLoaded=false;
 init();
 
-function init(){setupInfoToggle();setupGriButtonPanel();syncViewModeClass();configureFileInputForDevice();populateEmbeddedStlSelect();setupEmbeddedStlPopup();updateColor();updateHiddenLineButton();updateSurfaceButton();resize();loadEmbeddedDefaultStl();updateFileStatus(model);runSelfTests();requestAnimationFrame(loop)}
+function init(){setupInfoToggle();setupGriButtonPanel();syncViewModeClass();configureFileInputForDevice();setupModelFileDrop();populateEmbeddedStlSelect();setupEmbeddedStlPopup();updateColor();updateHiddenLineButton();updateSurfaceButton();updateBeepButtonLabel();resize();loadEmbeddedDefaultStl();updateFileStatus(model);runSelfTests();requestAnimationFrame(loop)}
 
 
 function useDrawingEraser(){
@@ -370,8 +414,61 @@ function moveDrawingPointerMany(axis,reverse=false,count=10){
   markRenderDirty();
 }
 
+let griPanelDragState=null;
+function setupGriButtonPanelDragging(){
+  if(!griButtonPanel||!griPanelTitleBar)return;
+  griPanelTitleBar.addEventListener('pointerdown',event=>{
+    if(event.button!==undefined&&event.button!==0)return;
+    event.preventDefault();
+    event.stopPropagation();
+    const panelRect=griButtonPanel.getBoundingClientRect();
+    const viewerRect=viewer.getBoundingClientRect();
+    griPanelDragState={
+      offsetX:event.clientX-panelRect.left,
+      offsetY:event.clientY-panelRect.top
+    };
+    // right指定の初期位置でも、ドラッグ開始時にleft/top指定へ切り替える。
+    griButtonPanel.style.left=(panelRect.left-viewerRect.left)+'px';
+    griButtonPanel.style.top=(panelRect.top-viewerRect.top)+'px';
+    griButtonPanel.style.right='auto';
+    griButtonPanel.classList.add('dragging');
+    try{griPanelTitleBar.setPointerCapture(event.pointerId);}catch(e){}
+  });
+  griPanelTitleBar.addEventListener('pointermove',event=>{
+    if(!griPanelDragState)return;
+    event.preventDefault();
+    const viewerRect=viewer.getBoundingClientRect();
+    const maxLeft=Math.max(0,viewerRect.width-griButtonPanel.offsetWidth-6);
+    const maxTop=Math.max(0,viewerRect.height-griButtonPanel.offsetHeight-6);
+    const left=Math.min(maxLeft,Math.max(0,event.clientX-viewerRect.left-griPanelDragState.offsetX));
+    const top=Math.min(maxTop,Math.max(0,event.clientY-viewerRect.top-griPanelDragState.offsetY));
+    griButtonPanel.style.left=left+'px';
+    griButtonPanel.style.top=top+'px';
+    griButtonPanel.style.right='auto';
+  });
+  const finishDrag=event=>{
+    if(!griPanelDragState)return;
+    griPanelDragState=null;
+    griButtonPanel.classList.remove('dragging');
+    try{griPanelTitleBar.releasePointerCapture(event.pointerId);}catch(e){}
+    focusViewerForKeys();
+  };
+  griPanelTitleBar.addEventListener('pointerup',finishDrag);
+  griPanelTitleBar.addEventListener('pointercancel',finishDrag);
+}
+function clampGriButtonPanelInsideViewer(){
+  if(!griButtonPanel||griButtonPanel.style.left==='')return;
+  const maxLeft=Math.max(0,viewer.clientWidth-griButtonPanel.offsetWidth-6);
+  const maxTop=Math.max(0,viewer.clientHeight-griButtonPanel.offsetHeight-6);
+  const left=Math.min(maxLeft,Math.max(0,parseFloat(griButtonPanel.style.left)||0));
+  const top=Math.min(maxTop,Math.max(0,parseFloat(griButtonPanel.style.top)||0));
+  griButtonPanel.style.left=left+'px';
+  griButtonPanel.style.top=top+'px';
+}
+
 function setupGriButtonPanel(){
   if(!griButtonPanel)return;
+  setupGriButtonPanelDragging();
   griButtonPanel.addEventListener('pointerdown',e=>{
     e.stopPropagation();
   });
@@ -406,7 +503,63 @@ function setupGriButtonPanel(){
 }
 function updateGriButtonPanelVisibility(){
   if(!griButtonPanel)return;
-  griButtonPanel.style.display=!inverted?'block':'none';
+  const isDrawing=!inverted&&!isStlModel();
+
+  // 右上の作図操作パネルは.gri描画中だけ表示する。
+  // 通常時の「.gri描画にする」ボタンと、右上パネル内の終了ボタンは廃止。
+  griButtonPanel.style.display=isDrawing?'block':'none';
+  griButtonPanel.classList.toggle('drawing-mode',isDrawing);
+  if(isDrawing)clampGriButtonPanelInsideViewer();
+  updateInfoDrawingModeButton();
+}
+
+function updateInfoDrawingModeButton(){
+  const button=document.getElementById('infoDrawingModeButton');
+  if(!button)return;
+  const label=(!inverted&&!isStlModel())?'.gri描画をやめる':'.gri描画';
+  button.innerHTML=`<span class="infoKey">D</span><span class="infoLabel">：${label}</span>`;
+}
+
+function updateBeepButtonLabel(){
+  const button=document.querySelector('[data-info-action="toggle-beep"]');
+  if(!button)return;
+  const label=beep?'消音':'クリック音を出す';
+  button.innerHTML=`<span class="infoKey">B</span><span class="infoLabel">：${label}</span>`;
+}
+
+function updateSaveGriButtonState(){
+  if(saveGriButton){
+    saveGriButton.innerHTML='<span class="infoKey">H</span><span class="infoLabel">：立体を保存する（GRI）</span>';
+    saveGriButton.disabled=isStlModel();
+  }
+  updateExportStlFromGriButtonState();
+}
+function updateExportStlFromGriButtonState(){
+  if(!exportStlFromGriButton)return;
+  if(stlReturnState&&currentModelType==='gri'){
+    exportStlFromGriButton.innerHTML='<span class="infoKey">M</span><span class="infoLabel">：STL表示に戻す</span>';
+    exportStlFromGriButton.disabled=false;
+    return;
+  }
+  // GRIからSTLを生成する機能は廃止し、MボタンはSTL表示中だけ有効にする。
+  exportStlFromGriButton.innerHTML='<span class="infoKey">M</span><span class="infoLabel">：ワイヤーフレームにする</span>';
+  exportStlFromGriButton.disabled=!(isStlModel()&&model&&model.triangles&&model.triangles.length);
+}
+function isCurrentGriSavedForStlGeneration(){
+  // GRIからSTLを生成する時は、元のGRIファイル名が確定していて、
+  // かつ.gri描画で作成・編集した線分が未保存でないことを条件にする。
+  return !!(
+    currentModelType==='gri' &&
+    model && model.sourceType==='gri' &&
+    currentGriFileName &&
+    /\.gri$/i.test(String(currentGriFileName)) &&
+    !griUnsavedLineData
+  );
+}
+function showGriStlSaveRequiredDialog(){
+  alert('保存されているGRIファイルでなければSTL生成はできません。\n先に「H：立体を保存する（GRI）」で保存してください。');
+  fileStatus.textContent='STL生成には、先にGRIファイルとして保存する必要があります。';
+  focusViewerForKeys();
 }
 
 function setupInfoToggle(){
@@ -443,6 +596,57 @@ function configureFileInputForDevice(){
   }
 }
 
+function isSupportedDroppedModelFile(file){
+  const name=String((file&&file.name)||'').toLowerCase();
+  return /\.(gri|stl)$/.test(name);
+}
+function getDroppedModelFile(dataTransfer){
+  const files=Array.from((dataTransfer&&dataTransfer.files)||[]);
+  return files.find(isSupportedDroppedModelFile)||null;
+}
+function setupModelFileDrop(){
+  let dragDepth=0;
+  const hasSupportedFile=event=>!!getDroppedModelFile(event.dataTransfer);
+  const showDropState=()=>document.body.classList.add('drag-model-over');
+  const hideDropState=()=>{dragDepth=0;document.body.classList.remove('drag-model-over');};
+
+  window.addEventListener('dragenter',event=>{
+    if(!hasSupportedFile(event))return;
+    event.preventDefault();
+    dragDepth++;
+    showDropState();
+  });
+  window.addEventListener('dragover',event=>{
+    if(!hasSupportedFile(event))return;
+    event.preventDefault();
+    if(event.dataTransfer)event.dataTransfer.dropEffect='copy';
+    showDropState();
+  });
+  window.addEventListener('dragleave',event=>{
+    if(!document.body.classList.contains('drag-model-over'))return;
+    dragDepth=Math.max(0,dragDepth-1);
+    if(dragDepth===0)hideDropState();
+  });
+  window.addEventListener('drop',event=>{
+    const droppedFile=getDroppedModelFile(event.dataTransfer);
+    if(!droppedFile)return;
+    event.preventDefault();
+    event.stopPropagation();
+    hideDropState();
+    confirmBeforeLoadingNewModel(
+      ()=>handleSelectedModelFile(droppedFile),
+      ()=>{
+        fileStatus.textContent='ドロップ読み込みを中止しました。';
+        focusViewerForKeys();
+      }
+    );
+  });
+
+  // 対応外ファイルを落とした時でも、ブラウザがページ遷移してしまう事故を防ぐ。
+  window.addEventListener('dragover',event=>event.preventDefault());
+  window.addEventListener('drop',event=>event.preventDefault());
+}
+
 function makeStlTimeoutError(){
   const err=new Error('読み込みと表示に時間がかかりすぎるので、この立体は読み込めません。');
   err.isStlTimeout=true;
@@ -466,12 +670,12 @@ function checkActiveRenderDeadline(){
 function resetToEmptyGriAfterStlTimeout(){
   currentGriText='0 0 0 0\n';
   currentGriFileName='empty.gri';
+  clearGriLineDataUnsaved();
   model=parseGri(currentGriText,currentGriFileName);
   currentModelType='gri';
   showHiddenLines=false;
   showStlSurface=true;
-  saveGriButton.disabled=false;
-  saveGriButton.textContent='名前を指定して保存';
+  updateSaveGriButtonState();
   updateBottomModeButtons();
   updateHiddenLineButton();
   updateSurfaceButton();
@@ -486,6 +690,7 @@ function restoreModelStateAfterStlTimeout(state){
   currentModelType=state.currentModelType;
   currentGriText=state.currentGriText;
   currentGriFileName=state.currentGriFileName;
+  griUnsavedLineData=!!state.griUnsavedLineData;
   showHiddenLines=state.showHiddenLines;
   showStlSurface=state.showStlSurface!==undefined?state.showStlSurface:true;
   lon=state.lon;
@@ -496,8 +701,7 @@ function restoreModelStateAfterStlTimeout(state){
   four=state.four;
   syncViewModeClass();
   moving=false;
-  saveGriButton.disabled=currentModelType==='stl';
-  saveGriButton.textContent=currentModelType==='stl'?'STL表示中（GRI保存不可）':'名前を指定して保存';
+  updateSaveGriButtonState();
   updateBottomModeButtons();
   updateHiddenLineButton();
   updateSurfaceButton();
@@ -588,7 +792,7 @@ function parseGriKeepingViewTransform(text,name='GRIファイル',baseModel=mode
 }
 
 function recenterGriModelKeepingScale(text,name='GRIファイル',baseModel=model){
-  // .gri描画モードでは、ユーザーが拡大縮小しない限り表示倍率は固定したい。
+  // .gri描画では、ユーザーが拡大縮小しない限り表示倍率は固定したい。
   // ただし回転中心は、STLと同じようにXYZそれぞれの最大値・最小値の中間へ更新する。
   const lines=String(text||'').replace(/\r/g,'\n').split('\n').map(s=>s.trim()).filter(Boolean);
   if(lines.length<1)return parseGriKeepingViewTransform(text,name,baseModel);
@@ -716,20 +920,46 @@ function populateEmbeddedStlPopupList(){
     embeddedStlPopupList.appendChild(button);
   }
 }
-function loadGri(text,name){model=parseGri(text,name);currentModelType='gri';currentGriText=text;currentGriFileName=name;showHiddenLines=false;saveGriButton.disabled=false;saveGriButton.textContent='名前を指定して保存';saveFileNameInput.value=(name||'drawing.gri').replace(/\.[^.]*$/,'');undoStack.length=0;updateBottomModeButtons();fit(...views.iso.slice(1));updateFileStatus(model);moveTo(views.iso)}
+function loadGri(text,name,options={}){
+  const preserveView=!!options.preserveView;
+  const keepView={lon:normalizeAngle(lon),lat,eLon:normalizeAngle(eLon),eLat,zoom,four,inverted};
+  stlReturnState=null;
+  model=parseGri(text,name);
+  currentModelType='gri';
+  currentGriText=text;
+  currentGriFileName=name;
+  clearGriLineDataUnsaved();
+  showHiddenLines=false;
+  updateSaveGriButtonState();
+  saveFileNameInput.value=(name||'drawing.gri').replace(/\.[^.]*$/,'');
+  undoStack.length=0;
+  updateBottomModeButtons();
+  updateFileStatus(model);
+  if(preserveView){
+    lon=keepView.lon;lat=keepView.lat;eLon=keepView.eLon;eLat=keepView.eLat;zoom=keepView.zoom;four=keepView.four;
+    syncViewModeClass();
+    keepCurrentZoomStatus();
+    markRenderDirty();
+  }else{
+    fit(...views.iso.slice(1));
+    moveTo(views.iso);
+  }
+}
 async function saveCurrentGri(){
-  if(model&&model.sourceType==='stl'){fileStatus.textContent='STL表示中です。STLをGRIとしては保存しません。';return;}
+  if(model&&model.sourceType==='stl'){
+    fileStatus.textContent='STL表示中です。STLをGRIとしては保存しません。';
+    return;
+  }
   const nl=String.fromCharCode(10);
   const text=currentGriText&&currentGriText.trim()?currentGriText:rebuildGriHeader(['0 0 0 0']);
   const safeText=text.endsWith(nl)?text:text+nl;
 
-  const inputBase=(saveFileNameInput.value||'').trim();
-  if(!inputBase){
-    fileStatus.textContent='保存エラー：ファイル名を入力してください。';
-    return;
-  }
-
-  const safeBase=inputBase.replace(/\.[^.]*$/,'').replace(/[\\/:*?"<>|]/g,'_').trim() || 'rittai_guriguri_drawing';
+  // Sボタン/キーを押したら、ブラウザの保存ダイアログでファイル名を決める。
+  // 別の入力ポップアップは出さない。
+  const safeBase=(saveFileNameInput.value||currentGriFileName||'my_model')
+    .replace(/\.[^.]*$/,'')
+    .replace(/[\\/:*?"<>|]/g,'_')
+    .trim() || 'my_model';
   const name=safeBase+'.gri';
 
   if(window.showSaveFilePicker){
@@ -745,10 +975,15 @@ async function saveCurrentGri(){
       if(model){model.fileName=name;updateModelFileNameDisplay(model);}
       saveFileNameInput.value=safeBase;
       rememberStartupGri(safeText,name);
+      clearGriLineDataUnsaved();
       fileStatus.textContent=`保存しました：${name}`;
+      focusViewerForKeys();
       return;
     }catch(error){
-      if(error&&error.name==='AbortError')return;
+      if(error&&error.name==='AbortError'){
+        focusViewerForKeys();
+        return;
+      }
       console.warn('保存ダイアログで保存できなかったため、ダウンロード方式に切り替えます。',error);
     }
   }
@@ -766,7 +1001,399 @@ async function saveCurrentGri(){
   if(model){model.fileName=name;updateModelFileNameDisplay(model);}
   saveFileNameInput.value=safeBase;
   rememberStartupGri(safeText,name);
+  clearGriLineDataUnsaved();
   fileStatus.textContent=`保存を開始しました：${name}`;
+  focusViewerForKeys();
+}
+
+function parseRawGriWireframe(text){
+  const lines=String(text||'').replace(/\r/g,'\n').split('\n').map(s=>s.trim()).filter(Boolean);
+  const vertices=[];
+  const vertexMap=new Map();
+  const edgeMap=new Map();
+  const getVertexIndex=p=>{
+    const key=`${roundCoord(p.x)},${roundCoord(p.y)},${roundCoord(p.z)}`;
+    if(!vertexMap.has(key)){
+      vertexMap.set(key,vertices.length);
+      vertices.push({x:p.x,y:p.y,z:p.z,key});
+    }
+    return vertexMap.get(key);
+  };
+  for(let i=1;i<lines.length;i++){
+    const a=nums(lines[i]);
+    if(a.length<6||a.some(Number.isNaN))continue;
+    const ia=getVertexIndex(v(a[0],a[1],a[2]));
+    const ib=getVertexIndex(v(a[3],a[4],a[5]));
+    if(ia===ib)continue;
+    const key=ia<ib?`${ia}:${ib}`:`${ib}:${ia}`;
+    if(!edgeMap.has(key))edgeMap.set(key,ia<ib?[ia,ib]:[ib,ia]);
+  }
+  return {vertices,edges:Array.from(edgeMap.values())};
+}
+function roundCoord(n){return Math.round(Number(n)*1000000)/1000000;}
+function cycleCanonicalKey(cycle){
+  const n=cycle.length;
+  const seqs=[];
+  const reversed=cycle.slice().reverse();
+  for(const seq of [cycle,reversed]){
+    for(let i=0;i<n;i++)seqs.push(seq.slice(i).concat(seq.slice(0,i)).join(':'));
+  }
+  seqs.sort();
+  return seqs[0];
+}
+function newellNormalForCycle(cycle,vertices){
+  let nx=0,ny=0,nz=0;
+  for(let i=0;i<cycle.length;i++){
+    const p=vertices[cycle[i]],q=vertices[cycle[(i+1)%cycle.length]];
+    nx+=(p.y-q.y)*(p.z+q.z);
+    ny+=(p.z-q.z)*(p.x+q.x);
+    nz+=(p.x-q.x)*(p.y+q.y);
+  }
+  return v(nx,ny,nz);
+}
+function vectorLength3(a){return Math.hypot(a.x,a.y,a.z);}
+function normalize3(a){const len=vectorLength3(a)||1;return v(a.x/len,a.y/len,a.z/len);}
+function isPlanarCycle(cycle,vertices){
+  const n=newellNormalForCycle(cycle,vertices);
+  const len=vectorLength3(n);
+  if(len<1e-7)return false;
+  const nn=mul(n,1/len);
+  const p0=vertices[cycle[0]];
+  const tol=1e-5;
+  for(const index of cycle){
+    const p=vertices[index];
+    if(Math.abs(dot(sub(p,p0),nn))>tol)return false;
+  }
+  return true;
+}
+function isChordlessCycle(cycle,edgeSet){
+  const n=cycle.length;
+  for(let i=0;i<n;i++){
+    for(let j=i+1;j<n;j++){
+      if(j===i+1||(i===0&&j===n-1))continue;
+      const a=cycle[i],b=cycle[j];
+      const key=a<b?`${a}:${b}`:`${b}:${a}`;
+      if(edgeSet.has(key))return false;
+    }
+  }
+  return true;
+}
+function inferGriFaces(vertices,edges){
+  if(vertices.length<4||edges.length<3)return [];
+  if(vertices.length>120){throw Error('頂点数が多いため、GRIからSTLの面推定を中止しました。');}
+  const adj=vertices.map(()=>[]);
+  const edgeSet=new Set();
+  for(const [a,b] of edges){
+    adj[a].push(b);adj[b].push(a);
+    edgeSet.add(a<b?`${a}:${b}`:`${b}:${a}`);
+  }
+  adj.forEach(list=>list.sort((a,b)=>a-b));
+  const maxLen=Math.min(12,vertices.length);
+  const cycles=new Map();
+  const maxCycles=20000;
+  function dfs(start,path){
+    if(cycles.size>maxCycles)throw Error('候補面が多すぎるため、GRIからSTLの面推定を中止しました。');
+    const cur=path[path.length-1];
+    for(const next of adj[cur]){
+      if(next===start&&path.length>=3){
+        const cycle=path.slice();
+        const key=cycleCanonicalKey(cycle);
+        if(cycles.has(key))continue;
+        if(!isChordlessCycle(cycle,edgeSet))continue;
+        if(!isPlanarCycle(cycle,vertices))continue;
+        cycles.set(key,cycle);
+      }else if(next>start&&!path.includes(next)&&path.length<maxLen){
+        dfs(start,path.concat(next));
+      }
+    }
+  }
+  for(let start=0;start<vertices.length;start++)dfs(start,[start]);
+  const center=v(0,0,0);
+  vertices.forEach(p=>{center.x+=p.x;center.y+=p.y;center.z+=p.z;});
+  center.x/=vertices.length;center.y/=vertices.length;center.z/=vertices.length;
+  const faces=[];
+  for(const cycle of cycles.values()){
+    let normal=normalize3(newellNormalForCycle(cycle,vertices));
+    const fc=v(0,0,0);
+    cycle.forEach(i=>{const p=vertices[i];fc.x+=p.x;fc.y+=p.y;fc.z+=p.z;});
+    fc.x/=cycle.length;fc.y/=cycle.length;fc.z/=cycle.length;
+    const oriented=dot(normal,sub(fc,center))>=0?cycle.slice():cycle.slice().reverse();
+    faces.push(oriented);
+  }
+  return faces;
+}
+function griPointToStlPoint(p){
+  // 立体グリグリは X=左右、Y=高さ、Z=奥行き。STLでは X=左右、Y=奥行き、Z=高さへ戻す。
+  return v(p.x,-p.z,p.y);
+}
+function stlFacetNormal(a,b,c){return normalize3(cross(sub(b,a),sub(c,a)));}
+function formatStlNumber(n){
+  if(!Number.isFinite(n))return '0';
+  const s=Number(n).toFixed(6).replace(/\.0+$/,'').replace(/(\.\d*?)0+$/,'$1');
+  return s==='-0'?'0':s;
+}
+function buildStlFromGriWireframe(text){
+  const wire=parseRawGriWireframe(text);
+  if(wire.vertices.length<4||wire.edges.length<3)throw Error('STL化できる線分データがありません。');
+  const faces=inferGriFaces(wire.vertices,wire.edges);
+  if(!faces.length)throw Error('面データを推定できませんでした。閉じたワイヤーフレームか確認してください。');
+  const lines=['solid gri_generated'];
+  let triangleCount=0;
+  for(const face of faces){
+    if(face.length<3)continue;
+    const p0=griPointToStlPoint(wire.vertices[face[0]]);
+    for(let i=1;i<face.length-1;i++){
+      const p1=griPointToStlPoint(wire.vertices[face[i]]);
+      const p2=griPointToStlPoint(wire.vertices[face[i+1]]);
+      const n=stlFacetNormal(p0,p1,p2);
+      lines.push(`  facet normal ${formatStlNumber(n.x)} ${formatStlNumber(n.y)} ${formatStlNumber(n.z)}`);
+      lines.push('    outer loop');
+      for(const p of [p0,p1,p2])lines.push(`      vertex ${formatStlNumber(p.x)} ${formatStlNumber(p.y)} ${formatStlNumber(p.z)}`);
+      lines.push('    endloop');
+      lines.push('  endfacet');
+      triangleCount++;
+    }
+  }
+  lines.push('endsolid gri_generated');
+  return {text:lines.join('\n')+'\n',faceCount:faces.length,triangleCount};
+}
+function loadGeneratedStlTextToView(stlText,name,faceCount,triangleCount){
+  const buffer=new TextEncoder().encode(stlText).buffer;
+  loadStl(buffer,name,0);
+  if(model){
+    model.fileName=name;
+    model.isGeneratedFromGri=true;
+    updateModelFileNameDisplay(model);
+  }
+  fileStatus.textContent=`STLを生成して表示しました：${name} / ${faceCount}面 ${triangleCount}三角形`;
+  markRenderDirty();
+}
+
+function stlModelPointToGriRaw(p){
+  const scale=(model&&Number.isFinite(model.scale)&&model.scale!==0)?model.scale:1;
+  const center=(model&&model.center)?model.center:v(0,0,0);
+  return v(p.x/scale+center.x,p.y/scale+center.y,p.z/scale+center.z);
+}
+function formatGriNumber(n){
+  if(Math.abs(n)<1e-9)n=0;
+  const rounded=Math.round(n);
+  if(Math.abs(n-rounded)<1e-6)return String(rounded);
+  return Number(n.toFixed(4)).toString();
+}
+function buildGriFromCurrentStlSurface(){
+  if(!(model&&model.sourceType==='stl'&&model.triangles&&model.triangles.length)){
+    throw Error('STL立体が表示されていません。');
+  }
+  const edgeMap=new Map();
+  const points=[];
+  const pointMap=new Map();
+  const pointKey=p=>`${formatGriNumber(p.x)},${formatGriNumber(p.y)},${formatGriNumber(p.z)}`;
+  const getPointIndex=p=>{
+    const raw=stlModelPointToGriRaw(p);
+    const key=pointKey(raw);
+    if(pointMap.has(key))return pointMap.get(key);
+    const index=points.length;
+    points.push(raw);
+    pointMap.set(key,index);
+    return index;
+  };
+  const addEdge=(a,b)=>{
+    const ia=getPointIndex(a),ib=getPointIndex(b);
+    if(ia===ib)return;
+    const key=ia<ib?`${ia}|${ib}`:`${ib}|${ia}`;
+    if(edgeMap.has(key))return;
+    edgeMap.set(key,[ia,ib]);
+  };
+
+  // STLの三角形分割の内部線は除き、表示用の稜線だけをGRI線分にする。
+  // これにより、四角形面が三角形2枚で構成されている場合の対角線を出さない。
+  for(const tri of model.triangles){
+    const pts=[tri.a,tri.b,tri.c];
+    const visible=tri.visibleEdges||[true,true,true];
+    for(let i=0;i<3;i++){
+      if(visible[i])addEdge(pts[i],pts[(i+1)%3]);
+    }
+  }
+  const edges=[...edgeMap.values()];
+  if(!edges.length)throw Error('GRI化できる稜線を取得できませんでした。');
+
+  let min=v(Infinity,Infinity,Infinity),max=v(-Infinity,-Infinity,-Infinity);
+  for(const p of points)expand(min,max,p);
+  const center=v((min.x+max.x)/2,(min.y+max.y)/2,(min.z+max.z)/2);
+  const lines=[`${edges.length} ${formatGriNumber(center.x)} ${formatGriNumber(center.y)} ${formatGriNumber(center.z)}`];
+  for(const [ia,ib] of edges){
+    const a=points[ia],b=points[ib];
+    lines.push(`${formatGriNumber(a.x)} ${formatGriNumber(a.y)} ${formatGriNumber(a.z)} ${formatGriNumber(b.x)} ${formatGriNumber(b.y)} ${formatGriNumber(b.z)}`);
+  }
+  return {text:lines.join('\n')+'\n',edgeCount:edges.length};
+}
+function exportGriFromCurrentStl(options={}){
+  const suppressFocus=!!options.suppressFocus;
+  if(!isStlModel()){
+    fileStatus.textContent='STLが表示されている時だけ、ワイヤーフレームにできます。';
+    if(!suppressFocus)focusViewerForKeys();
+    return false;
+  }
+  try{
+    const result=buildGriFromCurrentStlSurface();
+    const safeBase=(model&&model.fileName?model.fileName:'stl_model').replace(/\.[^.]*$/,'').replace(/[\\/:*?"<>|]/g,'_').trim()||'stl_model';
+    const name=safeBase+'_wireframe.gri';
+
+    const returnState={
+      model,
+      currentModelType,
+      currentGriText,
+      currentGriFileName,
+      showHiddenLines,
+      showStlSurface,
+      stlHiddenLinesPreference,
+      stlSurfacePreference,
+      lon,lat,eLon,eLat,zoom,four,inverted,
+      fileName:model&&model.fileName?model.fileName:'STLファイル',
+      modified:false
+    };
+
+    // 「ワイヤーフレームにする」は保存操作ではなく、画面表示だけをSTLから内部GRIへ切り替える。
+    // 必要になった場合だけ、H：立体を保存する（GRI）で保存する。
+    // STLからGRIへ切り替える時は、変換前の視点角度・拡大率を保持する。
+    loadGri(result.text,name,{preserveView:true});
+    stlReturnState=returnState;
+    clearGriLineDataUnsaved();
+    updateExportStlFromGriButtonState();
+    fileStatus.textContent=`ワイヤーフレーム表示にしました：内部GRI / ${result.edgeCount}辺`;
+    markRenderDirty();
+    if(!suppressFocus)focusViewerForKeys();
+    return true;
+  }catch(error){
+    console.error(error);
+    fileStatus.textContent=`ワイヤーフレーム生成エラー：${error.message||error}`;
+    if(!suppressFocus)focusViewerForKeys();
+    return false;
+  }
+}
+function restoreOriginalStlDisplay(){
+  if(!stlReturnState)return;
+  const state=stlReturnState;
+
+  // STLから生成したGRIを表示している間に、拡大率や視点角度を調整していても、
+  // STL表示へ戻す瞬間に自動調整や元角度への巻き戻しで画面が動かないように、
+  // 現在の表示状態を保持してからモデルだけを元のSTLへ差し替える。
+  const keepView={
+    lon:normalizeAngle(lon),
+    lat,
+    eLon:normalizeAngle(eLon),
+    eLat,
+    zoom,
+    four,
+    inverted:true
+  };
+
+  stlReturnState=null;
+  model=state.model;
+  currentModelType='stl';
+  currentGriText=state.currentGriText||'';
+  currentGriFileName=state.currentGriFileName||state.fileName||'';
+  showHiddenLines=state.showHiddenLines;
+  showStlSurface=state.showStlSurface;
+  stlHiddenLinesPreference=state.stlHiddenLinesPreference;
+  stlSurfacePreference=state.stlSurfacePreference;
+  lon=keepView.lon;
+  lat=keepView.lat;
+  eLon=keepView.eLon;
+  eLat=keepView.eLat;
+  zoom=keepView.zoom;
+  four=keepView.four;
+  inverted=keepView.inverted;
+  moving=false;
+  clearGriLineDataUnsaved();
+  undoStack.length=0;
+  syncViewModeClass();
+  updateColor(true);
+
+  // updateColor(true) は倍率を変えない指定だが、念のため再度保持値を戻す。
+  lon=keepView.lon;
+  lat=keepView.lat;
+  eLon=keepView.eLon;
+  eLat=keepView.eLat;
+  zoom=keepView.zoom;
+  four=keepView.four;
+  inverted=keepView.inverted;
+
+  updateBottomModeButtons();
+  updateHiddenLineButton();
+  updateSurfaceButton();
+  updateSaveGriButtonState();
+  updateFileStatus(model);
+  keepCurrentZoomStatus();
+  fileStatus.textContent=`元のSTL表示に戻しました：${model&&model.fileName?model.fileName:state.fileName}`;
+  markRenderDirty();
+  focusViewerForKeys();
+}
+function requestRestoreOriginalStlDisplay(){
+  if(!stlReturnState)return;
+  if(stlReturnState.modified||hasUnsavedGriLineData()){
+    confirmEdgeIndex=-1;
+    confirmMessage.textContent='変更したデータはなくなり、元のSTLに戻しますがよろしいですか？';
+    confirmAction=()=>restoreOriginalStlDisplay();
+    confirmCancelAction=()=>focusViewerForKeys();
+    confirmOverlay.className='center';
+    confirmBox.removeAttribute('style');
+    confirmOverlay.style.display='flex';
+    return;
+  }
+  restoreOriginalStlDisplay();
+}
+function convertCurrentModelWithMKey(){
+  if(stlReturnState&&currentModelType==='gri')return requestRestoreOriginalStlDisplay();
+  // GRIからSTLを生成する機能は廃止。MキーはSTL表示中のGRI生成専用にする。
+  if(isStlModel())return exportGriFromCurrentStl();
+  fileStatus.textContent='M：ワイヤーフレームにする は、STL立体が表示されている時だけ使えます。';
+  focusViewerForKeys();
+}
+
+async function exportStlFromCurrentGri(){
+  if(isStlModel()){
+    fileStatus.textContent='STL表示中です。GRIからのSTL生成はできません。';
+    return;
+  }
+  if(!isCurrentGriSavedForStlGeneration()){
+    showGriStlSaveRequiredDialog();
+    return;
+  }
+  try{
+    const result=buildStlFromGriWireframe(currentGriText);
+    const safeBase=(currentGriFileName||'gri_model').replace(/\.[^.]*$/,'').replace(/[\/:*?"<>|]/g,'_').trim()||'gri_model';
+    const name=safeBase+'.stl';
+    let saved=false;
+    if(window.showSaveFilePicker){
+      try{
+        const handle=await window.showSaveFilePicker({
+          suggestedName:name,
+          types:[{description:'STL file',accept:{'model/stl':['.stl'],'application/sla':['.stl'],'text/plain':['.stl']}}]
+        });
+        const writable=await handle.createWritable();
+        await writable.write(result.text);
+        await writable.close();
+        saved=true;
+      }catch(error){
+        if(error&&error.name==='AbortError'){focusViewerForKeys();return;}
+        console.warn('保存ダイアログでSTL保存できなかったため、ダウンロード方式に切り替えます。',error);
+      }
+    }
+    if(!saved){
+      const blob=new Blob([result.text],{type:'model/stl;charset=utf-8'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url;a.download=name;a.style.display='none';
+      document.body.appendChild(a);a.click();
+      setTimeout(()=>{a.remove();URL.revokeObjectURL(url);},0);
+    }
+    loadGeneratedStlTextToView(result.text,name,result.faceCount,result.triangleCount);
+  }catch(error){
+    console.error(error);
+    fileStatus.textContent=`STL生成エラー：${error.message||error}`;
+  }
+  focusViewerForKeys();
 }
 function removeLastEdge(){
   const nl=String.fromCharCode(10),cr=String.fromCharCode(13);
@@ -806,6 +1433,7 @@ function removeLastEdge(){
       selectedEdgeIndex=-1;
       lines[0]=`${h[0]} ${h[1]} ${h[2]} ${h[3]}`;
       currentGriText=lines.join(nl)+nl;
+      markGriLineDataUnsaved();
       model=recenterGriModelKeepingScale(currentGriText,currentGriFileName,model);
       updateFileStatus(model);
       keepCurrentZoomStatus();
@@ -822,6 +1450,7 @@ function removeLastEdge(){
     drawingPointerMovedAfterStart=false;
     selectedEdgeIndex=-1;
     currentGriText=`0 0 0 0${nl}`;
+    clearGriLineDataUnsaved();
     model=recenterGriModelKeepingScale(currentGriText,currentGriFileName,model);
     updateFileStatus(model);
     keepCurrentZoomStatus();
@@ -837,6 +1466,7 @@ function restoreLastEdge(){
       ? recenterGriModelKeepingScale(previousText,currentGriFileName,model)
       : parseGri(previousText,currentGriFileName);
     currentGriText=previousText;
+    markGriLineDataUnsaved();
     model=restoredModel;
     updateFileStatus(model);
     if(isDrawingMode()){
@@ -855,7 +1485,7 @@ function hasNoDrawableModel(){
   return !(model&&((model.edges&&model.edges.length)||(model.triangles&&model.triangles.length)));
 }
 function fitAxesWhenEmptyDrawingMode(){
-  // 辺がない状態で.gri描画モードに入った時だけ、自動で倍率を調整する。
+  // 辺がない状態で.gri描画に入った時だけ、自動で倍率を調整する。
   // 作図後やユーザーの拡大縮小操作中には呼ばない。
   // Y軸が必ず画面内に収まるように、XYZ軸の投影範囲から直接倍率を計算する。
   if(!inverted&&hasNoDrawableModel()){
@@ -884,8 +1514,8 @@ function fitAxesWhenEmptyDrawingMode(){
   }
 }
 function toggleDrawingMode(){
-  // STL表示中は描画モードへ入らない。
-  // GRI読み込み後や、STLをNキーで消して空GRIになった後は、再びDキーを有効にする。
+  // GRI表示中・空データ表示中だけ、通常モードと.gri描画を切り替える。
+  // STL表示中に.gri描画へ入る場合は requestEnterDrawingMode() 側で確認する。
   if(!canUseDrawingMode()){
     if(!inverted){inverted=true;updateColor(true);}
     updateBottomModeButtons();
@@ -896,6 +1526,24 @@ function toggleDrawingMode(){
   updateColor(true);
   fitAxesWhenEmptyDrawingMode();
   return true;
+}
+function requestEnterDrawingMode(){
+  if(!inverted)return true;
+  if(isStlModel()){
+    confirmEdgeIndex=-1;
+    confirmMessage.innerHTML='ワイヤーフレームに変換してから、編集しますがよろしいですか？';
+    confirmAction=()=>{
+      const converted=exportGriFromCurrentStl({suppressFocus:true});
+      if(converted&&inverted)toggleDrawingMode();
+      focusViewerForKeys();
+    };
+    confirmCancelAction=()=>focusViewerForKeys();
+    confirmOverlay.className='center';
+    confirmBox.removeAttribute('style');
+    confirmOverlay.style.display='flex';
+    return false;
+  }
+  return toggleDrawingMode();
 }
 function openClearConfirm(){
   // Nキーによる全消去は、描画モードだけでなくSTL表示中・通常表示中でも使えるようにする。
@@ -929,11 +1577,21 @@ function openEdgeDeleteConfirm(edgeIndex){
   placeEdgeConfirmBox(edgeIndex);
 }
 function closeClearConfirm(){confirmOverlay.style.display='none';confirmOverlay.className='';confirmAction=null;confirmCancelAction=null;confirmEdgeIndex=-1;}
+function markGriLineDataUnsaved(){
+  if(currentModelType==='gri')griUnsavedLineData=true;
+  if(stlReturnState&&currentModelType==='gri')stlReturnState.modified=true;
+}
+function clearGriLineDataUnsaved(){
+  griUnsavedLineData=false;
+}
+function hasUnsavedGriLineData(){
+  return !!(griUnsavedLineData && currentModelType==='gri' && model && model.edges && model.edges.length>0);
+}
 function shouldConfirmBeforeLoadingNewModel(){
-  // .gri描画モードで現在の立体を描いている最中に別の立体を読み込む場合だけ、
-  // いきなり上書きせず確認する。空の描画データなら確認は出さない。
+  // .gri描画で作成・編集した線分が未保存のまま残っている場合だけ、
+  // 別データの読み込み前に確認する。保存済み・空データ・STL表示中では確認しない。
   if(loadingConfirmationAcceptedOnce){loadingConfirmationAcceptedOnce=false;return false;}
-  return isDrawingMode() && !!model && ((model.edges&&model.edges.length>0)||(model.triangles&&model.triangles.length>0));
+  return hasUnsavedGriLineData();
 }
 function confirmBeforeLoadingNewModel(loadAction,cancelAction){
   if(!shouldConfirmBeforeLoadingNewModel()){
@@ -941,7 +1599,7 @@ function confirmBeforeLoadingNewModel(loadAction,cancelAction){
     return true;
   }
   confirmEdgeIndex=-1;
-  confirmMessage.textContent='現在の立体を削除して、新しい立体を読み込みますか？';
+  confirmMessage.innerHTML='まだ保存されていない線分データがあります。<br>別のデータを読み込むと、これらのデータは失われます。<br>本当に、データを読み込みますか？';
   confirmAction=()=>{loadingConfirmationAcceptedOnce=true;if(typeof loadAction==='function')loadAction();};
   confirmCancelAction=()=>{
     if(typeof cancelAction==='function')cancelAction();
@@ -954,12 +1612,14 @@ function confirmBeforeLoadingNewModel(loadAction,cancelAction){
 }
 
 function clearAllEdges(){
+  if(stlReturnState&&currentModelType==='gri')stlReturnState.modified=true;
   undoStack.push(currentGriText);
   const nl=String.fromCharCode(10),c=v(0,0,0);
   drawingPointer=v(0,0,0);drawingStartPoint=null;drawingPointerMovedAfterStart=false;
   currentGriText=`0 0 0 0${nl}`;
   currentGriFileName='';
   currentModelType='gri';
+  clearGriLineDataUnsaved();
   // 空GRI状態に戻すが、STL用の隠れ線・面色設定は次回STL読み込み用に保持する。
   showHiddenLines=false;
   showStlSurface=stlSurfacePreference;
@@ -969,8 +1629,7 @@ function clearAllEdges(){
   hoveredEdgeIndex=-1;
   selectedEdgeIndex=-1;
   confirmEdgeIndex=-1;
-  saveGriButton.disabled=false;
-  saveGriButton.textContent='名前を指定して保存';
+  updateSaveGriButtonState();
   saveFileNameInput.value='';
   updateBottomModeButtons();
   updateHiddenLineButton();
@@ -983,7 +1642,7 @@ function clearAllEdges(){
 }
 
 function draw(){ctx.fillStyle=inverted?'#000':'#f4f4f4';ctx.fillRect(0,0,canvas.width,canvas.height);four?drawFour():drawView(lon,lat,{x:0,y:0,w:canvas.width,h:canvas.height},null,true,inverted)}
-function drawFour(){layout.forEach(([label,view,x,y,w,h])=>{const viewInverted=inverted||!!view;drawView(view?view[1]:lon,view?view[2]:lat,{x:x*canvas.width,y:y*canvas.height,w:w*canvas.width,h:h*canvas.height},label,!view,viewInverted)});ctx.strokeStyle=inverted?'#555':'#bbb';ctx.lineWidth=dpr();ctx.beginPath();ctx.moveTo(canvas.width/2,0);ctx.lineTo(canvas.width/2,canvas.height);ctx.moveTo(0,canvas.height/2);ctx.lineTo(canvas.width,canvas.height/2);ctx.stroke()}
+function drawFour(){layout.forEach(([label,view,x,y,w,h])=>{const viewInverted=inverted;drawView(view?view[1]:lon,view?view[2]:lat,{x:x*canvas.width,y:y*canvas.height,w:w*canvas.width,h:h*canvas.height},label,!view,viewInverted)});ctx.strokeStyle=inverted?'#555':'#bbb';ctx.lineWidth=dpr();ctx.beginPath();ctx.moveTo(canvas.width/2,0);ctx.lineTo(canvas.width/2,canvas.height);ctx.moveTo(0,canvas.height/2);ctx.lineTo(canvas.width,canvas.height/2);ctx.stroke()}
 function drawView(lo,la,r,label,axis,viewInverted=inverted){
   const basis=viewBasis(lo,la),scale=(r.h/5.2)*zoom,cx=r.x+r.w/2,cy=r.y+r.h/2;
   const previousViewClipRect=activeViewClipRect;
@@ -1689,7 +2348,7 @@ function drawPointer(b,viewScale,cx,cy,r){
   ctx.fill();
   ctx.restore();
 
-  // .gri描画モードでは、現在ポインターの座標をWindows版のように表示する。
+  // .gri描画では、現在ポインターの座標をWindows版のように表示する。
   if(!inverted)drawGriPointLabel(p,drawingPointer,pointerColor);
 }
 function drawPreviewEdge(b,viewScale,cx,cy){
@@ -1771,7 +2430,8 @@ function addEdgeFromStartToPointer(){
   const edge=[drawingStartPoint.x,drawingStartPoint.y,drawingStartPoint.z,drawingPointer.x,drawingPointer.y,drawingPointer.z];
   undoStack.push(currentGriText);
   currentGriText=appendEdgeToGriText(currentGriText,edge);
-  // .gri描画モードで辺を追加するたびに自動fit()すると、作図中に表示倍率が変わってしまう。
+  markGriLineDataUnsaved();
+  // .gri描画で辺を追加するたびに自動fit()すると、作図中に表示倍率が変わってしまう。
   // ユーザーが拡大縮小操作をした時以外は、現在の中心・スケール・倍率を保つ。
   model=recenterGriModelKeepingScale(currentGriText,currentGriFileName,model);
   updateFileStatus(model);
@@ -1847,6 +2507,7 @@ function deleteEdgeFromStartToPointer(){
   }
   undoStack.push(currentGriText);
   currentGriText=rebuildGriHeader(rebuilt);
+  markGriLineDataUnsaved();
   model=recenterGriModelKeepingScale(currentGriText,currentGriFileName,model);
   drawingStartPoint=null;
   drawingPointerMovedAfterStart=false;
@@ -2023,6 +2684,7 @@ function deleteEdgeByModelIndex(edgeIndex){
   if(!changed)return false;
   undoStack.push(currentGriText);
   currentGriText=rebuildGriHeader(rebuilt);
+  markGriLineDataUnsaved();
   model=recenterGriModelKeepingScale(currentGriText,currentGriFileName,model);
   drawingStartPoint=null;
   drawingPointerMovedAfterStart=false;
@@ -2112,7 +2774,7 @@ function handleCanvasMouseRotateDown(e){
   if(e.button!==0)return false;
   if(getFourLabelHit(e.clientX,e.clientY))return false;
 
-  // .gri描画モードでは、線分上を左クリックした時にその線分を選択する。
+  // .gri描画では、線分上を左クリックした時にその線分を選択する。
   // その後「消しゴム」ボタンを押すと、選択された線分を削除できる。
   if(!inverted){
     const edgeIndex=findEdgeNearFreeView(e.clientX,e.clientY);
@@ -2191,7 +2853,7 @@ function handleCanvasWheel(e){
   viewName.textContent='自由視点';
   const deltaModeScale=e.deltaMode===1?16:(e.deltaMode===2?window.innerHeight:1);
   const wheelDelta=e.deltaY*deltaModeScale;
-  const factor=Math.exp(-wheelDelta*0.0012);
+  const factor=Math.exp(-wheelDelta*0.0006);
   zoom=clamp(zoom*factor,getMinimumZoom(),12);
   zoomStatus.textContent=`表示倍率：${Math.round(zoom*100)}%`;
   markRenderDirty();
@@ -2545,7 +3207,7 @@ function getEmbeddedStlLabel(index){const item=EMBEDDED_STL_LIBRARY[index];retur
 function captureGamepadEmbeddedStlRestoreState(){
   return {
     model,currentModelType,currentGriText,currentGriFileName,showHiddenLines,showStlSurface,
-    stlHiddenLinesPreference,stlSurfacePreference,lon,lat,eLon,eLat,zoom,four,inverted,
+    stlHiddenLinesPreference,stlSurfacePreference,griUnsavedLineData,lon,lat,eLon,eLat,zoom,four,inverted,
     viewNameText:viewName.textContent,lineWidth,saveFileNameValue:saveFileNameInput.value,
     embeddedStlValue:embeddedStlSelect?embeddedStlSelect.value:'',
     currentEmbeddedStlLibraryIndex
@@ -2559,6 +3221,7 @@ function restoreGamepadEmbeddedStlOriginal(){
   currentModelType=state.currentModelType;
   currentGriText=state.currentGriText;
   currentGriFileName=state.currentGriFileName;
+  griUnsavedLineData=!!state.griUnsavedLineData;
   showHiddenLines=state.showHiddenLines;
   showStlSurface=state.showStlSurface;
   stlHiddenLinesPreference=state.stlHiddenLinesPreference;
@@ -2578,8 +3241,7 @@ function restoreGamepadEmbeddedStlOriginal(){
   updateFileStatus(model);
   zoomStatus.textContent=`表示倍率：${Math.round(zoom*100)}%`;
   lineWidthStatus.textContent=`線の太さ：${lineWidth.toFixed(1)}`;
-  saveGriButton.disabled=currentModelType==='stl';
-  saveGriButton.textContent=currentModelType==='stl'?'STL表示中（GRI保存不可）':'名前を指定して保存';
+  updateSaveGriButtonState();
   markRenderDirty();
   try{draw();renderDirty=false;}catch(error){console.error('内蔵STL選択前の状態へ戻す描画に失敗しました。',error);renderDirty=true;}
 }
@@ -2892,26 +3554,27 @@ function updateKeys(){
 }
 
 function getMinimumZoom(){
-  // .gri描画モードでは、座標値がmm単位のまま大きくなるため、
+  // .gri描画では、座標値がmm単位のまま大きくなるため、
   // STL表示時と同じ最小倍率では十分に小さくできない。
   // 描画モードだけ最小倍率を小さくして、ホイール・Shift+矢印・ゲームパッドで滑らかに縮小できるようにする。
-  return !inverted ? 0.002 : 0.05;
+  return !inverted ? 0.002 : 0.01;
 }
 function changeZoom(d){clearPreservedFourFreeView();zoom=clamp(zoom*(1+d),getMinimumZoom(),12);zoomStatus.textContent=`表示倍率：${Math.round(zoom*100)}%`;markRenderDirty()}
 function changeLine(d){lineWidth=clamp(lineWidth+d,1,8);lineWidthStatus.textContent=`線の太さ：${lineWidth.toFixed(1)}`;markRenderDirty()}
-function updateColor(keepZoom=false){markRenderDirty();document.body.classList.toggle('light-ui',!inverted);colorModeStatus.textContent=inverted?'表示モード：通常モード（黒背景・白線）':'表示モード：.gri描画モード（白背景・黒線）';modeToggleBottom.textContent=inverted?'.gri描画モードにする':'通常モードにする';if(!inverted){drawingPointer=v(0,0,0);drawingStartPoint=null;}updateBottomModeButtons();if(!keepZoom)fit();updateGriButtonPanelVisibility();
+function updateColor(keepZoom=false){markRenderDirty();document.body.classList.toggle('light-ui',!inverted);colorModeStatus.textContent=inverted?'表示モード：通常モード（黒背景・白線）':'表示モード：.gri描画（白背景・黒線）';modeToggleBottom.textContent=inverted?'.gri描画にする':'通常モードにする';if(!inverted){drawingPointer=v(0,0,0);drawingStartPoint=null;}updateBottomModeButtons();if(!keepZoom)fit();updateGriButtonPanelVisibility();
 }
 function updateHiddenLineButton(){if(hiddenLineToggleBottom)hiddenLineToggleBottom.textContent=showHiddenLines?'かくれ線を表示しない':'かくれ線を表示する'}
 function updateSurfaceButton(){if(surfaceToggleBottom)surfaceToggleBottom.textContent=showStlSurface?'面の色を表示しない':'面の色を表示'}
 function updateBottomModeButtons(){
   const isStl=isStlModel();
-  if(modeToggleBottom)modeToggleBottom.style.display=isStl?'none':'block';
+  if(modeToggleBottom)modeToggleBottom.style.display='none';
   if(hiddenLineToggleBottom)hiddenLineToggleBottom.style.display=isStl?'block':'none';
   if(surfaceToggleBottom)surfaceToggleBottom.style.display=isStl?'block':'none';
   if(hiddenLineKeyHelp)hiddenLineKeyHelp.style.display=isStl?'block':'none';
   if(surfaceKeyHelp)surfaceKeyHelp.style.display=isStl?'block':'none';
   if(modeKeyHelp)modeKeyHelp.style.display=isStl?'none':'block';
-  if(saveGriControls)saveGriControls.style.display=isStl?'none':'block';
+  if(saveGriControls)saveGriControls.style.display='none';
+  updateSaveGriButtonState();
   if(isStl&&stepControl){stepControl.style.display='none';stepControl.classList.remove('open');}
   else if(stepControl){stepControl.style.display='';}
   updateHiddenLineButton();
@@ -2919,7 +3582,7 @@ function updateBottomModeButtons(){
 }
 function toggleHiddenLines(){if(!(model&&model.sourceType==='stl'))return;showHiddenLines=!showHiddenLines;stlHiddenLinesPreference=showHiddenLines;updateHiddenLineButton();markRenderDirty();click(performance.now())}
 function toggleStlSurface(){if(!(model&&model.sourceType==='stl'))return;showStlSurface=!showStlSurface;stlSurfacePreference=showStlSurface;updateSurfaceButton();markRenderDirty();click(performance.now())}
-function toggleBeep(){beep=!beep;beepStatus.textContent=beep?'クリック音：ON':'クリック音：OFF'}
+function toggleBeep(){beep=!beep;beepStatus.textContent=beep?'クリック音：ON':'クリック音：OFF';updateBeepButtonLabel();}
 function soundReady(){
   try{
     const AudioClass=window.AudioContext||window.webkitAudioContext;
@@ -3116,6 +3779,26 @@ window.addEventListener('keydown',e=>{
     toggleInfoPanel();
     return;
   }
+
+  // Fキー：ファイル選択を開いて、GRI/STL立体を読み込む。
+  if(k==='f'||code==='keyf'){
+    e.preventDefault();
+    e.stopPropagation();
+    griFileInput.click();
+    return;
+  }
+
+  // 操作説明パネル内にフォーカスが残っている時でも、上部ボタンに対応する
+  // ショートカットは使えるようにする。特にSTL表示中の M は
+  // 「STLからGRIを生成」の重要操作なので、UIフォーカス判定より前で処理する。
+  if(k==='p'){e.preventDefault();savePng();return;}
+  if(k==='k'){e.preventDefault();toggleHiddenLines();return;}
+  if(k==='s'){e.preventDefault();toggleStlSurface();return;}
+  if(k==='h'){e.preventDefault();saveCurrentGri();return;}
+  if(k==='m'||code==='keym'){e.preventDefault();convertCurrentModelWithMKey();return;}
+  if(k==='b'||code==='keyb'){e.preventDefault();toggleBeep();return;}
+  if(k==='d'||code==='keyd'){e.preventDefault();inverted?requestEnterDrawingMode():toggleDrawingMode();return;}
+
   if(isUiInteractionTarget(e.target)){return;}
   if(k==='enter'){e.preventDefault();if(!inverted)handleEnterInDrawingMode();return;}
   if(k==='escape'){e.preventDefault();if(!inverted)cancelDrawingEdge();return;}
@@ -3123,9 +3806,6 @@ window.addEventListener('keydown',e=>{
   if(k==='o'){if(!inverted){e.preventDefault();resetDrawingPointerToOrigin();return;}}
   if(k==='delete'){e.preventDefault();if(!inverted)deleteEdgeFromStartToPointer();return;}
   if(k==='backspace'){e.preventDefault();if(!inverted){shift?restoreLastEdge():removeLastEdge();}return;}
-  if(k==='p'){e.preventDefault();savePng();return;}
-  if(k==='k'){e.preventDefault();toggleHiddenLines();return;}
-  if(k==='s'){e.preventDefault();toggleStlSurface();return;}
   soundReady();
   // 線の太さは、物理キーボードの + / - キーを押した瞬間だけ変更する。
   // iPadの外部キーボード付きタッチパッドのピンチ操作が + / - 相当として残り、
@@ -3151,8 +3831,6 @@ window.addEventListener('keydown',e=>{
   if(k==='3')moveTo(views.top);
   if(k==='4')moveTo(views.iso);
   if(k==='a')fit();
-  if(k==='b')toggleBeep();
-  if(k==='d'){e.preventDefault();toggleDrawingMode();return;}
 });
 window.addEventListener('keyup',e=>{keys.delete(e.key.toLowerCase());shift=e.shiftKey});
 window.addEventListener('gamepadconnected',()=>setDualshockHelpConnected(true));
@@ -3174,7 +3852,7 @@ griFileInput.addEventListener('change',async e=>{
 async function handleSelectedModelFile(f){
   const isStl=/\.stl$/i.test(f.name||'');
   const stlDeadline=isStl?performance.now()+STL_LOAD_DISPLAY_TIMEOUT_MS:0;
-  const previousState={model,currentModelType,currentGriText,currentGriFileName,showHiddenLines,showStlSurface,lon,lat,eLon,eLat,zoom,four};
+  const previousState={model,currentModelType,currentGriText,currentGriFileName,showHiddenLines,showStlSurface,griUnsavedLineData,lon,lat,eLon,eLat,zoom,four};
   try{
     fileStatus.textContent=`読み込み中：${f.name||'選択ファイル'}`;
     if(isStl){
@@ -3261,7 +3939,7 @@ function loadEmbeddedStlFromLibrary(index){
   const item=EMBEDDED_STL_LIBRARY[index];
   if(!item)return;
   const deadline=performance.now()+STL_LOAD_DISPLAY_TIMEOUT_MS;
-  const previousState={model,currentModelType,currentGriText,currentGriFileName,showHiddenLines,showStlSurface,lon,lat,eLon,eLat,zoom,four};
+  const previousState={model,currentModelType,currentGriText,currentGriFileName,showHiddenLines,showStlSurface,griUnsavedLineData,lon,lat,eLon,eLat,zoom,four};
   try{
     fileStatus.textContent=`読み込み中：${item.name}（内蔵STL）`;
     const buffer=base64ToArrayBuffer(item.base64);
@@ -3304,6 +3982,7 @@ function readSelectedArrayBufferFileByReader(file){
   });
 }
 function loadStl(buffer,name,deadline=0){
+  stlReturnState=null;
   const parsed=parseStlSurface(buffer,name,deadline);
   // STLを読み込んでも、直前の自由視点の向きは変えない。
   // 以前は読み込み後に等角図へ moveTo していたため、STLを差し替えるたびに
@@ -3318,11 +3997,11 @@ function loadStl(buffer,name,deadline=0){
   showStlSurface=stlSurfacePreference;
   currentGriText='';
   currentGriFileName=name;
+  clearGriLineDataUnsaved();
   undoStack.length=0;
   if(!inverted){inverted=true;updateColor(true);}
   updateBottomModeButtons();
-  saveGriButton.disabled=true;
-  saveGriButton.textContent='STL表示中（GRI保存不可）';
+  updateSaveGriButtonState();
   saveFileNameInput.value='';
   lon=keepLon;
   lat=keepLat;
@@ -3526,16 +4205,26 @@ function readSelectedTextFileByReader(file){
 }
 saveGriButton.addEventListener('click',()=>{saveCurrentGri();});
 viewModeButton.addEventListener('click',toggleViewMode);
-document.querySelectorAll('.viewPresetButton').forEach(button=>{
+
+document.querySelectorAll('[data-info-action]').forEach(button=>{
   button.addEventListener('click',e=>{
     e.preventDefault();
     e.stopPropagation();
-    const preset=button.dataset.viewPreset;
-    if(views[preset]){
-      moveTo(views[preset]);
-      click(performance.now());
-      focusViewerForKeys();
-    }
+    const action=button.dataset.infoAction;
+    if(action==='top')moveTo(views.top);
+    else if(action==='front')moveTo(views.front);
+    else if(action==='right')moveTo(views.right);
+    else if(action==='iso')moveTo(views.iso);
+    else if(action==='drawing-mode'){if(inverted)requestEnterDrawingMode();else toggleDrawingMode();}
+    else if(action==='line-thicker'){changeLine(.25);click(performance.now());}
+    else if(action==='line-thinner'){changeLine(-.25);click(performance.now());}
+    else if(action==='toggle-beep'){toggleBeep();}
+    else if(action==='load-model'){griFileInput.click();return;}
+    else if(action==='export-gri-stl'){convertCurrentModelWithMKey();return;}
+    else if(action==='clear-model')openClearConfirm();
+    else if(action==='png-output')savePng();
+    if(['top','front','right','iso'].includes(action))click(performance.now());
+    focusViewerForKeys();
   });
 });
 function showAppAbout(){aboutOverlay.style.display='flex';}
@@ -3548,7 +4237,8 @@ stlTimeoutBack.addEventListener('click',closeStlTimeoutDialog);
 stlTimeoutOverlay.addEventListener('click',e=>{if(e.target===stlTimeoutOverlay)closeStlTimeoutDialog();});
 hiddenLineToggleBottom.addEventListener('click',()=>{toggleHiddenLines();focusViewerForKeys();});
 surfaceToggleBottom.addEventListener('click',()=>{toggleStlSurface();focusViewerForKeys();});
-modeToggleBottom.addEventListener('click',()=>{toggleDrawingMode();focusViewerForKeys();});
+modeToggleBottom.addEventListener('click',()=>{inverted?requestEnterDrawingMode():toggleDrawingMode();focusViewerForKeys();});
+if(drawingModeExitButton)drawingModeExitButton.addEventListener('click',()=>{if(!inverted)toggleDrawingMode();focusViewerForKeys();});
 confirmYes.addEventListener('click',()=>{const action=confirmAction;closeClearConfirm();if(typeof action==='function')action();});
 confirmNo.addEventListener('click',()=>{const action=confirmCancelAction;closeClearConfirm();if(typeof action==='function')action();});
 confirmOverlay.addEventListener('click',e=>{if(e.target===confirmOverlay)closeClearConfirm();});
