@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>立体グリグリ Vibe-Coded V1.7</title>
+<title>立体グリグリ Vibe-Coded V1.07</title>
 <style>
   html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;font-family:system-ui,"Hiragino Sans","Yu Gothic",sans-serif}
   #app{display:flex;width:100vw;height:100vh;background:#000}
@@ -259,7 +259,7 @@
       <div><kbd>O</kbd>：ポインタを原点へ戻す</div>
       <div>画面右上の作図ボタン：＜ X -X ＞、＜ Y -Y ＞、＜ Z -Z ＞、原点、消しゴム、OK、ステップ変更で操作／ポインタ横に座標表示</div>
       <div><kbd>Enter</kbd>：始点を記録／終点として辺を追加</div>
-      <div><kbd>Delete</kbd>：始点と終点で指定した範囲と重なる辺を削除／分割</div>
+      <div><kbd>Delete</kbd>：赤く選択された線分を削除／始点と終点で指定した範囲と重なる辺を削除・分割</div>
       <div>自由視点で線分にマウスを近づける：赤く強調表示</div>
       <div>強調表示された線分を右クリック：確認して削除</div>
       <div><kbd>Esc</kbd>：始点・終点の記録をキャンセル</div>
@@ -278,7 +278,7 @@
     <div id="padStatus" class="small">ゲームパッド：未接続 または 未操作</div>
     <div id="testStatus" class="small">自己テスト：未実行</div>
   </div>
-  <div id="viewer" tabindex="-1"><canvas id="canvas"></canvas><button id="viewModeButton" type="button">４面モードにする</button><div id="drawingModeLabel">.gri描画</div><div id="topRightInfo"><div id="appTitle">立体グリグリ Vibe-Coded V1.7</div></div><div id="bottomRightControls"><div id="modelFileNameDisplay" style="display:none"></div><button id="embeddedStlButton" type="button">内蔵STL</button></div><div id="embeddedStlPopup"><div id="embeddedStlPopupHeader"><span>内蔵STLを読み込む</span><button id="embeddedStlPopupClose" type="button" aria-label="閉じる">×</button></div><div id="embeddedStlPopupList"></div></div><button id="hiddenLineToggleBottom" type="button">かくれ線を表示する</button><button id="surfaceToggleBottom" type="button">面の色を表示しない</button><button id="modeToggleBottom" type="button">.gri描画にする</button><div id="griButtonPanel" aria-label="GRI描画ボタン操作">
+  <div id="viewer" tabindex="-1"><canvas id="canvas"></canvas><button id="viewModeButton" type="button">４面モードにする</button><div id="drawingModeLabel">.gri描画</div><div id="topRightInfo"><div id="appTitle">立体グリグリ Vibe-Coded V1.07</div></div><div id="bottomRightControls"><div id="modelFileNameDisplay" style="display:none"></div><button id="embeddedStlButton" type="button">内蔵STL</button></div><div id="embeddedStlPopup"><div id="embeddedStlPopupHeader"><span>内蔵STLを読み込む</span><button id="embeddedStlPopupClose" type="button" aria-label="閉じる">×</button></div><div id="embeddedStlPopupList"></div></div><button id="hiddenLineToggleBottom" type="button">かくれ線を表示する</button><button id="surfaceToggleBottom" type="button">面の色を表示しない</button><button id="modeToggleBottom" type="button">.gri描画にする</button><div id="griButtonPanel" aria-label="GRI描画ボタン操作">
   <div id="griPanelTitleBar">作図ツール</div>
   <div class="griButtonGrid">
     <button type="button" class="jumpBtn" data-gri-action="x10minus">＜</button>
@@ -383,6 +383,13 @@ function init(){setupInfoToggle();setupGriButtonPanel();syncViewModeClass();conf
 function useDrawingEraser(){
   if(inverted)return false;
 
+  // 始点が指定されている場合は、消しゴムボタンもDELETEキーと同じく、
+  // 始点から現在のポインター位置までを削除範囲として処理する。
+  // これにより、終点でOKを押さずに消しゴムを押した場合も範囲削除になる。
+  if(drawingStartPoint){
+    return deleteEdgeFromStartToPointer();
+  }
+
   // 左クリック／右クリックで選択済みの線分、またはマウス接近で赤くなっている線分を消す。
   // 優先順位：確認中の線分 → クリック選択された線分 → ホバー中の線分
   const activeEdgeIndex=confirmEdgeIndex>=0?confirmEdgeIndex:(selectedEdgeIndex>=0?selectedEdgeIndex:hoveredEdgeIndex);
@@ -397,7 +404,7 @@ function useDrawingEraser(){
     return true;
   }
 
-  // 選択されている辺がない場合は、DELキーと同じ処理にする。
+  // 始点指定がなく、選択されている辺もない場合は、DELETEキー処理を試す。
   return deleteEdgeFromStartToPointer();
 }
 
@@ -3804,7 +3811,20 @@ window.addEventListener('keydown',e=>{
   if(k==='escape'){e.preventDefault();if(!inverted)cancelDrawingEdge();return;}
   if(['x','y','z'].includes(k)){if(!inverted){e.preventDefault();moveDrawingPointer(k,shift);return;}}
   if(k==='o'){if(!inverted){e.preventDefault();resetDrawingPointerToOrigin();return;}}
-  if(k==='delete'){e.preventDefault();if(!inverted)deleteEdgeFromStartToPointer();return;}
+  if(k==='delete'){
+    e.preventDefault();
+    if(!inverted){
+      // .gri描画中にマウスクリックで線分が赤く選択されている場合は、
+      // 右クリックで選んだ線分を削除するのと同じように、その線分を直接削除する。
+      const activeEdgeIndex=selectedEdgeIndex>=0?selectedEdgeIndex:hoveredEdgeIndex;
+      if(activeEdgeIndex>=0&&activeEdgeIndex<model.edges.length){
+        deleteEdgeByModelIndex(activeEdgeIndex);
+      }else{
+        deleteEdgeFromStartToPointer();
+      }
+    }
+    return;
+  }
   if(k==='backspace'){e.preventDefault();if(!inverted){shift?restoreLastEdge():removeLastEdge();}return;}
   soundReady();
   // 線の太さは、物理キーボードの + / - キーを押した瞬間だけ変更する。
