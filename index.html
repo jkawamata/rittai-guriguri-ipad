@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>立体グリグリ Vibe-Coded V1.19</title>
+<title>立体グリグリ Vibe-Coded V1.20</title>
 <style>
   html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;font-family:system-ui,"Hiragino Sans","Yu Gothic",sans-serif}
   #app{display:flex;width:100vw;height:100vh;background:#000}
@@ -104,6 +104,15 @@
   #externalInfoBox li{margin:3px 0}
   #externalInfoBox a{color:#0b57d0;text-decoration:underline;text-underline-offset:2px}
   #externalInfoSummary{padding:10px 12px;border:1px solid #b7d3ef;border-radius:9px;background:#eef7ff;font-weight:700}
+  #externalInfoTableWrap{margin:12px 0 16px;overflow-x:auto;border:1px solid #bbb;border-radius:9px}
+  #externalInfoTable{width:100%;min-width:680px;border-collapse:collapse;font-size:12.5px;line-height:1.5}
+  #externalInfoTable th,#externalInfoTable td{padding:8px 9px;border-right:1px solid #ccc;border-bottom:1px solid #ccc;vertical-align:top;text-align:left;overflow-wrap:anywhere}
+  #externalInfoTable th:last-child,#externalInfoTable td:last-child{border-right:0}
+  #externalInfoTable tr:last-child td{border-bottom:0}
+  #externalInfoTable thead th{background:#e9eef4;color:#222;font-weight:800;white-space:nowrap}
+  #externalInfoTable tbody th{background:#f7f7f7;color:#222;font-weight:700}
+  #externalInfoTable code{font-size:11.5px}
+  .externalInfoNone{font-weight:800;color:#176b32}
   #externalInfoNote{padding:9px 11px;border-left:4px solid #777;background:#f3f3f3;font-size:12px}
   #externalInfoClose{display:block;margin:18px auto 0;padding:8px 24px;border-radius:8px;border:1px solid #888;background:#f5f5f5;color:#222;cursor:pointer;font-size:15px;font-weight:700}
 
@@ -297,7 +306,7 @@
     <div id="padStatus" class="small">ゲームパッド：未接続 または 未操作</div>
     <div id="testStatus" class="small">自己テスト：未実行</div>
   </div>
-  <div id="viewer" tabindex="-1"><canvas id="canvas"></canvas><button id="viewModeButton" type="button">４面モードにする</button><div id="drawingModeLabel">.gri描画</div><div id="topRightInfo"><div id="appTitle">立体グリグリ Vibe-Coded V1.19</div></div><div id="bottomRightControls"><div id="modelFileNameDisplay" style="display:none"></div><button id="externalInfoButton" type="button" aria-haspopup="dialog" aria-expanded="false">ⓘ 外部通信・ライセンス</button><button id="embeddedStlButton" type="button">内蔵STL</button></div><div id="embeddedStlPopup"><div id="embeddedStlPopupHeader"><span>内蔵STLを読み込む</span><button id="embeddedStlPopupClose" type="button" aria-label="閉じる">×</button></div><div id="embeddedStlPopupList"></div></div><button id="hiddenLineToggleBottom" type="button">かくれ線を表示する</button><button id="surfaceToggleBottom" type="button">面の色を表示しない</button><button id="modeToggleBottom" type="button">.gri描画にする</button><div id="griButtonPanel" aria-label="GRI描画ボタン操作">
+  <div id="viewer" tabindex="-1"><canvas id="canvas"></canvas><button id="viewModeButton" type="button">４面モードにする</button><div id="drawingModeLabel">.gri描画</div><div id="topRightInfo"><div id="appTitle">立体グリグリ Vibe-Coded V1.20</div></div><div id="bottomRightControls"><div id="modelFileNameDisplay" style="display:none"></div><button id="externalInfoButton" type="button" aria-haspopup="dialog" aria-expanded="false">ⓘ 外部通信・ライセンス</button><button id="embeddedStlButton" type="button">内蔵STL</button></div><div id="embeddedStlPopup"><div id="embeddedStlPopupHeader"><span>内蔵STLを読み込む</span><button id="embeddedStlPopupClose" type="button" aria-label="閉じる">×</button></div><div id="embeddedStlPopupList"></div></div><button id="hiddenLineToggleBottom" type="button">かくれ線を表示する</button><button id="surfaceToggleBottom" type="button">面の色を表示しない</button><button id="modeToggleBottom" type="button">.gri描画にする</button><div id="griButtonPanel" aria-label="GRI描画ボタン操作">
   <div id="griPanelTitleBar">作図ツール</div>
   <div class="griButtonGrid">
     <button type="button" class="jumpBtn" data-gri-action="x10minus">＜</button>
@@ -320,7 +329,34 @@
   </div>
   <div id="stepControl"><span id="stepLabel">ステップ：20mm</span><select id="stepSelect"><option value="20" selected>20mm</option><option value="10">10mm</option><option value="5">5mm</option><option value="1">1mm</option></select></div>
   <div id="drawingModeExitRow"><button id="drawingModeExitButton" type="button">.gri描画をやめる</button></div>
-</div><div id="confirmOverlay"><div id="confirmBox"><div id="confirmMessage">本当に消しますか？</div><div class="buttons"><button id="confirmYes" type="button">はい</button><button id="confirmNo" type="button">いいえ</button></div></div></div><div id="aboutOverlay"><div id="aboutBox"><div id="aboutText"><p>「立体グリグリ」は、第三角法による正投影図の学習のために、1996年頃に川俣純がMS-DOS上で動作するアプリケーションとして開発しました。このバージョンは、バイブコーディングにて30年後の2026年5月にChatGPT5.5と共に制作したものです。CC BYとしますので、ユーザーの判断にて自由に改変してご活用いただいて問題ありません。</p><p>STLファイルを読み込めるようにしてみました。ただし、STLファイルを作成することはできません。TinkercadなどのツールでSTLファイルを作成し、そのファイルを読み込ませてみてください。隠れ線の表示などもほぼできます。</p><p style="text-align:right;margin-top:1.2em">2026年5月　川俣　純</p></div><button id="aboutClose" type="button">閉じる</button></div></div><div id="externalInfoOverlay" role="dialog" aria-modal="true" aria-labelledby="externalInfoTitle"><div id="externalInfoBox" tabindex="-1"><h2 id="externalInfoTitle">外部通信・データ・ライセンス</h2><div id="externalInfoSummary">通常の利用では、外部Web API・公開CSV・CDNライブラリーを使用せず、ユーザーの立体データを外部へ送信しません。</div><h3>外部通信とデータ</h3><ul><li>気象・地図などの外部Web API、公開CSV、外部JSONは取得しません。</li><li>アクセス解析、広告、Cookieは使用しません。</li><li>起動画像 <code>title.png</code> は、このアプリと同じ場所から読み込みます。</li><li>起動用STLと26個の内蔵STLは、HTML内に格納されています。</li><li>ユーザーが選んだGRI・TXT・STLは端末内で処理し、外部へアップロードしません。</li></ul><p>この説明内の外部リンクをクリックした場合に限り、リンク先サイトへの通信が発生します。</p><h3>ブラウザー標準機能</h3><p>Canvas 2D、File／FileReader、File System Access、Blob、Gamepad、Web Audio、Pointer／Touchなど、ブラウザーが標準で提供する機能を利用しています。APIキー、利用申請、従量課金はありません。ファイル操作などでは、ブラウザーやOSの許可・対応状況が必要です。</p><h3>外部ライブラリー／CDN</h3><p>Three.js、STLLoader、JSZip、jQuery、Bootstrap、Google Fontsなどの外部ライブラリーやCDNは使用していません。JavaScriptとCSSはHTML内にあり、フォントは端末のシステムフォントを使用します。</p><h3>ライセンス</h3><p>立体グリグリ Vibe-Coded版は <a href="https://creativecommons.org/licenses/by/4.0/deed.ja" target="_blank" rel="noopener noreferrer">Creative Commons 表示 4.0 国際（CC BY 4.0）</a> で公開されています。営利・非営利を問わず利用、複製、改変、再配布できます。</p><ul><li>作者名「川俣 純」を表示する</li><li>CC BY 4.0とライセンスへのリンクを示す</li><li>改変した場合は変更したことを明示する</li><li>元からあるライセンス・クレジット表示を保持する</li><li>後続利用者の権利を妨げる追加的な制約を設けない</li></ul><p>ライセンスは無保証であり、第三者が持つ著作権・商標権・特許権・肖像権など、すべての権利を許諾するものではありません。</p><h3>公開サイトについて</h3><p>GitHub Pagesで開いた場合、アプリ本体と起動画像はGitHubから配信され、GitHubがセキュリティ目的で訪問者のIPアドレスを記録することがあります。詳しくは <a href="https://docs.github.com/ja/pages/getting-started-with-github-pages/what-is-github-pages" target="_blank" rel="noopener noreferrer">GitHub Pagesの説明</a> と <a href="https://docs.github.com/ja/pages/getting-started-with-github-pages/github-pages-limits" target="_blank" rel="noopener noreferrer">利用条件・上限</a> を確認してください。</p><div id="externalInfoNote">確認対象：立体グリグリ V1.19。ここでいう「外部通信なし」はアプリのコードが行う通信についての説明であり、ブラウザー拡張機能やホスティング事業者のサーバーログは含みません。</div><button id="externalInfoClose" type="button">閉じる</button></div></div><div id="stlTimeoutOverlay"><div id="stlTimeoutBox"><div id="stlTimeoutMessage">読み込みと表示に時間がかかりすぎるので、この立体は読み込めません。</div><button id="stlTimeoutBack" type="button">戻る</button></div></div></div>
+</div><div id="confirmOverlay"><div id="confirmBox"><div id="confirmMessage">本当に消しますか？</div><div class="buttons"><button id="confirmYes" type="button">はい</button><button id="confirmNo" type="button">いいえ</button></div></div></div><div id="aboutOverlay"><div id="aboutBox"><div id="aboutText"><p>「立体グリグリ」は、第三角法による正投影図の学習のために、1996年頃に川俣純がMS-DOS上で動作するアプリケーションとして開発しました。このバージョンは、バイブコーディングにて30年後の2026年5月にChatGPT5.5と共に制作したものです。CC BYとしますので、ユーザーの判断にて自由に改変してご活用いただいて問題ありません。</p><p>STLファイルを読み込めるようにしてみました。ただし、STLファイルを作成することはできません。TinkercadなどのツールでSTLファイルを作成し、そのファイルを読み込ませてみてください。隠れ線の表示などもほぼできます。</p><p style="text-align:right;margin-top:1.2em">2026年5月　川俣　純</p></div><button id="aboutClose" type="button">閉じる</button></div></div>
+<div id="externalInfoOverlay" role="dialog" aria-modal="true" aria-labelledby="externalInfoTitle">
+  <div id="externalInfoBox" tabindex="-1">
+    <h2 id="externalInfoTitle">外部通信・データ・ライセンス</h2>
+    <div id="externalInfoSummary">この版は、外部Web API・公開CSV／JSON・CDN・アクセス解析・広告へ自動アクセスしません。通信先と適用条件を以下に一覧で示します。</div>
+    <h3>通信先と利用条件の一覧</h3>
+    <div id="externalInfoTableWrap">
+      <table id="externalInfoTable">
+        <thead><tr><th scope="col">区分</th><th scope="col">アクセス先</th><th scope="col">通信・取得内容</th><th scope="col">ライセンス／利用条件</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">外部Web API・公開CSV／JSON</th><td class="externalInfoNone">なし</td><td>アクセスしません。</td><td>該当なし</td></tr>
+          <tr><th scope="row">CDN・外部ライブラリー</th><td class="externalInfoNone">なし</td><td>外部のJavaScript、CSS、Webフォントを読み込みません。プログラムとCSSはHTML内にあり、端末のシステムフォントを使用します。</td><td>該当なし</td></tr>
+          <tr><th scope="row">アプリ本体・起動画像の配信</th><td>ローカル利用時：同じフォルダ<br>公開版：<a href="https://jkawamata.github.io/rittai-guriguri-ipad/" target="_blank" rel="noopener noreferrer">jkawamata.github.io</a></td><td>公開版を開いたときに、同じ公開元から <code>index.html</code> と <code>title.png</code> を取得します。ローカルファイルとして開く場合、インターネット通信はありません。</td><td>アプリの内容はCC BY 4.0。Web配信には<a href="https://docs.github.com/ja/pages/getting-started-with-github-pages/what-is-github-pages" target="_blank" rel="noopener noreferrer">GitHub Pages</a>、<a href="https://docs.github.com/ja/site-policy/github-terms/github-terms-of-service" target="_blank" rel="noopener noreferrer">GitHub利用規約</a>、<a href="https://docs.github.com/ja/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener noreferrer">プライバシー・ステートメント</a>が適用されます。</td></tr>
+          <tr><th scope="row">起動用・内蔵STL</th><td class="externalInfoNone">外部アクセスなし</td><td>起動用STLと26個の内蔵STLはHTML内から読み出します。</td><td>個別の表示がないものは、アプリの配布物としてCC BY 4.0の条件に従います。</td></tr>
+          <tr><th scope="row">利用者が選んだファイル</th><td class="externalInfoNone">外部送信先なし</td><td>GRI・TXT・STLを端末内で読み込み、外部へアップロードしません。</td><td>ファイルの権利と利用条件は、そのファイルの権利者・利用者が管理します。</td></tr>
+          <tr><th scope="row">この説明内の外部リンク</th><td><a href="https://creativecommons.org/licenses/by/4.0/deed.ja" target="_blank" rel="noopener noreferrer">creativecommons.org</a><br><a href="https://docs.github.com/ja/" target="_blank" rel="noopener noreferrer">docs.github.com</a></td><td>利用者がリンクを押したときだけ、説明ページを開くために通信します。リンク先からプログラムやデータを取り込みません。</td><td>各リンク先サイトの利用条件が適用されます。CC BYのリンクは、このアプリのライセンス条件を確認するためのものです。</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>立体グリグリのライセンス</h3>
+    <p>立体グリグリ Vibe-Coded版は <a href="https://creativecommons.org/licenses/by/4.0/deed.ja" target="_blank" rel="noopener noreferrer">Creative Commons 表示 4.0 国際（CC BY 4.0）</a> で公開されています。営利・非営利を問わず、利用・複製・改変・再配布できます。</p>
+    <ul><li>作者名「川俣 純」を表示する</li><li>CC BY 4.0とライセンスへのリンクを示す</li><li>改変した場合は変更したことを明示する</li><li>後続利用者の権利を妨げる追加的な制約を設けない</li></ul>
+    <p>ライセンスは無保証であり、第三者が持つ著作権・商標権・特許権・肖像権など、すべての権利を許諾するものではありません。</p>
+    <div id="externalInfoNote">確認対象：立体グリグリ V1.20。ここでいう通信はアプリのコードが行うものです。ブラウザー拡張機能、OS、通信事業者、ホスティング事業者のサーバーログは含みません。</div>
+    <button id="externalInfoClose" type="button">閉じる</button>
+  </div>
+</div>
+<div id="stlTimeoutOverlay"><div id="stlTimeoutBox"><div id="stlTimeoutMessage">読み込みと表示に時間がかかりすぎるので、この立体は読み込めません。</div><button id="stlTimeoutBack" type="button">戻る</button></div></div></div>
 </div>
 <script>
 'use strict';
@@ -4375,7 +4411,7 @@ appTitle.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();sho
 appTitle.addEventListener('touchstart',e=>{e.preventDefault();e.stopPropagation();showAppAbout();},{passive:false});
 aboutClose.addEventListener('click',closeAppAbout);
 aboutOverlay.addEventListener('click',e=>{if(e.target===aboutOverlay)closeAppAbout();});
-// V1.19: 外部通信・データ・ライセンス情報を文字リンク風のボタンから確認できるようにする。
+// V1.20: 通信先・取得内容・適用条件を一覧で確認できるようにする。
 function showExternalInfo(){
   closeEmbeddedStlPopup();
   externalInfoOverlay.style.display='flex';
